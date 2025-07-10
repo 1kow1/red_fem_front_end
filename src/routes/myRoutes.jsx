@@ -1,10 +1,15 @@
 import { Route, Routes } from 'react-router';
 import Login from '../pages/login';
+import Layout from "../components/Layout";
+import Consultas from '../pages/Consultas';
 
-const AppRoutes = () => {
+function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path='/login' element={<Login/>} />
+      <Route path='/' element={<Layout/>}>
+        <Route path='/consultas' element={<Consultas/>}/>
+      </Route>
     </Routes>
   )
 }
