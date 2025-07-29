@@ -3,7 +3,7 @@ import Sidebar from './Sidebar'
 
 function Wrapper({ children }){
   return <>
-    <div className='py-5 px-16'>
+    <div className='py-5 px-16 w-full'>
       {children}
     </div>
   </>

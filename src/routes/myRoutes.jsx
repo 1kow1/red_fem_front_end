@@ -7,9 +7,13 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path='/login' element={<Login/>} />
+      
       <Route path='/' element={<Layout/>}>
         <Route path='/consultas' element={<Consultas/>}/>
+        <Route path='/formularios' element={<Consultas/>}/>
+        <Route path='/pacientes' element={<Consultas/>}/>
       </Route>
+    
     </Routes>
   )
 }
