@@ -19,7 +19,349 @@ const data = [
     nome: 'Ezequiel',
     idade: 50,
     cargo: 'Professor'
-  }
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'jfkdnr34i9',
+    nome: 'Idomar',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'dfsmreu390',
+    nome: 'Diolete',
+    idade: 50,
+    cargo: 'Professor'
+  },
+  {
+    id: 'j49003jja',
+    nome: 'Ezequiel',
+    idade: 50,
+    cargo: 'Professor'
+  },
 ]
 
 export function TableDumb({ data, className }) {
@@ -55,13 +397,13 @@ export function TableDumb({ data, className }) {
   }
 
   return (
-    <div className={`rounded-md border-2 ${className}`}>
+    <div className={`rounded-sm border-2 ${className}`}>
       <table className="w-full">
         <thead className="">
           {headers.map((header) => (
             (header=='id')?<></>:
             <th key={header} className={`${(typeof data[0][header] == "number") ? "text-center " : "text-left "}
-              bg-redfemDarkWhite font-medium px-2 py-1 rounded-md
+              bg-redfemDarkWhite font-medium px-2 py-1 rounded-sm
             `}>
               {formatHeader(header)}
             </th>

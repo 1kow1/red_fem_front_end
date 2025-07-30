@@ -63,7 +63,7 @@ export function SettingsIcon() {
 export function UserIcon() {
   return <>
     <svg className="place-self-center" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <mask id="mask0_360_795" style={{"maskType":"luminance"}} maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+      <mask id="mask0_360_795" style={{ "maskType": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
         <path d="M20 0H0V20H20V0Z" fill="white" />
       </mask>
       <g mask="url(#mask0_360_795)">
@@ -81,6 +81,64 @@ export function HelpIcon() {
       <path d="M11.0002 19.2502C15.5566 19.2502 19.2502 15.5566 19.2502 11.0002C19.2502 6.44389 15.5566 2.75024 11.0002 2.75024C6.44389 2.75024 2.75024 6.44389 2.75024 11.0002C2.75024 15.5566 6.44389 19.2502 11.0002 19.2502Z" stroke="currentColor" stroke-width="1.49357" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M11 15.5833V15.5907" stroke="currentColor" stroke-width="1.49357" stroke-linecap="round" stroke-linejoin="round" />
       <path d="M10.9998 12.3746C10.983 12.077 11.0632 11.782 11.2286 11.534C11.3939 11.286 11.6353 11.0985 11.9165 10.9996C12.2611 10.8678 12.5703 10.6579 12.8199 10.3863C13.0696 10.1147 13.2527 9.78887 13.3551 9.43445C13.4574 9.08004 13.476 8.70672 13.4095 8.34388C13.343 7.98103 13.1932 7.63858 12.9719 7.34347C12.7505 7.04836 12.4637 6.80866 12.134 6.64323C11.8043 6.4778 11.4407 6.39117 11.0718 6.39015C10.7029 6.38912 10.3389 6.47374 10.0082 6.63734C9.6776 6.80093 9.38947 7.03904 9.1665 7.33292" stroke="currentColor" stroke-width="1.49357" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </>
+}
+
+export function SearchIcon() {
+  return <>
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g clip-path="url(#clip0_387_141)">
+        <mask id="mask0_387_141" style={{ "mask-type": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="14" height="14">
+          <path d="M14 0H0V14H14V0Z" fill="white" />
+        </mask>
+        <g mask="url(#mask0_387_141)">
+          <path d="M6.70817 12.6876C3.41234 12.6876 0.729004 10.0042 0.729004 6.70842C0.729004 3.41258 3.41234 0.729248 6.70817 0.729248C10.004 0.729248 12.6873 3.41258 12.6873 6.70842C12.6873 10.0042 10.004 12.6876 6.70817 12.6876ZM6.70817 1.60425C3.89067 1.60425 1.604 3.89675 1.604 6.70842C1.604 9.52008 3.89067 11.8126 6.70817 11.8126C9.52567 11.8126 11.8123 9.52008 11.8123 6.70842C11.8123 3.89675 9.52567 1.60425 6.70817 1.60425Z" fill="#A3A3A3" />
+          <path d="M12.8332 13.2707C12.7223 13.2707 12.6115 13.2298 12.524 13.1423L11.3573 11.9757C11.1882 11.8065 11.1882 11.5265 11.3573 11.3573C11.5265 11.1882 11.8065 11.1882 11.9757 11.3573L13.1423 12.524C13.3115 12.6932 13.3115 12.9732 13.1423 13.1423C13.0548 13.2298 12.944 13.2707 12.8332 13.2707Z" fill="#A3A3A3" />
+        </g>
+      </g>
+      <defs>
+        <clipPath id="clip0_387_141">
+          <rect width="14" height="14" fill="white" />
+        </clipPath>
+      </defs>
+    </svg>
+  </>
+}
+
+export function FilterIcon() {
+  return <>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g clip-path="url(#clip0_391_150)">
+        <mask id="mask0_391_150" style={{ "mask-type": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+          <path d="M20 0H0V20H20V0Z" fill="white" />
+        </mask>
+        <g mask="url(#mask0_391_150)">
+          <path d="M9.11634 18.8745C8.71634 18.8745 8.32467 18.7745 7.95801 18.5745C7.22467 18.1662 6.78301 17.4245 6.78301 16.5912V12.1745C6.78301 11.7578 6.50801 11.1328 6.24967 10.8162L3.13301 7.51618C2.60801 6.99118 2.20801 6.09118 2.20801 5.41618V3.49951C2.20801 2.16618 3.21634 1.12451 4.49967 1.12451H15.4997C16.7663 1.12451 17.7913 2.14951 17.7913 3.41618V5.24951C17.7913 6.12451 17.2663 7.11618 16.7747 7.60785L13.1663 10.7995C12.8163 11.0912 12.5413 11.7328 12.5413 12.2495V15.8328C12.5413 16.5745 12.0747 17.4328 11.4913 17.7828L10.3413 18.5245C9.96634 18.7578 9.54134 18.8745 9.11634 18.8745ZM4.49967 2.37451C3.91634 2.37451 3.45801 2.86618 3.45801 3.49951V5.41618C3.45801 5.72451 3.70801 6.32451 4.02467 6.64118L7.19967 9.98284C7.62467 10.5078 8.04134 11.3828 8.04134 12.1662V16.5828C8.04134 17.1245 8.41634 17.3912 8.57467 17.4745C8.92467 17.6662 9.34968 17.6662 9.67467 17.4662L10.833 16.7245C11.0663 16.5828 11.2997 16.1328 11.2997 15.8328V12.2495C11.2997 11.3578 11.733 10.3745 12.358 9.8495L15.9247 6.69118C16.208 6.40785 16.5497 5.73285 16.5497 5.24118V3.41618C16.5497 2.84118 16.083 2.37451 15.508 2.37451H4.49967Z" fill="currentColor" />
+          <path d="M4.99957 8.95767C4.8829 8.95767 4.77457 8.92433 4.66623 8.866C4.37457 8.68267 4.2829 8.29099 4.46624 7.99932L8.57455 1.41599C8.75788 1.12432 9.14122 1.03266 9.43288 1.21599C9.72455 1.39932 9.81622 1.78266 9.63289 2.07432L5.52457 8.65767C5.4079 8.84933 5.2079 8.95767 4.99957 8.95767Z" fill="currentColor" />
+        </g>
+      </g>
+      <defs>
+        <clipPath id="clip0_391_150">
+          <rect width="20" height="20" fill="white" />
+        </clipPath>
+      </defs>
+    </svg>
+
+  </>
+}
+
+export function AddIcon() {
+  return <>
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <mask id="mask0_391_1119" style={{"mask-type":"luminance"}} maskUnits="userSpaceOnUse" x="0" y="0" width="14" height="14">
+        <path d="M14 0H0V14H14V0Z" fill="white" />
+      </mask>
+      <g mask="url(#mask0_391_1119)">
+        <path d="M7.00033 12.8334C10.2087 12.8334 12.8337 10.2084 12.8337 7.00008C12.8337 3.79175 10.2087 1.16675 7.00033 1.16675C3.79199 1.16675 1.16699 3.79175 1.16699 7.00008C1.16699 10.2084 3.79199 12.8334 7.00033 12.8334Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M4.66699 7H9.33366" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M7 9.33341V4.66675" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </g>
     </svg>
   </>
 }

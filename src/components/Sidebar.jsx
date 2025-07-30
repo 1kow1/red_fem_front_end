@@ -21,7 +21,7 @@ function PageLink({ href, text, children }) {
 
 export default function Sidebar() {
   return <>
-    <div className="px-3 py-4 w-60 h-screen max-h-screen border-r-2 border-slate-200
+    <div className="fixed px-3 py-4 w-60 h-screen max-h-screen border-r-2 border-slate-200
       flex flex-col justify-between">
       <div className="flex flex-col gap-8 w-max">
         <Logo />
