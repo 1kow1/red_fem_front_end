@@ -40,7 +40,7 @@ export default function Table({ data, className }) {
           {headers.map((header) => (
             (header=='id')?<></>:
             <th key={header} className={`${(typeof data[0][header] == "number") ? "text-center " : "text-left "}
-              bg-redfemDarkWhite font-medium px-2 py-1 rounded-sm
+            bg-gray-100 font-bold text-base px-2 py-1
             `}>
               {formatHeader(header)}
             </th>

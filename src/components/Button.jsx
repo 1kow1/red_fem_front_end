@@ -1,22 +1,24 @@
-export function ButtonPrimary({children, className, onClick}){
+export function ButtonPrimary({children, className, ...props}){
   return <>
-    <button className={`px-4 py-2 h-fit rounded-lg bg-redfemActionPink text-white
+    <button
+    {...props} 
+    className={`px-4 py-2 h-fit rounded-lg bg-redfemActionPink text-white
         hover:bg-redfemPink active:bg-redfemDarkPink whitespace-nowrap
         flex gap-2 items-center 
         ${className || ""}`}
-      onClick={onClick}
     >
       {children}
     </button>
   </>
 }
 
-export function ButtonSecondary({children, className, onClick}){
+export function ButtonSecondary({children, className,...props}){
   return <>
-    <button className={`px-4 py-2 h-fit rounded-lg bg-redfemLighterGray
+    <button 
+    {...props} 
+    className={`px-4 py-2 h-fit rounded-lg bg-redfemLighterGray
         hover:bg-redfemLightGray active:bg-redfemGray
         ${className || ""}`}
-      onClick={onClick}
     >
       {children}
     </button>

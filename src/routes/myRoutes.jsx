@@ -4,6 +4,7 @@ import Layout from "../components/Layout";
 import Consultas from '../pages/Consultas';
 import Pacientes from '../pages/Pacientes';
 import Formularios from '../pages/Formularios';
+import Usuarios from '../pages/Usuarios';
 
 function AppRoutes() {
   return (
@@ -14,6 +15,7 @@ function AppRoutes() {
         <Route path='/consultas' element={<Consultas/>}/>
         <Route path='/formularios' element={<Formularios/>}/>
         <Route path='/pacientes' element={<Pacientes/>}/>
+        <Route path='/usuarios' element={<Usuarios/>}/>
       </Route>
     
     </Routes>
