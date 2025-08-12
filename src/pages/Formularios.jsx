@@ -1,6 +1,6 @@
 import DataFrame from "../components/DataFrame"
 
-export default function Consultas() {
+export default function Formularios() {
 
   const filterQuery = (paciente, searchQuery) => {
     const removeAccents = (string) => {
@@ -13,9 +13,9 @@ export default function Consultas() {
 
   return <>
     <div>
-      <h1 className="text-lg mb-4">Consultas</h1>
+      <h1 className="text-lg mb-4">Formulários</h1>
       <DataFrame
-        addLabel="Nova Consulta"
+        addLabel="Novo Formulário"
         filterQuery={filterQuery}
       />
     </div>

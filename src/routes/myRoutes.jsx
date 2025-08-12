@@ -2,6 +2,8 @@ import { Route, Routes } from 'react-router';
 import Login from '../pages/login';
 import Layout from "../components/Layout";
 import Consultas from '../pages/Consultas';
+import Pacientes from '../pages/Pacientes';
+import Formularios from '../pages/Formularios';
 
 function AppRoutes() {
   return (
@@ -10,8 +12,8 @@ function AppRoutes() {
       
       <Route path='/' element={<Layout/>}>
         <Route path='/consultas' element={<Consultas/>}/>
-        <Route path='/formularios' element={<Consultas/>}/>
-        <Route path='/pacientes' element={<Consultas/>}/>
+        <Route path='/formularios' element={<Formularios/>}/>
+        <Route path='/pacientes' element={<Pacientes/>}/>
       </Route>
     
     </Routes>

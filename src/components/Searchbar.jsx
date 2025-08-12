@@ -1,10 +1,7 @@
-/* eslint-disable no-empty-pattern */
-import { useState } from "react"
 import { SearchIcon, FilterIcon } from "./Icons"
-import { ButtonPrimary, ButtonSecondary } from "./Button"
+import { ButtonSecondary } from "./Button"
 
-export default function Searchbar({ }) {
-  const [searchQuery, setSearchQuery] = useState("")
+export default function Searchbar({searchQuery, setSearchQuery, fetchData}) {
 
   return <>
     <div className="flex gap-2 mb-4 items-center w-full">
@@ -32,7 +29,8 @@ export default function Searchbar({ }) {
           )} */}
         </button>
       </div>
-      <ButtonSecondary>
+      
+      <ButtonSecondary onClick={fetchData}>
         Procurar
       </ButtonSecondary>
     </div>
