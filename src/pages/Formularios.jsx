@@ -15,7 +15,7 @@ export default function Formularios() {
     <div>
       <h1 className="text-lg mb-4">Formulários</h1>
       <DataFrame
-        addLabel="Novo Formulário"
+        title="Formulário"
         filterQuery={filterQuery}
       />
     </div>

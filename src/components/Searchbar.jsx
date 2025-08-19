@@ -1,7 +1,7 @@
 import { SearchIcon, FilterIcon } from "./Icons"
 import { ButtonSecondary } from "./Button"
 
-export default function Searchbar({searchQuery, setSearchQuery, fetchData}) {
+export default function Searchbar({placeholder, searchQuery, setSearchQuery, fetchData}) {
 
   return <>
     <div className="flex gap-2 mb-4 items-center w-full">
@@ -11,7 +11,7 @@ export default function Searchbar({searchQuery, setSearchQuery, fetchData}) {
         </div>
         <input
           type="text"
-          placeholder="Pesquise em Consultas"
+          placeholder={`Pesquise em ${placeholder}`}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-10 pr-5 py-2 w-full border-2 rounded-lg outline-redfemPink"

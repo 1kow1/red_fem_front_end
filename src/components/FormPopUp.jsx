@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ButtonPrimary, ButtonSecondary } from "./Button"
 
 export default function FormularioPopUp({
   isOpen,
@@ -84,19 +85,12 @@ export default function FormularioPopUp({
 
           {/* Botões de Ação */}
           <div className="flex justify-end gap-4 mt-8">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-            >
+            <ButtonSecondary onClick={onClose}> 
               Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600"
-            >
+            </ButtonSecondary>
+            <ButtonPrimary onClick={onSubmit}> 
               {submitText}
-            </button>
+            </ButtonPrimary>
           </div>
         </form>
       </div>

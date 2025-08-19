@@ -15,7 +15,7 @@ export default function Pacientes() {
     <div>
       <h1 className="text-lg mb-4">Pacientes</h1>
       <DataFrame
-        addLabel="Novo Paciente"
+        title="Paciente"
         filterQuery={filterQuery}
       />
     </div>

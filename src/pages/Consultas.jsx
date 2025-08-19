@@ -15,7 +15,7 @@ export default function Consultas() {
     <div>
       <h1 className="text-lg mb-4">Consultas</h1>
       <DataFrame
-        addLabel="Nova Consulta"
+        title="Consulta"
         filterQuery={filterQuery}
       />
     </div>

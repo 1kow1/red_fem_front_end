@@ -13,24 +13,16 @@ export default function LoginPage() {
   };
 
   return (
-    // --- CONTAINER PRINCIPAL (A ÂNCORA) ---
-    // Ocupa a tela toda e serve como ponto de referência para os elementos 'absolute'.
     <div className="relative w-screen h-screen bg-gray-50">
 
-      {/* --- CAMADA 1: IMAGEM DE FUNDO --- */}
-      {/* Posicionada de forma absoluta para preencher todo o container pai. */}
       <img
         src={logoBackground}
         alt="Arte de fundo"
         className="absolute inset-0 w-full h-full object-cover"
       />
 
-      {/* --- CAMADA 2: CONTEÚDO (FORMULÁRIO) --- */}
-      {/* Este div ocupa toda a tela, fica na frente da imagem (z-10)
-          e usa flex para posicionar o cartão de login à direita e ao centro. */}
       <div className="relative z-10 w-full h-full flex items-center justify-end pr-8 sm:pr-16 lg:pr-24">
         
-        {/* O CARTÃO DE LOGIN EM SI */}
         <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-sm">
           <div className="flex flex-col items-center mb-8">
             <img src={logoClinica} alt="Clínica Solidária" className="h-10 mb-2" />
