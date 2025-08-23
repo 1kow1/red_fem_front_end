@@ -1,4 +1,6 @@
 import DataFrame from "../components/DataFrame"
+import { testData } from '../data/testData';
+import { formConfigs } from '../configs/formConfigs';
 
 export default function Pacientes() {
 
@@ -6,9 +8,19 @@ export default function Pacientes() {
     const removeAccents = (string) => {
       return string.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     }
-    return removeAccents(paciente.nome).includes(
+    
+    // Busca no nome, CPF ou email
+    const nomeMatch = removeAccents(paciente.nome || "").includes(
       removeAccents(searchQuery)
-    )
+    );
+    
+    const cpfMatch = (paciente.cpf || "").includes(searchQuery);
+    
+    const emailMatch = removeAccents(paciente.email || "").includes(
+      removeAccents(searchQuery)
+    );
+    
+    return nomeMatch || cpfMatch || emailMatch;
   }
 
   return <>
@@ -17,6 +29,9 @@ export default function Pacientes() {
       <DataFrame
         title="Paciente"
         filterQuery={filterQuery}
+        data={testData.pacientes}
+        dataType="pacientes"
+        formFields={formConfigs.pacientes}
       />
     </div>
   </>

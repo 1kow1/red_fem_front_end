@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import logoClinica from '../assets/logos/rosa-rfcc.png';
 import logoKow from '../assets/logos/logoKow.jpg';
 import logoBackground from '../assets/logos/Component 1.svg';
+import { ButtonPrimary } from '../components/Button';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -58,12 +59,12 @@ export default function LoginPage() {
               </a>
             </div>
 
-            <button
+            <ButtonPrimary
               type="submit"
-              className="w-full mt-6 bg-pink-500 text-white font-bold py-3 rounded-md hover:bg-pink-600 transition-colors"
+              className="w-full mt-6 font-bold py-3 rounded-md hover:bg-pink-600 transition-colors flex items-center justify-center"
             >
               Entrar
-            </button>
+            </ButtonPrimary>
           </form>
 
           <div className="text-center text-xs text-gray-400 mt-8 flex items-center justify-center gap-2">

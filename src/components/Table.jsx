@@ -1,12 +1,26 @@
 /* eslint-disable no-unused-vars */
-import { Link } from "react-router-dom"
+import { useState } from "react";
+import DetailsPopup from "./DetailsPopup.jsx";
+import { popupConfigs } from "../configs/detailsConfigs.js";
 
-export default function Table({ data, className }) {
+export default function Table({ 
+  data, 
+  className, 
+  dataType = "generic",
+  disablePopup = false,
+  statusConfig = null // Nova prop para configuração de status
+}) {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [selectedRowData, setSelectedRowData] = useState(null);
+  const [popupConfig, setPopupConfig] = useState({});
+
   if (!data || data.length === 0) {
     return <div className="text-center py-8 text-muted-foreground">No data available</div>
   }
 
-  const headers = Object.keys(data[0])
+ const headers = Object.keys(data[0]).filter(
+  (key) => !Array.isArray(data[0][key]) // remove arrays como "formularios"
+  );
 
   const formatHeader = (key) => {
     return key
@@ -16,13 +30,25 @@ export default function Table({ data, className }) {
       .trim()
   }
 
-  const formatCellValue = (value) => {
+  const formatCellValue = (value, key = null) => {
     if (value === null || value === undefined) {
       return "-"
     }
-    if (typeof value === "boolean") {
-      return value ? "Yes" : "No"
+
+    // Formatação especial para status se configuração fornecida
+    if (key === 'status' && statusConfig && statusConfig[value]) {
+      return (
+        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+          statusConfig[value].className || 'bg-gray-100 text-gray-800'
+        }`}>
+          <div className={`w-2 h-2 rounded-full ${
+            statusConfig[value].dotColor || 'bg-gray-500'
+          }`}></div>
+          {value}
+        </span>
+      );
     }
+
     if (typeof value === "object") {
       return JSON.stringify(value)
     }
@@ -30,44 +56,84 @@ export default function Table({ data, className }) {
   }
 
   const handleRowClick = (row, index) => {
-    window.location.href = `${window.location.href}/${row.id}`
+    if (disablePopup) return;
+
+    console.log("🔍 Row clicked:", row);
+    console.log("📋 Data type:", dataType);
+    
+    // Pega a configuração baseada no tipo de dados
+    const configGenerator = popupConfigs[dataType];
+    
+    if (!configGenerator) {
+      console.error(`Configuração não encontrada para tipo: ${dataType}`);
+      console.log("Tipos disponíveis:", Object.keys(popupConfigs));
+      return;
+    }
+
+    try {
+      const config = configGenerator.getConfig(row);
+      console.log("Config gerada:", config);
+      
+      setSelectedRowData(row);
+      setPopupConfig(config);
+      setIsPopupOpen(true);
+    } catch (error) {
+      console.error("Erro ao gerar configuração:", error);
+    }
+  }
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedRowData(null);
+    setPopupConfig({});
   }
 
   return (
-    <div className={`rounded-sm border-2 ${className}`}>
-      <table className="w-full">
-        <thead className="">
-          {headers.map((header) => (
-            (header=='id')?<></>:
-            <th key={header} className={`${(typeof data[0][header] == "number") ? "text-center " : "text-left "}
-            bg-gray-100 font-bold text-base px-2 py-1
-            `}>
-              {formatHeader(header)}
-            </th>
-          ))}
-        </thead>
-        <tbody>
-          {data.map((row, index) => (
-            <tr
-              key={index}
-              className="hover:bg-redfemHoverPink"
-              onClick={() => handleRowClick(row, index)}
-              role='button'
-            >
-              {headers.map((header) => (
-                (header=='id')?<></>:
-                <td className={
-                  `${(typeof row[header] == "number") ? "text-center " : " "}
-                  p-2 border-t-2
-                  `
-                } key={`${index}-${header}`}>
-                  {formatCellValue(row[header])}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <>
+      <div className={`rounded-sm border-2 ${className}`}>
+        <table className="w-full">
+          <thead className="">
+            {headers.map((header) => (
+              (header=='id')?<></>:
+              <th key={header} className={`${(typeof data[0][header] == "number") ? "text-center " : "text-left "}
+              bg-gray-100 font-bold text-base px-2 py-1
+              `}>
+                {formatHeader(header)}
+              </th>
+            ))}
+          </thead>
+          <tbody>
+            {data.map((row, index) => (
+              <tr
+                key={index}
+                className={`${!disablePopup ? 'hover:bg-redfemHoverPink cursor-pointer' : ''}`}
+                onClick={() => handleRowClick(row, index)}
+                role={!disablePopup ? 'button' : undefined}
+              >
+                {headers.map((header) => (
+                  (header=='id')?<></>:
+                  <td className={
+                    `${(typeof row[header] == "number") ? "text-center " : " "}
+                    p-2 border-t-2
+                    `
+                  } key={`${index}-${header}`}>
+                    {formatCellValue(row[header], header)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {!disablePopup && (
+        <DetailsPopup
+          isOpen={isPopupOpen}
+          onClose={handleClosePopup}
+          data={selectedRowData}
+          config={popupConfig}
+        />
+      )}
+    </>
   )
 }

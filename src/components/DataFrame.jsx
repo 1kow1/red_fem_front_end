@@ -1,86 +1,57 @@
-import Table from "../components/table"
+import Table from "../components/Table"
 import Searchbar from "../components/Searchbar"
 import { ButtonPrimary } from "../components/Button"
 import { AddIcon } from "../components/Icons"
 import { useState, useEffect } from "react"
 import FormPopUp from "../components/FormPopUp";
-import { data } from "./usuarios"
 
-export default function DataFrame({title = "", filterQuery}) {
+export default function DataFrame({ 
+  title = "", 
+  filterQuery, 
+  data,           // recebe os dados como prop
+  dataType,       // tipo de dados para o popup
+  formFields      // campos do formulário
+}) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [results, setResults] = useState(data)
+  const [results, setResults] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // TODO: Não sei ainda onde guardar os tipos de campos de cada página pro formulario
-  const camposFormularioUsuario = [
-    {
-      name: "nome",
-      label: "Nome",
-      type: "text",
-      placeholder: "Insira o Nome",
-    },
-    {
-      name: "email",
-      label: "E-mail",
-      type: "email",
-      placeholder: "email@email.com",
-    },
-    {
-      name: "telefone",
-      label: "Telefone",
-      type: "tel",
-      placeholder: "(42) 9 9999-9999",
-    },
-    {
-      name: "cargo",
-      label: "Cargo",
-      type: "select",
-      placeholder: "Insira o cargo",
-      options: [
-        { value: "admin", label: "Administrador" },
-        { value: "medico", label: "Médico" },
-        { value: "secretaria", label: "Secretaria" },
-      ],
-    },
-    {
-      name: "senha",
-      label: "Senha",
-      type: "password",
-      placeholder: "************",
-    },
-    {
-      name: "confirmarSenha",
-      label: "Confirmar Senha",
-      type: "password",
-      placeholder: "************",
-    },
-  ];
-  
   const fetchData = () => {
-    // fetch("https://backend")
-    //   .then((response) => response.json)
-    //   .then((json) => {
-    //     const res = json.filter((item) => {
-    //       console.log(res)
-    //     })
-    //   })
+    if (!data) {
+      setResults([]);
+      return;
+    }
     
-    setResults(data.filter(d => filterQuery(d, searchQuery)))
+    if (!searchQuery.trim()) {
+      setResults(data);
+      return;
+    }
+    
+    const filteredData = data.filter(item => filterQuery(item, searchQuery));
+    setResults(filteredData);
   }
 
   useEffect(() => {
-    setResults(data)
-  }, [])
+    if (data && data.length > 0) {
+      setResults(data);
+    }
+  }, [data])
 
-  const handleCreateUser = (data) => {
-    console.log("Criar:", data);
+  useEffect(() => {
+    fetchData();
+  }, [searchQuery, data])
+
+  const handleCreate = (formData) => {
+    console.log(`Criar ${title}:`, formData);
+    // Aqui você pode adicionar a lógica para salvar os dados
+    // Por exemplo, fazer um POST para sua API
   };
 
   return <>
     <div>
       <div className="flex flex-row gap-2">
         <Searchbar
-          placeholder={title}
+          placeholder={`Buscar ${title.toLowerCase()}...`}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           fetchData={fetchData}
@@ -90,15 +61,24 @@ export default function DataFrame({title = "", filterQuery}) {
           Adicionar {title}
         </ButtonPrimary>
       </div>
-      <Table data={results} />
+      
+      {/* Passando dataType para o Table */}
+      <Table 
+        data={results} 
+        dataType={dataType}
+        className="mt-4"
+      />
     </div>
 
-    <FormPopUp  
+    {/* Formulário só renderiza se tiver campos definidos */}
+    {formFields && (
+      <FormPopUp  
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={`Formulário ${title}`}
-        fields={camposFormularioUsuario}
-        onSubmit={handleCreateUser}
+        fields={formFields}
+        onSubmit={handleCreate}
       />
+    )}
   </>
 }

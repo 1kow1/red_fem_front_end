@@ -1,14 +1,24 @@
 import DataFrame from "../components/DataFrame"
+import { testData } from '../data/testData';
+import { formConfigs } from '../configs/formConfigs';
 
 export default function Consultas() {
 
-  const filterQuery = (paciente, searchQuery) => {
+  const filterQuery = (consulta, searchQuery) => {
     const removeAccents = (string) => {
       return string.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     }
-    return removeAccents(paciente.nome).includes(
+    
+    // Busca no nome do paciente E no médico solicitante
+    const pacienteMatch = removeAccents(consulta.pacienteNome || "").includes(
       removeAccents(searchQuery)
-    )
+    );
+    
+    const medicoMatch = removeAccents(consulta.medicoSolicitante || "").includes(
+      removeAccents(searchQuery)
+    );
+    
+    return pacienteMatch || medicoMatch;
   }
 
   return <>
@@ -17,8 +27,10 @@ export default function Consultas() {
       <DataFrame
         title="Consulta"
         filterQuery={filterQuery}
+        data={testData.consultas}
+        dataType="consultas"
+        formFields={formConfigs.consultas}
       />
     </div>
   </>
 }
-

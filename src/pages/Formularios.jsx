@@ -1,14 +1,26 @@
 import DataFrame from "../components/DataFrame"
+import { testData } from '../data/testData';
 
 export default function Formularios() {
 
-  const filterQuery = (paciente, searchQuery) => {
+  const filterQuery = (formulario, searchQuery) => {
     const removeAccents = (string) => {
       return string.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     }
-    return removeAccents(paciente.nome).includes(
+    
+    const nomeMath = removeAccents(formulario.nome || "").includes(
       removeAccents(searchQuery)
-    )
+    );
+
+    const descricaoMatch = removeAccents(formulario.descricao || "").includes(
+      removeAccents(searchQuery)
+    );
+
+    const especialidadeMatch = removeAccents(formulario.especialidade || "").includes(
+      removeAccents(searchQuery)
+    );
+
+    return nomeMath || descricaoMatch || especialidadeMatch;
   }
 
   return <>
@@ -17,6 +29,8 @@ export default function Formularios() {
       <DataFrame
         title="Formulário"
         filterQuery={filterQuery}
+        data={testData.formularios}
+        dataType="formularios"
       />
     </div>
   </>
