@@ -177,7 +177,7 @@ export function DeleteIcon({ size = 24, className = "", ...props }) {
       className={className}
       {...props}
     >
-      <mask id="mask0_155_1165" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="25">
+      <mask id="mask0_155_1165" style={{ "mask-type": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="25">
         <path d="M24 0.333496H0V24.3335H24V0.333496Z" fill="white" />
       </mask>
       <g mask="url(#mask0_155_1165)">
@@ -189,4 +189,39 @@ export function DeleteIcon({ size = 24, className = "", ...props }) {
       </g>
     </svg>
   );
-} 
+}
+
+export function MoveUpIcon({ size = 24, className, ...props }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      {...props}
+    >
+      <path d="M10 0C4.49 0 0 4.49 0 10C0 15.51 4.49 20 10 20C15.51 20 20 15.51 20 10C20 4.49 15.51 0 10 0ZM14.06 11.79C13.91 11.94 13.72 12.01 13.53 12.01C13.34 12.01 13.15 11.94 13 11.79L10 8.79L7 11.79C6.71 12.08 6.23 12.08 5.94 11.79C5.65 11.5 5.65 11.02 5.94 10.73L9.47 7.2C9.76 6.91 10.24 6.91 10.53 7.2L14.06 10.73C14.35 11.03 14.35 11.5 14.06 11.79Z" fill="#FF2194" />
+    </svg>
+
+  );
+}
+
+export function MoveDownIcon({ size = 24, className, ...props }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      {...props}
+    >
+      <path d="M10 20.5C4.49 20.5 0 16.01 0 10.5C0 4.99 4.49 0.5 10 0.5C15.51 0.5 20 4.99 20 10.5C20 16.01 15.51 20.5 10 20.5ZM14.06 8.71C13.91 8.56 13.72 8.49 13.53 8.49C13.34 8.49 13.15 8.56 13 8.71L10 11.71L7 8.71C6.71 8.42 6.23 8.42 5.94 8.71C5.65 9 5.65 9.48 5.94 9.77L9.47 13.3C9.76 13.59 10.24 13.59 10.53 13.3L14.06 9.77C14.35 9.47 14.35 9 14.06 8.71Z" fill="#FF2194" />
+    </svg>
+
+
+  );
+}
