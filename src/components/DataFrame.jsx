@@ -10,7 +10,8 @@ export default function DataFrame({
   filterQuery, 
   data,           // recebe os dados como prop
   dataType,       // tipo de dados para o popup
-  formFields      // campos do formulário
+  formFields,      // campos do formulário
+  handleCreate     // qual metodo será utilizado post/put
 }) {
   const [searchQuery, setSearchQuery] = useState("")
   const [results, setResults] = useState([])
@@ -40,12 +41,6 @@ export default function DataFrame({
   useEffect(() => {
     fetchData();
   }, [searchQuery, data])
-
-  const handleCreate = (formData) => {
-    console.log(`Criar ${title}:`, formData);
-    // Aqui você pode adicionar a lógica para salvar os dados
-    // Por exemplo, fazer um POST para sua API
-  };
 
   return <>
     <div>

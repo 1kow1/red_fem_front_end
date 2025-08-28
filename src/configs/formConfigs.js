@@ -25,9 +25,10 @@ export const formConfigs = {
       type: "select",
       placeholder: "Selecione o cargo",
       options: [
-        { value: "secretaria", label: "Secretária" },
-        { value: "medico", label: "Médico" },
-        { value: "academico", label: "Acadêmico" }
+        { value: "Recepcionista", label: "Recepcionista" },
+        { value: "Médico", label: "Médico" },
+        { value: "Residente", label: "Residente" },
+        { value: "Acadêmico", label: "Acadêmico" }
       ],
     },
     {
@@ -36,12 +37,24 @@ export const formConfigs = {
       type: "select",
       placeholder: "Selecione a especialidade",
       options: [
-        { value: "pediatra", label: "Pediatra" },
-        { value: "ginecologista", label: "Ginecologista" },
-        { value: "cardiologista", label: "Cardiologista" },
-        { value: "dermatologista", label: "Dermatologista" },
-        { value: "ortopedista", label: "Ortopedista" }
-      ],
+        { value: "Ginecologia", label: "Ginecologia" },
+        { value: "Obstetrícia", label: "Obstetrícia" },
+        { value: "Mastologia", label: "Mastologia" },
+        { value: "Urologia", label: "Urologia" },
+        { value: "Endocrinologia", label: "Endocrinologia" },
+        { value: "Psicologia", label: "Psicologia" },
+        { value: "Psiquiatria", label: "Psiquiatria" },
+        { value: "Nutrição", label: "Nutrição" },
+        { value: "Fisioterapia", label: "Fisioterapia" },
+        { value: "Pediatria", label: "Pediatria" }
+      ]
+    } // isso aqui ta meio paia, tamo tendo que passar valor literal com maiscula e acentos igual ao que está no back...
+    ,
+    {
+      name: "crm",
+      label: "CRM",
+      type: "text",
+      placeholder: "Digite o CRM"
     },
     {
       name: "senha",
@@ -49,12 +62,12 @@ export const formConfigs = {
       type: "password",
       placeholder: "************",
     },
-    {
+    /*{
       name: "confirmarSenha",
       label: "Confirmar Senha",
       type: "password",
       placeholder: "************",
-    },
+    },*/
   ],
 
   // Formulário para PACIENTES
@@ -88,12 +101,6 @@ export const formConfigs = {
       label: "E-mail",
       type: "email",
       placeholder: "paciente@email.com",
-    },
-    {
-      name: "endereco",
-      label: "Endereço",
-      type: "text",
-      placeholder: "Rua, número, complemento",
     },
     {
       name: "cidade",
@@ -187,10 +194,9 @@ export const formConfigs = {
       type: "select",
       placeholder: "Selecione o status",
       options: [
-        { value: "agendada", label: "Agendada" },
-        { value: "confirmada", label: "Confirmada" },
         { value: "pendente", label: "Pendente" },
         { value: "cancelada", label: "Cancelada" },
+        { value: "finalizada", label: "Finalizada" }
       ],
     },
   ],
