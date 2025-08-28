@@ -40,8 +40,8 @@ export const popupConfigs = {
       ],
       actions: [
         {
-          label: "Cancelar",
-          variant: "danger",
+          label: "Deletar",
+          variant: "secondary",
           onClick: (data) => console.log("Cancelar consulta:", data)
         },
         {
@@ -62,12 +62,11 @@ export const popupConfigs = {
   // Nova configuração para formulários (será usada pela subtabela)
   formularios: {
     getConfig: (data) => ({
-      title: `Formulário ${data.nome}`,
+      title: data.nome,
       fields: [
         { label: "Nome", key: "nome" },
         { label: "Data do Preenchimento", key: "dataPreenchimento", type: "date" },
         { label: "Status", key: "status" },
-        { label: "Observações", key: "observacoes" }
       ],
       actions: [
         {
