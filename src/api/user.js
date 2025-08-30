@@ -5,15 +5,10 @@ import api from "../services/axios";
 
 // ------------- GET -------------
 
-export const getUsers = async (token, page = 0, size = 10) => {
+export const getUsers = async (buscaGenerica = "", page = 0, size = 10) => {
   try {
-    const headers = token
-      ? { Authorization: `Bearer ${token}` }
-      : {};
-
-    const response = await api.get(`/usuarios/listar`, {
-      headers,
-      params: { page, size },
+    const response = await api.get(`/usuarios/buscar`, {
+      params: { buscaGenerica, page, size },
     });
 
     return response.data;

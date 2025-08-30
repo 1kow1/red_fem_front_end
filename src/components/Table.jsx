@@ -57,9 +57,6 @@ export default function Table({
 
   const handleRowClick = (row, index) => {
     if (disablePopup) return;
-
-    console.log("🔍 Row clicked:", row);
-    console.log("📋 Data type:", dataType);
     
     // Pega a configuração baseada no tipo de dados
     const configGenerator = popupConfigs[dataType];

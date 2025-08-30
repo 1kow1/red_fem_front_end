@@ -4,47 +4,30 @@ import { formConfigs } from "../configs/formConfigs";
 import { getUsers } from "../api/user";
 import { createUser } from "../api/user";
 import { format, parseISO } from "date-fns";
+import { PaginationFooter } from "../components/PaginationFooter";
 
 export default function Usuarios() {
-  const filterQuery = (usuario, searchQuery) => {
-    const removeAccents = (string) =>
-      string
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-
-    const nomeMatch = removeAccents(usuario.nome || "").includes(
-      removeAccents(searchQuery)
-    );
-    const emailMatch = removeAccents(usuario.email || "").includes(
-      removeAccents(searchQuery)
-    );
-    const funcaoMatch = removeAccents(usuario.funcao || "").includes(
-      removeAccents(searchQuery)
-    );
-
-    return nomeMatch || emailMatch || funcaoMatch;
-  };
-
   const [users, setUsers] = useState([]);
   const [page, setPage] = useState(0);
-  const [size, setSize] = useState(10);
+  const [size, setSize] = useState(15);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchTriggered, setIsSearchTriggered] = useState(false);
+  
   const fetchUsers = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const data = await getUsers(null, page, size);
+      const data = await getUsers(searchQuery, page, size);
 
       const mapped = data.content.map((u) => ({
         ...u,
         ativo: u.ativo ? "Sim" : "Não",
-        dataCriacao: format(parseISO(u.dataCriacao), "dd/MM/yyyy hh:MM:ss"),
-        dataAtualizacao: format(parseISO(u.dataAtualizacao),"dd/MM/yyyy hh:MM:ss"),
+        dataCriacao: format(parseISO(u.dataCriacao), "dd/MM/yyyy HH:mm:ss"),
+        dataAtualizacao: format(parseISO(u.dataAtualizacao), "dd/MM/yyyy HH:mm:ss"),
       }));
 
       setUsers(mapped);
@@ -56,18 +39,31 @@ export default function Usuarios() {
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, [page, size]);
-
   const handleCreateUser = async (formData) => {
     try {
       await createUser(formData, null);
-      fetchUsers();               
+      fetchUsers();
     } catch (err) {
       console.error("Erro ao criar usuário:", err);
     }
   };
+
+  useEffect(() => {
+    if (!isSearchTriggered) {
+      fetchUsers();
+    }
+    setIsSearchTriggered(false);
+  }, [page, size]);
+  
+  // UseEffect para searchQuery
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsSearchTriggered(true)/
+      fetchUsers(true);
+    }, 500);
+  
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   return (
     <div>
@@ -78,25 +74,20 @@ export default function Usuarios() {
 
       <DataFrame
         title="Usuário"
-        filterQuery={filterQuery}
         data={users}
         dataType="usuarios"
         formFields={formConfigs.usuarios}
         handleCreate={handleCreateUser}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        fetchData={fetchUsers}
       />
 
-      {/* paginação bem simpleszinha */}
-      <div className="mt-4">
-        <button className="mr-2" disabled={page === 0}onClick={() => setPage(page - 1)}>
-          Anterior
-        </button>
-        <button className="mr-2"
-          disabled={page + 1 >= totalPages}
-          onClick={() => setPage(page + 1)}
-        >
-          Próxima
-        </button>
-      </div>
+      <PaginationFooter
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
     </div>
   );
 }
