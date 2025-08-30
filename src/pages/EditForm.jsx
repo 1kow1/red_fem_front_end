@@ -1,6 +1,9 @@
-import { ButtonPrimary, ButtonPrimaryDropdown, ButtonPrimaryIcon, ButtonSecondary } from "../components/Button";
+import { ButtonPrimary, ButtonPrimaryDropdown, IconButton, ButtonSecondary } from "../components/Button";
 import rosaLogo from '../assets/logos/rosa-rfcc.png';
-import { MoveUpIcon, MoveDownIcon } from "../components/Icons";
+import { MoveUpIcon, MoveDownIcon, AddIcon, DeleteIcon } from "../components/Icons";
+import Input from "../components/Input";
+import { useState } from "react";
+import { AnswerTexto, AnswerSimNao, AnswerMultipla, AnswerUnica } from "../components/Answer";
 
 function Headbar() {
   return <>
@@ -8,10 +11,10 @@ function Headbar() {
       shadow-md fixed bg-white w-full"
     >
       <div className="flex flex-row gap-2">
-        <img src={rosaLogo} alt="" className="h-8 mr-4 self-center"/>
+        <img src={rosaLogo} alt="" className="h-8 mr-4 self-center" />
         <ButtonPrimaryDropdown>Exportar Dados</ButtonPrimaryDropdown>
-        {/* <ButtonPrimaryIcon>Desfazer</ButtonPrimaryIcon>
-        <ButtonPrimaryIcon>Refazer</ButtonPrimaryIcon> */}
+        {/* <IconButton>Desfazer</IconButton>
+        <IconButton>Refazer</IconButton> */}
       </div>
       <div className="flex flex-row gap-2">
         <ButtonSecondary>Cancelar</ButtonSecondary>
@@ -21,7 +24,7 @@ function Headbar() {
   </>
 }
 
-function Card({children, className}){
+function Card({ children, className }) {
   return <>
     <div className={`border bg-white border-gray-300 rounded-lg shadow-md ${className}`}>
       {children}
@@ -29,36 +32,80 @@ function Card({children, className}){
   </>
 }
 
-// Here the user will create a new form, just like Google Forms
+function Question({ className }) {
+  const [questionType, setQuestionType] = useState("texto");
+  return <>
+    <Card className={`py-4 px-8 flex flex-col items-center ${className}`}>
+      <IconButton>
+        <MoveUpIcon className="text-redfemActionPink hover:text-redfemDarkPink" />
+      </IconButton>
+
+      <div className="w-full mb-4">
+        <div className="flex flex-row gap-5">
+          <Input type="text" placeholder="Pergunta" />
+          <select
+            className="
+              p-1 w-96 mb-4
+              border-b border-b-gray-950
+              focus:border-b-redfemActionPink focus:border-b-2
+              outline-none cursor-pointer custom-select"
+            value={questionType}
+            onChange={(e) => setQuestionType(e.target.value)}
+          >
+            <option value="texto">Texto</option>
+            <option value="sim_nao">Sim ou Não</option>
+            <option value="multipla_escolha">Múltipla Escolha</option>
+            <option value="selecao_unica">Seleção Única</option>
+          </select>
+        </div>
+
+        {questionType === "texto" && <AnswerTexto />}
+        {questionType === "sim_nao" && <AnswerSimNao />}
+        {questionType === "multipla_escolha" && <AnswerMultipla name="multipla" />}
+        {questionType === "selecao_unica" && <AnswerUnica name="unica" />}
+      </div>
+
+      <div className="w-full h-0 flex justify-end">
+        <IconButton>
+          <DeleteIcon className="hover:text-redfemActionPink text-gray-800" />
+        </IconButton>
+      </div>
+
+      <IconButton>
+        <MoveDownIcon className="text-redfemActionPink hover:text-redfemDarkPink" />
+      </IconButton>
+    </Card>
+  </>
+}
+
 export default function EditForm() {
   return (
     <div>
       <Headbar className="min-h-screen" />
-      <div className="pt-24 pb-4 px-80 bg-redfemDarkWhite min-h-screen">
+      <div className="pt-24 pb-4 px-80 bg-redfemVariantPink bg-opacity-10 min-h-screen">
         <div className="flex flex-col gap-4">
           <Card>
             <div className="bg-redfemDarkPink w-full h-2 rounded-t-lg"></div>
             <div className="py-4 px-8">
-              <input
+              <Input
                 type="text"
-                className="border-b border-b-gray-950 text-2xl
-                placeholder:text-gray-500 p-1 w-full mb-4 outline-none"
+                className="text-2xl"
                 placeholder="Nome do formulário"
               />
-              <input
+              <Input
                 type="text"
-                className="border-b border-b-gray-950
-                placeholder:text-gray-400 p-1 w-full mb-4 outline-none"
                 placeholder="Descrição do formulário"
               />
             </div>
           </Card>
-          <Card className="py-4 px-8 flex flex-col items-center">
-            <MoveUpIcon />
-            <div className="w-full">adkasdsalçdasklças</div>
-            <MoveDownIcon />
-          </Card>
-          <Card className="py-4 px-8">saldjksda</Card>
+
+          <Question>sasfds</Question>
+          <Question>dsadas</Question>
+
+          <ButtonPrimary className={"justify-center w-fit m-auto mt-4"}>
+            <AddIcon />
+            Adicionar Pergunta
+          </ButtonPrimary>
         </div>
       </div>
     </div>

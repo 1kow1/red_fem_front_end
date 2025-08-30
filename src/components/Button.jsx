@@ -5,6 +5,7 @@ export function ButtonPrimary({children, className, ...props}){
     className={`px-4 py-2 h-fit rounded-md bg-redfemActionPink text-white
         hover:bg-redfemPink active:bg-redfemDarkPink whitespace-nowrap
         flex gap-2 items-center 
+        disabled:bg-redfemLightGray
         ${className || ""}`}
     >
       {children}
@@ -18,7 +19,8 @@ export function ButtonPrimaryDropdown({children, className, ...props}){
     {...props} 
     className={`px-4 py-2 h-fit rounded-md bg-redfemActionPink text-white
         hover:bg-redfemPink active:bg-redfemDarkPink whitespace-nowrap
-        flex gap-2 items-center 
+        flex gap-2 items-center
+        disabled:bg-redfemLightGray
         ${className || ""}`}
     >
       {children}
@@ -26,14 +28,11 @@ export function ButtonPrimaryDropdown({children, className, ...props}){
   </>
 }
 
-export function ButtonPrimaryIcon({children, className, ...props}){
+export function IconButton({children, className, ...props}){
   return <>
     <button
     {...props} 
-    className={`px-4 py-2 h-fit rounded-md bg-redfemActionPink text-white
-        hover:bg-redfemPink active:bg-redfemDarkPink whitespace-nowrap
-        flex gap-2 items-center 
-        ${className || ""}`}
+    className={`${className || ""}`}
     >
       {children}
     </button>
@@ -45,7 +44,8 @@ export function ButtonSecondary({children, className,...props}){
     <button 
     {...props} 
     className={`px-4 py-2 h-fit rounded-md bg-gray-200 hover:bg-gray-300
-        ${className || ""}`}
+      disabled:bg-redfemLightGray disabled:text-white
+      ${className || ""}`}
     >
       {children}
     </button>
