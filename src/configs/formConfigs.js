@@ -29,7 +29,7 @@ export const formConfigs = {
         { value: "Médico", label: "Médico" },
         { value: "Residente", label: "Residente" },
         { value: "Acadêmico", label: "Acadêmico" }
-      ],
+      ]
     },
     {
       name: "especialidade",
@@ -47,27 +47,22 @@ export const formConfigs = {
         { value: "Nutrição", label: "Nutrição" },
         { value: "Fisioterapia", label: "Fisioterapia" },
         { value: "Pediatria", label: "Pediatria" }
-      ]
-    } // isso aqui ta meio paia, tamo tendo que passar valor literal com maiscula e acentos igual ao que está no back...
-    ,
+      ],
+      showIf: (formData) => ["Médico", "Residente", "Acadêmico"].includes(formData.cargo)
+    },
     {
       name: "crm",
       label: "CRM",
       type: "text",
-      placeholder: "Digite o CRM"
+      placeholder: "Digite o CRM",
+      showIf: (formData) => ["Médico", "Residente", "Acadêmico"].includes(formData.cargo)
     },
     {
       name: "senha",
       label: "Senha",
       type: "password",
       placeholder: "************",
-    },
-    /*{
-      name: "confirmarSenha",
-      label: "Confirmar Senha",
-      type: "password",
-      placeholder: "************",
-    },*/
+    }
   ],
 
   // Formulário para PACIENTES

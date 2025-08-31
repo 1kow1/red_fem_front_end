@@ -1,22 +1,23 @@
-import Table from "../components/Table"
-import Searchbar from "../components/Searchbar"
-import { ButtonPrimary } from "../components/Button"
-import { AddIcon } from "../components/Icons"
-import { useState } from "react"
-import FormPopUp from "../components/FormPopUp";
+// components/DataFrame.jsx
+import Table from "./Table"
+import Searchbar from "./Searchbar"
+import { ButtonPrimary } from "./Button"
+import { AddIcon } from "./Icons"
 
-export default function DataFrame({ 
-  title = "", 
-  data,           // recebe os dados como prop
-  dataType,       // tipo de dados para o popup
-  formFields,     // campos do formulário
-  handleCreate,   // função de criação
+export default function DataFrame({
+  title = "",
+  data,
+  dataType,
+  formFields,
+  // callbacks controlados pela página
+  onAddRow,     // chamado quando clicar em "Adicionar"
+  onEditRow,    // repassado ao Table/Details
+  onDeleteRow,
+  onReactivateRow,
   searchQuery,
   setSearchQuery,
-  fetchData       // função que chama a API
+  fetchData
 }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
     <>
       <div>
@@ -27,28 +28,22 @@ export default function DataFrame({
             setSearchQuery={setSearchQuery}
             fetchData={fetchData}
           />
-          <ButtonPrimary onClick={() => setIsModalOpen(true)}>
+          <ButtonPrimary onClick={() => onAddRow?.()}>
             <AddIcon />
             Adicionar {title}
           </ButtonPrimary>
         </div>
         
         <Table 
-          data={data} 
+          data={data}
           dataType={dataType}
           className="mt-4"
+          onEditRow={onEditRow}
+          onDeleteRow={onDeleteRow}
+          onReactivateRow={onReactivateRow}
+          formFields={formFields}
         />
       </div>
-
-      {formFields && (
-        <FormPopUp  
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title={`Formulário ${title}`}
-          fields={formFields}
-          onSubmit={handleCreate}
-        />
-      )}
     </>
   )
 }

@@ -1,5 +1,6 @@
 import { X, Trash2, Edit, Plus } from "lucide-react";
 import Table from "./Table";
+import FormPopUp from "../components/FormPopUp";
 
 export default function DetailsPopup({
   isOpen,

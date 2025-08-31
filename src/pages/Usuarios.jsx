@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
 import DataFrame from "../components/DataFrame";
+import FormPopUp from "../components/FormPopUp";
+import { useEffect, useState } from "react";
 import { formConfigs } from "../configs/formConfigs";
-import { getUsers } from "../api/user";
-import { createUser } from "../api/user";
-import { format, parseISO } from "date-fns";
+import { adaptUserForView, adaptUserForApi } from "../adapters/userAdapter";
+import { getUsers, createUser, editUser, toggleUser } from "../api/userAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
+
 
 export default function Usuarios() {
   const [users, setUsers] = useState([]);
@@ -14,21 +15,19 @@ export default function Usuarios() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchTriggered, setIsSearchTriggered] = useState(false);
-  
+
+  // modal control
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState("create"); // 'create' | 'edit'
+  const [editInitialData, setEditInitialData] = useState(null);
+
   const fetchUsers = async () => {
     try {
       setLoading(true);
       setError(null);
 
       const data = await getUsers(searchQuery, page, size);
-
-      const mapped = data.content.map((u) => ({
-        ...u,
-        ativo: u.ativo ? "Sim" : "Não",
-        dataCriacao: format(parseISO(u.dataCriacao), "dd/MM/yyyy HH:mm:ss"),
-        dataAtualizacao: format(parseISO(u.dataAtualizacao), "dd/MM/yyyy HH:mm:ss"),
-      }));
+      const mapped = data.content.map(adaptUserForView);
 
       setUsers(mapped);
       setTotalPages(data.totalPages);
@@ -39,29 +38,62 @@ export default function Usuarios() {
     }
   };
 
+  // CREATE
   const handleCreateUser = async (formData) => {
     try {
       await createUser(formData, null);
-      fetchUsers();
+      await fetchUsers();
+      setIsFormOpen(false);
     } catch (err) {
       console.error("Erro ao criar usuário:", err);
     }
   };
 
-  useEffect(() => {
-    if (!isSearchTriggered) {
-      fetchUsers();
-    }
-    setIsSearchTriggered(false);
-  }, [page, size]);
+  // EDIT
+  const handleEditUser = async (formData) => {
+    const payload = adaptUserForApi({ ...(editInitialData || {}), ...formData });
   
-  // UseEffect para searchQuery
+    await editUser(null, payload.id, payload);
+    await fetchUsers();
+    setIsFormOpen(false);
+    setEditInitialData(null);
+  };
+
+  // REATIVAR / DESATIVAR
+  const handleToggleActive = async (row) => {
+    console.log("ID: " +row.id);
+    try {
+      await toggleUser(null, row.id);
+      await fetchUsers();
+    } catch (err) {
+      console.error("Erro ao alternar status ativo:", err);
+    }
+  };
+
+  // abrir criação
+  const openCreateForm = () => {
+    setFormMode("create");
+    setEditInitialData(null);
+    setIsFormOpen(true);
+  };
+
+  // abrir edição // DataFrame -> Table -> DetailsPopup -> chama onEditRow
+  const openEditForm = (row) => {
+    setFormMode("edit");
+    setEditInitialData(row);
+    setIsFormOpen(true);
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [page, size]);
+
+  // debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsSearchTriggered(true)/
-      fetchUsers(true);
+      setPage(0);
+      fetchUsers();
     }, 500);
-  
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
@@ -77,16 +109,29 @@ export default function Usuarios() {
         data={users}
         dataType="usuarios"
         formFields={formConfigs.usuarios}
-        handleCreate={handleCreateUser}
+        // Passa TODOS os handlers pra DataFrame/Table
+        onAddRow={openCreateForm}
+        onEditRow={openEditForm}
+        onDeleteRow={handleToggleActive}
+        onReactivateRow={handleToggleActive}
+        fetchData={fetchUsers}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        fetchData={fetchUsers}
       />
 
       <PaginationFooter
         page={page}
         totalPages={totalPages}
         onPageChange={setPage}
+      />
+
+      <FormPopUp
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        title={formMode === "create" ? "Criar Usuário" : "Editar Usuário"}
+        fields={formConfigs.usuarios}
+        initialData={editInitialData}
+        onSubmit={formMode === "create" ? handleCreateUser : handleEditUser}
       />
     </div>
   );
