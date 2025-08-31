@@ -5,7 +5,7 @@ import Input from "../components/Input";
 import { useState } from "react";
 import { AnswerTexto, AnswerSimNao, AnswerMultipla, AnswerUnica } from "../components/Answer";
 
-function Headbar() {
+function Headbar({ onSave }) {
   return <>
     <div className="flex flex-row justify-between items-center p-4 border-b border-gray-300
       shadow-md fixed bg-white w-full"
@@ -18,7 +18,7 @@ function Headbar() {
       </div>
       <div className="flex flex-row gap-2">
         <ButtonSecondary>Cancelar</ButtonSecondary>
-        <ButtonPrimary>Salvar</ButtonPrimary>
+        <ButtonPrimary onClick={onSave}>Salvar</ButtonPrimary>
       </div>
     </div>
   </>
@@ -32,8 +32,8 @@ function Card({ children, className }) {
   </>
 }
 
-function Question({ className }) {
-  const [questionType, setQuestionType] = useState("texto");
+function Question({ className, type, onDelete }) {
+  const [questionType, setQuestionType] = useState(type);
   return <>
     <Card className={`py-4 px-8 flex flex-col items-center ${className}`}>
       <IconButton>
@@ -52,21 +52,21 @@ function Question({ className }) {
             value={questionType}
             onChange={(e) => setQuestionType(e.target.value)}
           >
-            <option value="texto">Texto</option>
-            <option value="sim_nao">Sim ou Não</option>
-            <option value="multipla_escolha">Múltipla Escolha</option>
-            <option value="selecao_unica">Seleção Única</option>
+            <option value="Textual">Texto</option>
+            <option value="Dicotomica">Sim ou Não</option>
+            <option value="Multipla_Escolha">Múltipla Escolha</option>
+            <option value="Selecao_Unica">Seleção Única</option>
           </select>
         </div>
 
-        {questionType === "texto" && <AnswerTexto />}
-        {questionType === "sim_nao" && <AnswerSimNao />}
-        {questionType === "multipla_escolha" && <AnswerMultipla name="multipla" />}
-        {questionType === "selecao_unica" && <AnswerUnica name="unica" />}
+        {questionType === "Textual" && <AnswerTexto />}
+        {questionType === "Dicotomica" && <AnswerSimNao />}
+        {questionType === "Multipla_Escolha" && <AnswerMultipla name="multipla" />}
+        {questionType === "Selecao_Unica" && <AnswerUnica name="unica" />}
       </div>
 
       <div className="w-full h-0 flex justify-end">
-        <IconButton>
+        <IconButton onClick={onDelete}>
           <DeleteIcon className="hover:text-redfemActionPink text-gray-800" />
         </IconButton>
       </div>
@@ -79,9 +79,36 @@ function Question({ className }) {
 }
 
 export default function EditForm() {
+  const [perguntas, setPerguntas] = useState({})
+  const [formularioVersaoAnteriorId, setFormularioVersaoAnteriorId] = useState(null)
+  const [nome, setNome] = useState('')
+  const [descricao, setDescricao] = useState('')
+  const [versao, setVersao] = useState(1)
+  const [numQuestions, setNumQuestions] = useState(0)
+
+  const onSave = () => {
+    console.log(perguntas)
+
+    const formData = {
+      formularioVersaoAnteriorId,
+      nome,
+      descricao,
+      versao,
+      perguntas
+    }
+    // Call the API to save the form data
+  }
+
+  const onDelete = (id) => {
+    const newPerguntas = { ...perguntas };
+    delete newPerguntas[id];
+    setPerguntas(newPerguntas);
+    setNumQuestions(numQuestions - 1);
+  }
+
   return (
     <div>
-      <Headbar className="min-h-screen" />
+      <Headbar className="min-h-screen" onSave={onSave} />
       <div className="pt-24 pb-4 px-80 bg-redfemVariantPink bg-opacity-10 min-h-screen">
         <div className="flex flex-col gap-4">
           <Card>
@@ -91,18 +118,37 @@ export default function EditForm() {
                 type="text"
                 className="text-2xl"
                 placeholder="Nome do formulário"
+                onChange={(e) => setNome(e.target.value)}
               />
               <Input
                 type="text"
                 placeholder="Descrição do formulário"
+                onChange={(e) => setDescricao(e.target.value)}
               />
             </div>
           </Card>
 
-          <Question>sasfds</Question>
-          <Question>dsadas</Question>
+          <div className="flex flex-col gap-4">
+            {Object.entries(perguntas).map(([id, pergunta]) => (
+              <Question key={id} type={pergunta.type} onDelete={() => onDelete(id)} />
+            ))}
+          </div>
 
-          <ButtonPrimary className={"justify-center w-fit m-auto mt-4"}>
+          <ButtonPrimary
+            className={"justify-center w-fit m-auto mt-4"}
+            onClick={() =>
+              {
+                setPerguntas({
+                  ...perguntas,
+                  [Date.now()]: {
+                    tipo: "Textual",
+                    posicao: numQuestions
+                  }
+                })
+                setNumQuestions(numQuestions + 1)
+              }
+            }
+          >
             <AddIcon />
             Adicionar Pergunta
           </ButtonPrimary>
