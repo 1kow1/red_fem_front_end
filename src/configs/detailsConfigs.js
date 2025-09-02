@@ -22,7 +22,7 @@ export const popupConfigs = {
         },
         {
           label: "Editar",
-          variant: "primary", 
+          variant: "primary",
           onClick: (data) => console.log("Editar paciente:", data)
         }
       ]
@@ -40,8 +40,8 @@ export const popupConfigs = {
       ],
       actions: [
         {
-          label: "Cancelar",
-          variant: "danger",
+          label: "Deletar",
+          variant: "secondary",
           onClick: (data) => console.log("Cancelar consulta:", data)
         },
         {
@@ -62,12 +62,11 @@ export const popupConfigs = {
   // Nova configuração para formulários (será usada pela subtabela)
   formularios: {
     getConfig: (data) => ({
-      title: `Formulário ${data.nome}`,
+      title: data.nome,
       fields: [
         { label: "Nome", key: "nome" },
         { label: "Data do Preenchimento", key: "dataPreenchimento", type: "date" },
         { label: "Status", key: "status" },
-        { label: "Observações", key: "observacoes" }
       ],
       actions: [
         {
@@ -85,33 +84,37 @@ export const popupConfigs = {
   },
 
   usuarios: {
-    getConfig: (data) => ({
-      title: data.nome,
-      fields: [
-        { label: "Email", key: "email" },
-        { label: "Cargo", key: "cargo" },
-        { label: "Especialidade", key: "especialidade" },
-        { label: "CRM", key: "crm" },
-        { label: "Ativo", key: "ativo" }
-      ],
-      actions: [
-        {
-          label: "Reativar",
-          variant: "secondary",
-          onClick: (data) => console.log("Reativar usuário:", data)
-        },
-        {
-          label: "Desativar",
-          variant: "secondary",
-          onClick: (data) => console.log("Desativar usuário:", data)
-        },
-        {
-          label: "Editar",
-          variant: "primary",
-          onClick: (data) => console.log("Editar:", data)
-        }
-      ]
-    })
+    getConfig: (data, callbacks = {}) => {
+      const isActive = data.ativo === true || data.ativo === "Sim";
+      return {
+        title: data.nome,
+        fields: [
+          { label: "Email", key: "email" },
+          { label: "Cargo", key: "cargo" },
+          { label: "Especialidade", key: "especialidade" },
+          { label: "CRM", key: "crm" },
+          { label: "Ativo", key: "ativo" }
+        ],
+        actions: [
+          {
+            label: isActive ? "Desativar" : "Reativar",
+            variant: "secondary",
+            onClick: () => {
+              if (isActive) {
+                callbacks.onDeleteUser?.(data);
+              } else {
+                callbacks.onReactivateUser?.(data);
+              }
+            }
+          },
+          {
+            label: "Editar",
+            variant: "primary",
+            onClick: () => callbacks.onEditUser?.(data)
+          }
+        ]
+      };
+    }
   },
 
   // Configuração GENÉRICA (fallback)
