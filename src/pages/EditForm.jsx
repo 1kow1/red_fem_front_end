@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { ButtonPrimary, ButtonPrimaryDropdown, IconButton, ButtonSecondary } from "../components/Button";
 import rosaLogo from '../assets/logos/rosa-rfcc.png';
 import { MoveUpIcon, MoveDownIcon, AddIcon, DeleteIcon } from "../components/Icons";
@@ -32,11 +33,12 @@ function Card({ children, className }) {
   </>
 }
 
-function Question({ className, type, onDelete }) {
-  const [questionType, setQuestionType] = useState(type);
+function Question({ className, tipo, onDelete, onMoveUp, onMoveDown }) {
+  const [questionType, setQuestionType] = useState(tipo || "Textual");
+
   return <>
     <Card className={`py-4 px-8 flex flex-col items-center ${className}`}>
-      <IconButton>
+      <IconButton onClick={onMoveUp}>
         <MoveUpIcon className="text-redfemActionPink hover:text-redfemDarkPink" />
       </IconButton>
 
@@ -49,7 +51,7 @@ function Question({ className, type, onDelete }) {
               border-b border-b-gray-950
               focus:border-b-redfemActionPink focus:border-b-2
               outline-none cursor-pointer custom-select"
-            value={questionType}
+            value={questionType || "Textual"}
             onChange={(e) => setQuestionType(e.target.value)}
           >
             <option value="Textual">Texto</option>
@@ -71,7 +73,7 @@ function Question({ className, type, onDelete }) {
         </IconButton>
       </div>
 
-      <IconButton>
+      <IconButton onClick={onMoveDown}>
         <MoveDownIcon className="text-redfemActionPink hover:text-redfemDarkPink" />
       </IconButton>
     </Card>
@@ -79,31 +81,65 @@ function Question({ className, type, onDelete }) {
 }
 
 export default function EditForm() {
-  const [perguntas, setPerguntas] = useState({})
+  const [formulario, setFormulario] = useState({ perguntas: [] })
   const [formularioVersaoAnteriorId, setFormularioVersaoAnteriorId] = useState(null)
-  const [nome, setNome] = useState('')
-  const [descricao, setDescricao] = useState('')
-  const [versao, setVersao] = useState(1)
   const [numQuestions, setNumQuestions] = useState(0)
+  const [titulo, setTitulo] = useState(formulario.titulo || "")
+  const [descricao, setDescricao] = useState(formulario.descricao || "")
 
   const onSave = () => {
-    console.log(perguntas)
+    console.log(formulario)
 
-    const formData = {
-      formularioVersaoAnteriorId,
-      nome,
-      descricao,
-      versao,
-      perguntas
-    }
-    // Call the API to save the form data
+
   }
 
+  const reorderPerguntas = (newPerguntas) => {
+    const sortedIds = Object.keys(newPerguntas).sort((a, b) => newPerguntas[a].posicao - newPerguntas[b].posicao);
+    sortedIds.forEach((id, idx) => {
+      newPerguntas[id].posicao = idx;
+    });
+
+    setFormulario({
+      ...formulario,
+      perguntas: newPerguntas
+    });
+  };
+
   const onDelete = (id) => {
-    const newPerguntas = { ...perguntas };
-    delete newPerguntas[id];
-    setPerguntas(newPerguntas);
-    setNumQuestions(numQuestions - 1);
+    const newPerguntas = { ...formulario.perguntas }
+    delete newPerguntas[id]
+
+    reorderPerguntas(newPerguntas)
+
+    setNumQuestions(numQuestions - 1)
+  }
+
+  const onMoveUp = (id) => {
+    const newPerguntas = { ...formulario.perguntas }
+    const currentPos = newPerguntas[id].posicao
+
+    if (currentPos > 0) {
+      const previousPos = Object.keys(newPerguntas).find(key => newPerguntas[key].posicao === currentPos - 1)
+
+      newPerguntas[id].posicao = currentPos - 1
+      newPerguntas[previousPos].posicao = currentPos
+
+      reorderPerguntas(newPerguntas)
+    }
+  }
+
+  const onMoveDown = (id) => {
+    const newPerguntas = { ...formulario.perguntas }
+    const currentPos = newPerguntas[id].posicao
+
+    const nextPos = Object.keys(newPerguntas).find(key => newPerguntas[key].posicao === currentPos + 1)
+
+    if (nextPos) {
+      newPerguntas[id].posicao = currentPos + 1
+      newPerguntas[nextPos].posicao = currentPos
+
+      reorderPerguntas(newPerguntas)
+    }
   }
 
   return (
@@ -118,7 +154,7 @@ export default function EditForm() {
                 type="text"
                 className="text-2xl"
                 placeholder="Nome do formulário"
-                onChange={(e) => setNome(e.target.value)}
+                onChange={(e) => setTitulo(e.target.value)}
               />
               <Input
                 type="text"
@@ -129,24 +165,34 @@ export default function EditForm() {
           </Card>
 
           <div className="flex flex-col gap-4">
-            {Object.entries(perguntas).map(([id, pergunta]) => (
-              <Question key={id} type={pergunta.type} onDelete={() => onDelete(id)} />
-            ))}
+            {Object.entries(formulario.perguntas)
+              .sort(([, a], [, b]) => a.posicao - b.posicao)
+              .map(([id]) => (
+                <Question
+                  key={id}
+                  type={formulario.perguntas[id].tipo}
+                  onDelete={() => onDelete(id)}
+                  onMoveUp={() => onMoveUp(id)}
+                  onMoveDown={() => onMoveDown(id)}
+                />
+              ))}
           </div>
 
           <ButtonPrimary
             className={"justify-center w-fit m-auto mt-4"}
-            onClick={() =>
-              {
-                setPerguntas({
-                  ...perguntas,
+            onClick={() => {
+              setFormulario({
+                ...formulario,
+                perguntas: {
+                  ...formulario.perguntas,
                   [Date.now()]: {
                     tipo: "Textual",
                     posicao: numQuestions
                   }
-                })
-                setNumQuestions(numQuestions + 1)
-              }
+                }
+              })
+              setNumQuestions(numQuestions + 1)
+            }
             }
           >
             <AddIcon />
