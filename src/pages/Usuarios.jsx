@@ -5,7 +5,7 @@ import { formConfigs } from "../configs/formConfigs";
 import { adaptUserForView, adaptUserForApi } from "../adapters/userAdapter";
 import { getUsers, createUser, editUser, toggleUser } from "../api/userAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
-
+import { userSchema } from "../validation/validationSchemas";
 
 export default function Usuarios() {
   const [users, setUsers] = useState([]);
@@ -15,10 +15,11 @@ export default function Usuarios() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  
 
   // modal control
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState("create"); // 'create' | 'edit'
+  const [formMode, setFormMode] = useState("create"); // create | edit
   const [editInitialData, setEditInitialData] = useState(null);
 
   const fetchUsers = async () => {
@@ -41,11 +42,16 @@ export default function Usuarios() {
   // CREATE
   const handleCreateUser = async (formData) => {
     try {
+      await userSchema.validate(formData, { abortEarly : false});
       await createUser(formData, null);
       await fetchUsers();
       setIsFormOpen(false);
     } catch (err) {
-      console.error("Erro ao criar usuário:", err);
+      const errors = {};
+      err.inner.forEach((e) => {
+        errors[e.path] = e.message;
+      });
+      console.log("Erros de validação ao criar usuário:", errors);
     }
   };
 
