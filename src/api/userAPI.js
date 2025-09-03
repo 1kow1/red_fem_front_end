@@ -1,5 +1,12 @@
 import api from "../services/axios";
 
+// used to clear empty fields
+export const cleanPayload = (data) => {
+  return Object.fromEntries(
+    Object.entries(data).filter(([_, v]) => v !== "" && v !== undefined)
+  );
+};
+
 // ------------- GET -------------
 export const getUsers = async (buscaGenerica = "", page = 0, size = 10) => {
   try {
@@ -14,7 +21,7 @@ export const getUsers = async (buscaGenerica = "", page = 0, size = 10) => {
 export const createUser = async (data, token) => {
   try {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const response = await api.post("/usuarios", data, { headers });
+    const response = await api.post("/usuarios", cleanPayload(data), { headers });
     return response.data;
   } catch (error) {
     throw new Error("Failed to create user: " + error);
