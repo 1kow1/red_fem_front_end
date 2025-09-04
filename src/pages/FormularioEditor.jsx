@@ -4,6 +4,7 @@ import rosaLogo from '../assets/logos/rosa-rfcc.png';
 import { ButtonPrimary, ButtonPrimaryDropdown, IconButton, ButtonSecondary } from "../components/Button";
 import { XIcon, MoveUpIcon, MoveDownIcon, AddIcon, DeleteIcon } from "../components/Icons";
 import Input from "../components/Input";
+import { createForm } from "../api/formApi";
 
 function Card({ children, className }) {
   return (
@@ -25,8 +26,8 @@ export default function FormularioEditor() {
   const tiposPergunta = [
     { value: 'Textual', label: 'Texto' },
     { value: 'Dicotomica', label: 'Sim/Não' },
-    { value: 'Multipla_Escolha', label: 'Múltipla Escolha' },
-    { value: 'Selecao_Unica', label: 'Seleção Única' }
+    { value: 'Multipla Escolha', label: 'Múltipla Escolha' },
+    { value: 'Selecao Unica', label: 'Seleção Única' }
   ]
 
   const setTitulo = (value) => {
@@ -58,9 +59,6 @@ export default function FormularioEditor() {
   }
 
   const onDeletePergunta = (perguntaId) => {
-    console.log(perguntaId)
-    console.log(formulario.perguntas.filter(pergunta => pergunta.id !== perguntaId))
-
     setFormulario(prev => ({
       ...prev,
       perguntas: prev.perguntas.filter(pergunta => pergunta.id !== perguntaId)
@@ -154,6 +152,7 @@ export default function FormularioEditor() {
 
   const checkFormulario = () => {
     const novosErros = {}
+    const novosErrosGeral = []
 
     formulario.perguntas.forEach((pergunta, index) => {
       const errosPergunta = []
@@ -166,7 +165,7 @@ export default function FormularioEditor() {
         errosPergunta.push('Tipo da pergunta é obrigatório.')
       }
 
-      if (pergunta.tipo === 'Multipla_Escolha' || pergunta.tipo === 'Selecao_Unica') {
+      if (pergunta.tipo === 'Multipla Escolha' || pergunta.tipo === 'Selecao Unica') {
         const alternativasValidas = pergunta.alternativas.filter(alt => alt.texto && alt.texto.trim() !== '')
         if (alternativasValidas.length < 2) {
           errosPergunta.push('Adicione pelo menos 2 alternativas válidas.')
@@ -179,16 +178,17 @@ export default function FormularioEditor() {
     })
 
     if (!formulario.titulo || formulario.titulo.trim() === '') {
-      setErrosGeral(prev => [...prev, 'Título do formulário é obrigatório.'])
+      novosErrosGeral.push('Título do formulário é obrigatório.')
     }
 
     if (formulario.perguntas.length === 0) {
-      setErrosGeral(prev => [...prev, 'Adicione pelo menos uma pergunta ao formulário.'])
+      novosErrosGeral.push('Adicione pelo menos uma pergunta ao formulário.')
     }
 
     setErros(novosErros)
-    console.log(novosErros)
-    return Object.keys(novosErros).length === 0 && errosGeral.length === 0
+    setErrosGeral(novosErrosGeral)
+
+    return Object.keys(novosErros).length === 0 && novosErrosGeral.length === 0
   }
 
   const setPerguntasPosicao = () => {
@@ -208,7 +208,7 @@ export default function FormularioEditor() {
           { id: 'Não', texto: 'Não' }
         ]
       }
-      else if (pergunta.tipo === 'Multipla_Escolha' || pergunta.tipo === 'Selecao_Unica') {
+      else if (pergunta.tipo === 'Multipla Escolha' || pergunta.tipo === 'Selecao Unica') {
         perguntaProcessada.alternativas = pergunta.alternativas.filter(alt =>
           alt.texto && alt.texto.trim() !== ''
         )
@@ -244,11 +244,22 @@ export default function FormularioEditor() {
       versao: 1,
       liberadoParaUso: true,
       editavel: true,
-      especialidadeId: 'Ginecológico',
+      especialidade: 'Ginecologia',
       medicoId: 'string'
     }
 
-    console.log('Formulário salvo:', formularioFinal)
+    handleCreateForm(formularioFinal)
+  }
+
+  const handleCreateForm = async (formularioFinal) => {
+    await createForm(formularioFinal, null)
+      .then(response => {
+        alert('Formulário salvo com sucesso!')
+      })
+      .catch(error => {
+        console.error('Erro ao salvar formulário:', error.response.data.message)
+        alert('Erro ao salvar formulário. Tente novamente.')
+      })
   }
 
   return (
@@ -377,8 +388,8 @@ export default function FormularioEditor() {
                     </div>
                   )}
 
-                  {(pergunta.tipo === "Multipla_Escolha" ||
-                    pergunta.tipo === "Selecao_Unica") && (
+                  {(pergunta.tipo === "Multipla Escolha" ||
+                    pergunta.tipo === "Selecao Unica") && (
                       <div className={`flex flex-col gap-2`}>
                         <div className="mb-2 pl-4">
 
@@ -387,7 +398,7 @@ export default function FormularioEditor() {
                               <div>
                                 <Input
                                   type={
-                                    pergunta.tipo === "Multipla_Escolha" ?
+                                    pergunta.tipo === "Multipla Escolha" ?
                                       "checkbox" : "radio"
                                   }
                                   disabled
