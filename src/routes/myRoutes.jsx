@@ -5,7 +5,7 @@ import Consultas from '../pages/Consultas';
 import Pacientes from '../pages/Pacientes';
 import Formularios from '../pages/Formularios';
 import Usuarios from '../pages/Usuarios';
-import EditForm from '../pages/EditForm';
+import FormularioEditor from '../pages/FormularioEditor';
 
 function AppRoutes() {
   return (
@@ -19,7 +19,7 @@ function AppRoutes() {
         <Route path='usuarios' element={<Usuarios/>}/>
       </Route>
 
-      <Route path='editform' element={<EditForm/>} />
+      <Route path='editform' element={<FormularioEditor/>} />
 
     </Routes>
   )

@@ -57,12 +57,6 @@ export const formConfigs = {
       placeholder: "Digite o CRM",
       showIf: (formData) => ["Médico", "Residente", "Acadêmico"].includes(formData.cargo)
     },
-    {
-      name: "senha",
-      label: "Senha",
-      type: "password",
-      placeholder: "************",
-    }
   ],
 
   // Formulário para PACIENTES

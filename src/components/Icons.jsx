@@ -1,3 +1,11 @@
+export function XIcon({ className }) {
+  return <>
+    <svg className={className} width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9.84459 0.333496L12 2.48891L10.8994 3.58955L8.17834 6.35643L10.8994 9.07745L12 10.1322L9.84459 12.3335L8.74395 11.2329L5.97707 8.46598L3.25605 11.2329L2.20127 12.3335L0 10.1322L1.10064 9.07745L3.86752 6.35643L1.10064 3.58955L0 2.48891L2.20127 0.333496L3.25605 1.43413L5.97707 4.15515L8.74395 1.43413L9.84459 0.333496Z" fill="currentColor" />
+    </svg>
+  </>
+}
+
 export function CalendarIcon() {
   return <>
     <svg className="place-self-center" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -53,8 +61,8 @@ export function SettingsIcon() {
         <path d="M20 0H0V20H20V0Z" fill="white" />
       </mask>
       <g mask="url(#mask0_360_786)">
-        <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61925 11.3807 7.5 10 7.5C8.61925 7.5 7.5 8.61925 7.5 10C7.5 11.3807 8.61925 12.5 10 12.5Z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M1.66675 10.7328V9.26617C1.66675 8.3995 2.37508 7.68287 3.25008 7.68287C4.75841 7.68287 5.37508 6.61621 4.61675 5.30787C4.18341 4.55787 4.44175 3.58287 5.20008 3.14954L6.64175 2.32454C7.30008 1.93287 8.15008 2.16621 8.54175 2.82454L8.63341 2.98287C9.38341 4.29121 10.6167 4.29121 11.3751 2.98287L11.4667 2.82454C11.8584 2.16621 12.7084 1.93287 13.3667 2.32454L14.8084 3.14954C15.5667 3.58287 15.8251 4.55787 15.3917 5.30787C14.6334 6.61621 15.2501 7.68287 16.7584 7.68287C17.6251 7.68287 18.3417 8.39117 18.3417 9.26617V10.7328C18.3417 11.5995 17.6334 12.3162 16.7584 12.3162C15.2501 12.3162 14.6334 13.3828 15.3917 14.6912C15.8251 15.4495 15.5667 16.4162 14.8084 16.8495L13.3667 17.6745C12.7084 18.0662 11.8584 17.8328 11.4667 17.1745L11.3751 17.0162C10.6251 15.7078 9.39175 15.7078 8.63341 17.0162L8.54175 17.1745C8.15008 17.8328 7.30008 18.0662 6.64175 17.6745L5.20008 16.8495C4.44175 16.4162 4.18341 15.4412 4.61675 14.6912C5.37508 13.3828 4.75841 12.3162 3.25008 12.3162C2.37508 12.3162 1.66675 11.5995 1.66675 10.7328Z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M10 12.5C11.3807 12.5 12.5 11.3807 12.5 10C12.5 8.61925 11.3807 7.5 10 7.5C8.61925 7.5 7.5 8.61925 7.5 10C7.5 11.3807 8.61925 12.5 10 12.5Z" stroke="currentColor" strokeWidth="1.5" stroke-miterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M1.66675 10.7328V9.26617C1.66675 8.3995 2.37508 7.68287 3.25008 7.68287C4.75841 7.68287 5.37508 6.61621 4.61675 5.30787C4.18341 4.55787 4.44175 3.58287 5.20008 3.14954L6.64175 2.32454C7.30008 1.93287 8.15008 2.16621 8.54175 2.82454L8.63341 2.98287C9.38341 4.29121 10.6167 4.29121 11.3751 2.98287L11.4667 2.82454C11.8584 2.16621 12.7084 1.93287 13.3667 2.32454L14.8084 3.14954C15.5667 3.58287 15.8251 4.55787 15.3917 5.30787C14.6334 6.61621 15.2501 7.68287 16.7584 7.68287C17.6251 7.68287 18.3417 8.39117 18.3417 9.26617V10.7328C18.3417 11.5995 17.6334 12.3162 16.7584 12.3162C15.2501 12.3162 14.6334 13.3828 15.3917 14.6912C15.8251 15.4495 15.5667 16.4162 14.8084 16.8495L13.3667 17.6745C12.7084 18.0662 11.8584 17.8328 11.4667 17.1745L11.3751 17.0162C10.6251 15.7078 9.39175 15.7078 8.63341 17.0162L8.54175 17.1745C8.15008 17.8328 7.30008 18.0662 6.64175 17.6745L5.20008 16.8495C4.44175 16.4162 4.18341 15.4412 4.61675 14.6912C5.37508 13.3828 4.75841 12.3162 3.25008 12.3162C2.37508 12.3162 1.66675 11.5995 1.66675 10.7328Z" stroke="currentColor" strokeWidth="1.5" stroke-miterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
       </g>
     </svg>
   </>
@@ -67,9 +75,9 @@ export function UserIcon() {
         <path d="M20 0H0V20H20V0Z" fill="white" />
       </mask>
       <g mask="url(#mask0_360_795)">
-        <path d="M10.1002 10.6505C10.0418 10.6422 9.96684 10.6422 9.90017 10.6505C8.4335 10.6005 7.26685 9.4005 7.26685 7.92547C7.26685 6.41714 8.4835 5.19214 10.0002 5.19214C11.5085 5.19214 12.7335 6.41714 12.7335 7.92547C12.7252 9.4005 11.5668 10.6005 10.1002 10.6505Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M15.6167 16.1498C14.1333 17.5081 12.1667 18.3331 9.99999 18.3331C7.8333 18.3331 5.86663 17.5081 4.3833 16.1498C4.46663 15.3665 4.96663 14.5998 5.8583 13.9998C8.14163 12.4831 11.875 12.4831 14.1417 13.9998C15.0333 14.5998 15.5333 15.3665 15.6167 16.1498Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M10.0001 18.3334C14.6024 18.3334 18.3334 14.6024 18.3334 10.0001C18.3334 5.39771 14.6024 1.66675 10.0001 1.66675C5.39771 1.66675 1.66675 5.39771 1.66675 10.0001C1.66675 14.6024 5.39771 18.3334 10.0001 18.3334Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M10.1002 10.6505C10.0418 10.6422 9.96684 10.6422 9.90017 10.6505C8.4335 10.6005 7.26685 9.4005 7.26685 7.92547C7.26685 6.41714 8.4835 5.19214 10.0002 5.19214C11.5085 5.19214 12.7335 6.41714 12.7335 7.92547C12.7252 9.4005 11.5668 10.6005 10.1002 10.6505Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M15.6167 16.1498C14.1333 17.5081 12.1667 18.3331 9.99999 18.3331C7.8333 18.3331 5.86663 17.5081 4.3833 16.1498C4.46663 15.3665 4.96663 14.5998 5.8583 13.9998C8.14163 12.4831 11.875 12.4831 14.1417 13.9998C15.0333 14.5998 15.5333 15.3665 15.6167 16.1498Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10.0001 18.3334C14.6024 18.3334 18.3334 14.6024 18.3334 10.0001C18.3334 5.39771 14.6024 1.66675 10.0001 1.66675C5.39771 1.66675 1.66675 5.39771 1.66675 10.0001C1.66675 14.6024 5.39771 18.3334 10.0001 18.3334Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </g>
     </svg>
   </>
@@ -78,9 +86,9 @@ export function UserIcon() {
 export function HelpIcon() {
   return <>
     <svg className="place-self-center" width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M11.0002 19.2502C15.5566 19.2502 19.2502 15.5566 19.2502 11.0002C19.2502 6.44389 15.5566 2.75024 11.0002 2.75024C6.44389 2.75024 2.75024 6.44389 2.75024 11.0002C2.75024 15.5566 6.44389 19.2502 11.0002 19.2502Z" stroke="currentColor" stroke-width="1.49357" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M11 15.5833V15.5907" stroke="currentColor" stroke-width="1.49357" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M10.9998 12.3746C10.983 12.077 11.0632 11.782 11.2286 11.534C11.3939 11.286 11.6353 11.0985 11.9165 10.9996C12.2611 10.8678 12.5703 10.6579 12.8199 10.3863C13.0696 10.1147 13.2527 9.78887 13.3551 9.43445C13.4574 9.08004 13.476 8.70672 13.4095 8.34388C13.343 7.98103 13.1932 7.63858 12.9719 7.34347C12.7505 7.04836 12.4637 6.80866 12.134 6.64323C11.8043 6.4778 11.4407 6.39117 11.0718 6.39015C10.7029 6.38912 10.3389 6.47374 10.0082 6.63734C9.6776 6.80093 9.38947 7.03904 9.1665 7.33292" stroke="currentColor" stroke-width="1.49357" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M11.0002 19.2502C15.5566 19.2502 19.2502 15.5566 19.2502 11.0002C19.2502 6.44389 15.5566 2.75024 11.0002 2.75024C6.44389 2.75024 2.75024 6.44389 2.75024 11.0002C2.75024 15.5566 6.44389 19.2502 11.0002 19.2502Z" stroke="currentColor" strokeWidth="1.49357" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M11 15.5833V15.5907" stroke="currentColor" strokeWidth="1.49357" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10.9998 12.3746C10.983 12.077 11.0632 11.782 11.2286 11.534C11.3939 11.286 11.6353 11.0985 11.9165 10.9996C12.2611 10.8678 12.5703 10.6579 12.8199 10.3863C13.0696 10.1147 13.2527 9.78887 13.3551 9.43445C13.4574 9.08004 13.476 8.70672 13.4095 8.34388C13.343 7.98103 13.1932 7.63858 12.9719 7.34347C12.7505 7.04836 12.4637 6.80866 12.134 6.64323C11.8043 6.4778 11.4407 6.39117 11.0718 6.39015C10.7029 6.38912 10.3389 6.47374 10.0082 6.63734C9.6776 6.80093 9.38947 7.03904 9.1665 7.33292" stroke="currentColor" strokeWidth="1.49357" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   </>
 }
@@ -89,7 +97,7 @@ export function SearchIcon() {
   return <>
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clip-path="url(#clip0_387_141)">
-        <mask id="mask0_387_141" style={{ "mask-type": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="14" height="14">
+        <mask id="mask0_387_141" style={{ "maskType": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="14" height="14">
           <path d="M14 0H0V14H14V0Z" fill="white" />
         </mask>
         <g mask="url(#mask0_387_141)">
@@ -110,7 +118,7 @@ export function FilterIcon() {
   return <>
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g clip-path="url(#clip0_391_150)">
-        <mask id="mask0_391_150" style={{ "mask-type": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+        <mask id="mask0_391_150" style={{ "maskType": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
           <path d="M20 0H0V20H20V0Z" fill="white" />
         </mask>
         <g mask="url(#mask0_391_150)">
@@ -138,13 +146,13 @@ export function AddIcon({ className }) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <mask id="mask0_391_1119" style={{ "mask-type": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="14" height="14">
+      <mask id="mask0_391_1119" style={{ "maskType": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="14" height="14">
         <path d="M14 0H0V14H14V0Z" fill="white" />
       </mask>
       <g mask="url(#mask0_391_1119)">
-        <path d="M7.00033 12.8334C10.2087 12.8334 12.8337 10.2084 12.8337 7.00008C12.8337 3.79175 10.2087 1.16675 7.00033 1.16675C3.79199 1.16675 1.16699 3.79175 1.16699 7.00008C1.16699 10.2084 3.79199 12.8334 7.00033 12.8334Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M4.66699 7H9.33366" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M7 9.33341V4.66675" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M7.00033 12.8334C10.2087 12.8334 12.8337 10.2084 12.8337 7.00008C12.8337 3.79175 10.2087 1.16675 7.00033 1.16675C3.79199 1.16675 1.16699 3.79175 1.16699 7.00008C1.16699 10.2084 3.79199 12.8334 7.00033 12.8334Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4.66699 7H9.33366" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M7 9.33341V4.66675" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </g>
     </svg>
   </>
@@ -184,7 +192,7 @@ export function DeleteIcon({ size = 24, className = "", ...props }) {
       className={className}
       {...props}
     >
-      <mask id="mask0_155_1165" style={{ "mask-type": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="25">
+      <mask id="mask0_155_1165" style={{ "maskType": "luminance" }} maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="25">
         <path d="M24 0.333496H0V24.3335H24V0.333496Z" fill="white" />
       </mask>
       <g mask="url(#mask0_155_1165)">
@@ -210,7 +218,7 @@ export function MoveUpIcon({ size = 24, className, ...props }) {
       {...props}
     >
       <path d="M10 0C4.49 0 0 4.49 0 10C0 15.51 4.49 20 10 20C15.51 20 20 15.51 20 10C20 4.49 15.51 0 10 0ZM14.06 11.79C13.91 11.94 13.72 12.01 13.53 12.01C13.34 12.01 13.15 11.94 13 11.79L10 8.79L7 11.79C6.71 12.08 6.23 12.08 5.94 11.79C5.65 11.5 5.65 11.02 5.94 10.73L9.47 7.2C9.76 6.91 10.24 6.91 10.53 7.2L14.06 10.73C14.35 11.03 14.35 11.5 14.06 11.79Z"
-      fill="currentColor"/>
+        fill="currentColor" />
     </svg>
   );
 }
@@ -227,7 +235,7 @@ export function MoveDownIcon({ size = 24, className, ...props }) {
       {...props}
     >
       <path d="M10 20.5C4.49 20.5 0 16.01 0 10.5C0 4.99 4.49 0.5 10 0.5C15.51 0.5 20 4.99 20 10.5C20 16.01 15.51 20.5 10 20.5ZM14.06 8.71C13.91 8.56 13.72 8.49 13.53 8.49C13.34 8.49 13.15 8.56 13 8.71L10 11.71L7 8.71C6.71 8.42 6.23 8.42 5.94 8.71C5.65 9 5.65 9.48 5.94 9.77L9.47 13.3C9.76 13.59 10.24 13.59 10.53 13.3L14.06 9.77C14.35 9.47 14.35 9 14.06 8.71Z"
-      fill="currentColor" />
+        fill="currentColor" />
     </svg>
 
 
