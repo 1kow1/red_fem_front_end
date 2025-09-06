@@ -1,20 +1,20 @@
 import Logo from "./Logo"
 import { Link } from "react-router-dom"
+import { NavLink } from "react-router-dom"
 import { CalendarIcon, FormIcon, HelpIcon, PacientIcon, SettingsIcon, UserIcon } from "./Icons"
 
-function PageLink({ href, text, children }) {
-  const pathname = window.location.pathname
+function PageLink({ to, text, children }) {
 
   return <>
     <li>
-      <Link
-        to={href}
-        className={((pathname == href) ? 'bg-redfemHoverPink' : '') +
+      <NavLink
+        to={to}
+        className={({ isActive }) => ((isActive) ? 'bg-redfemHoverPink' : '') +
           " px-2 py-1 flex gap-2 hover:bg-redfemHoverPink rounded-md hover-links"}
       >
         {children}
         <span className="">{text}</span>
-      </Link>
+      </NavLink>
     </li>
   </>
 }
@@ -28,13 +28,13 @@ export default function Sidebar() {
 
         <div>
           <ul className="flex flex-col gap-1">
-            <PageLink href={'/consultas'} text={'Consultas'}>
+            <PageLink to={'/consultas'} text={'Consultas'}>
               <CalendarIcon color={'black'} />
             </PageLink>
-            <PageLink href={'/formularios'} text={'Formulários'}>
+            <PageLink to={'/formularios'} text={'Formulários'}>
               <FormIcon color={'black'} />
             </PageLink>
-            <PageLink href={'/pacientes'} text={'Pacientes'}>
+            <PageLink to={'/pacientes'} text={'Pacientes'}>
               <PacientIcon color={'black'} />
             </PageLink>
           </ul>
@@ -44,13 +44,13 @@ export default function Sidebar() {
       <div>
         <hr className="pb-1" />
         <ul className="flex flex-col gap-1">
-          <PageLink href={'/configuracoes'} text={'Configurações'}>
+          <PageLink to={'/configuracoes'} text={'Configurações'}>
             <SettingsIcon color={'black'} />
           </PageLink>
-          <PageLink href={'/usuarios'} text={'Usuário'}>
+          <PageLink to={'/usuarios'} text={'Usuário'}>
             <UserIcon color={'black'} />
           </PageLink>
-          <PageLink href={'/ajuda'} text={'Ajuda'}>
+          <PageLink to={'/ajuda'} text={'Ajuda'}>
             <HelpIcon color={'black'} />
           </PageLink>
         </ul>

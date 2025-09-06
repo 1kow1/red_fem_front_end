@@ -2,6 +2,7 @@ import { SearchIcon, FilterIcon } from "./Icons"
 import { ButtonSecondary } from "./Button"
 
 export default function Searchbar({placeholder, searchQuery, setSearchQuery, fetchData}) {
+
   return <>
     <div className="flex gap-2 mb-4 items-center w-full">
       <div className="relative flex-1">

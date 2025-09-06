@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
 import { useEffect, useState } from "react";

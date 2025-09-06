@@ -57,18 +57,6 @@ export const formConfigs = {
       placeholder: "CRM/PR 123456",
       showIf: (formData) => ["Médico", "Residente", "Acadêmico"].includes(formData.cargo)
     },
-    {
-      name: "senha",
-      label: "Senha",
-      type: "password",
-      placeholder: "************",
-    },
-    {
-      name: "confirmarSenha",
-      label: "Confirmar Senha",
-      type: "password",
-      placeholder: "************",
-    }
   ],
 
   // Formulário para PACIENTES

@@ -5,6 +5,7 @@ import Consultas from '../pages/Consultas';
 import Pacientes from '../pages/Pacientes';
 import Formularios from '../pages/Formularios';
 import Usuarios from '../pages/Usuarios';
+import FormularioEditor from '../pages/FormularioEditor';
 
 function AppRoutes() {
   return (
@@ -12,12 +13,14 @@ function AppRoutes() {
       <Route path='/login' element={<Login/>} />
       
       <Route path='/' element={<Layout/>}>
-        <Route path='/consultas' element={<Consultas/>}/>
-        <Route path='/formularios' element={<Formularios/>}/>
-        <Route path='/pacientes' element={<Pacientes/>}/>
-        <Route path='/usuarios' element={<Usuarios/>}/>
+        <Route path='consultas' element={<Consultas/>}/>
+        <Route path='formularios' element={<Formularios/>}/>
+        <Route path='pacientes' element={<Pacientes/>}/>
+        <Route path='usuarios' element={<Usuarios/>}/>
       </Route>
-    
+
+      <Route path='editform' element={<FormularioEditor/>} />
+
     </Routes>
   )
 }
