@@ -1,67 +1,52 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { ButtonPrimary, ButtonSecondary } from "./Button";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 export default function FormularioPopUp({
   isOpen,
   onClose,
   title,
-  fields = [], // [{ name, label, type, placeholder, options, default }]
+  fields = [], // [{ name, label, type, placeholder, options, default, showIf }]
   onSubmit, // função assíncrona: (formData) => Promise
   submitText = "Salvar",
   initialData = {},
-  closeOnSubmit = false, // se true, o próprio componente chama onClose() após onSubmit
+  closeOnSubmit = false,
+  validationSchema, // 🔥 novo: passar o schema Yup
 }) {
-  const [formData, setFormData] = useState({});
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: validationSchema ? yupResolver(validationSchema) : undefined,
+    defaultValues: initialData,
+  });
 
+  // resetar os valores quando abrir/editar
   useEffect(() => {
-    if (!isOpen) return;
-    const initialState = fields.reduce((acc, field) => {
-      const name = field.name;
-      acc[name] =
-        initialData && initialData[name] !== undefined
-          ? initialData[name]
-          : field.default ?? "";
-      return acc;
-    }, {});
-    setFormData(initialState);
-  }, [fields, initialData, isOpen]);
+    if (isOpen) {
+      reset(initialData);
+    }
+  }, [isOpen, initialData, reset]);
 
-  // Função genérica
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const val = type === "checkbox" ? checked : value;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: val,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleFormSubmit = async (data) => {
     try {
-      console.log(
-        "FormPopUp submetendo formData:",
-        formData,
-        "initialData:",
-        initialData
-      );
-      await onSubmit?.(formData);
+      await onSubmit?.(data);
       if (closeOnSubmit) onClose?.();
     } catch (err) {
       console.error("Erro no submit do FormPopUp:", err);
     }
   };
 
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
 
   return (
-    // Overlay (fundo escuro)
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      {/* Conteúdo do Modal */}
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        {/* Cabeçalho do Modal */}
+        {/* Cabeçalho */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">{title}</h2>
           <button onClick={onClose} className="text-2xl font-light">
@@ -69,14 +54,12 @@ export default function FormularioPopUp({
           </button>
         </div>
 
-        {/* Formulário Dinâmico */}
-        <form onSubmit={handleSubmit}>
+        {/* Formulário */}
+        <form onSubmit={handleSubmit(handleFormSubmit)}>
           <div className="space-y-4">
             {fields.map((field) => {
-              // Se tiver showIf e retornar false, não renderiza
-              if (field.showIf && !field.showIf(formData)) return null;
+              if (field.showIf && !field.showIf(watch())) return null;
               const name = field.name;
-              const value = formData[name] ?? "";
 
               if (field.type === "select") {
                 return (
@@ -85,10 +68,10 @@ export default function FormularioPopUp({
                       {field.label}
                     </label>
                     <select
-                      name={name}
-                      value={value}
-                      onChange={handleChange}
-                      className="w-full px-3 py-2 border border-gray-400 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500"
+                      {...register(name)}
+                      className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
+                        errors[name] ? "border-red-500" : "border-gray-400"
+                      }`}
                     >
                       <option value="">
                         {field.placeholder ?? "Selecione"}
@@ -100,6 +83,11 @@ export default function FormularioPopUp({
                           </option>
                         ))}
                     </select>
+                    {errors[name] && (
+                      <p className="text-red-500 text-sm">
+                        {errors[name].message}
+                      </p>
+                    )}
                   </div>
                 );
               }
@@ -109,14 +97,19 @@ export default function FormularioPopUp({
                   <div key={name} className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      name={name}
-                      checked={!!value}
-                      onChange={handleChange}
-                      className="h-4 w-4"
+                      {...register(name)}
+                      className={`h-4 w-4 ${
+                        errors[name] ? "border-red-500" : ""
+                      }`}
                     />
                     <label className="text-sm font-medium text-gray-700">
                       {field.label}
                     </label>
+                    {errors[name] && (
+                      <p className="text-red-500 text-sm">
+                        {errors[name].message}
+                      </p>
+                    )}
                   </div>
                 );
               }
@@ -128,18 +121,23 @@ export default function FormularioPopUp({
                   </label>
                   <input
                     type={field.type || "text"}
-                    name={name}
                     placeholder={field.placeholder}
-                    value={value}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-400 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500"
+                    {...register(name)}
+                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
+                      errors[name] ? "border-red-500" : "border-gray-400"
+                    }`}
                   />
+                  {errors[name] && (
+                    <p className="text-red-500 text-sm">
+                      {errors[name].message}
+                    </p>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          {/* Botões de Ação */}
+          {/* Botões */}
           <div className="flex justify-end gap-4 mt-8">
             <ButtonSecondary onClick={onClose} type="button">
               Cancelar

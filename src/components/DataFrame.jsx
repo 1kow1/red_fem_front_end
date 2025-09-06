@@ -12,8 +12,7 @@ export default function DataFrame({
   // callbacks controlados pela página
   onAddRow,     // chamado quando clicar em "Adicionar"
   onEditRow,    // repassado ao Table/Details
-  onDeleteRow,
-  onReactivateRow,
+  onToggleRow,
   searchQuery,
   setSearchQuery,
   fetchData
@@ -39,8 +38,7 @@ export default function DataFrame({
           dataType={dataType}
           className="mt-4"
           onEditRow={onEditRow}
-          onDeleteRow={onDeleteRow}
-          onReactivateRow={onReactivateRow}
+          onToggleRow={onToggleRow}
           formFields={formFields}
         />
       </div>

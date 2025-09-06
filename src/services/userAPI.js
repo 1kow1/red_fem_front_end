@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import api from "./axios";
+import axios from "axios";
 
 // used to clear empty fields
 export const cleanPayload = (data) => {
@@ -43,14 +44,14 @@ export const editUser = async (id, userData) => {
 // ------------- PATCH -------------
 export const toggleUser = async (id) => {
   try {
-    const response = await api.patch(`/users/${id}`);
+    const response = await api.patch(`/users`, {id});
     return response.data;
   } catch (error) {
     throw new Error("Failed to toggle user: " + error);
   }
 };
 
-import axios from "axios";
+
 
 export const resetPassword = async ({ email, password }) => {
   try {
@@ -59,7 +60,7 @@ export const resetPassword = async ({ email, password }) => {
       null, // PATCH precisa de algo no corpo, mas aqui deixamos null
       {
         withCredentials: false,
-        params: { email, senha: password } // Axios vai gerar a query string automaticamente
+        params: { email, senha: password } // Axios gera a query string automaticamente
       }
     );
     return response.data;

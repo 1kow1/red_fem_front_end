@@ -44,8 +44,8 @@ export default function Usuarios() {
   const handleCreateUser = async (formData) => {
     try {
       await userSchema.validate(formData, { abortEarly: false });
-  
-      // dispara mas não espera a conclusão
+
+      // Com o await, teriamos que esperar de 5-10 segundos para o e-mail ser enviado
       createUser(formData)
         .then(() => fetchUsers())
         .catch((err) => console.error("Erro ao criar usuário:", err));
@@ -63,8 +63,9 @@ export default function Usuarios() {
 
   // EDIT
   const handleEditUser = async (formData) => {
+    await userSchema.validate(formData, {àbortEarly:false})
     const payload = adaptUserForApi({ ...(editInitialData || {}), ...formData });
-  
+    
     await editUser(payload.id, payload);
     await fetchUsers();
     setIsFormOpen(false);
@@ -124,8 +125,7 @@ export default function Usuarios() {
         // Passa TODOS os handlers pra DataFrame/Table
         onAddRow={openCreateForm}
         onEditRow={openEditForm}
-        onDeleteRow={handleToggleActive}
-        onReactivateRow={handleToggleActive}
+        onToggleRow={handleToggleActive}
         fetchData={fetchUsers}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -144,6 +144,7 @@ export default function Usuarios() {
         fields={formConfigs.usuarios}
         initialData={editInitialData}
         onSubmit={formMode === "create" ? handleCreateUser : handleEditUser}
+        validationSchema={userSchema}
       />
     </div>
   );

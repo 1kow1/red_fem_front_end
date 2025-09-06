@@ -90,6 +90,7 @@ export const popupConfigs = {
         title: data.nome,
         fields: [
           { label: "Email", key: "email" },
+          { label: "Telefone", key: "telefone"},
           { label: "Cargo", key: "cargo" },
           { label: "Especialidade", key: "especialidade" },
           { label: "CRM", key: "crm" },
@@ -99,18 +100,12 @@ export const popupConfigs = {
           {
             label: isActive ? "Desativar" : "Reativar",
             variant: "secondary",
-            onClick: () => {
-              if (isActive) {
-                callbacks.onDeleteUser?.(data);
-              } else {
-                callbacks.onReactivateUser?.(data);
-              }
-            }
+            onClick: callbacks.onToggle
           },
           {
             label: "Editar",
             variant: "primary",
-            onClick: () => callbacks.onEditUser?.(data)
+            onClick: callbacks.onEdit
           }
         ]
       };

@@ -47,7 +47,7 @@ export default function Sidebar() {
           <PageLink to={'/configuracoes'} text={'Configurações'}>
             <SettingsIcon color={'black'} />
           </PageLink>
-          <PageLink to={'/usuarios'} text={'Usuário'}>
+          <PageLink to={'/usuarios'} text={'Usuários'}>
             <UserIcon color={'black'} />
           </PageLink>
           <PageLink to={'/ajuda'} text={'Ajuda'}>
