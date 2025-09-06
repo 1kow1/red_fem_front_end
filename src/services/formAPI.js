@@ -1,4 +1,4 @@
-import api from '../services/axios'
+import api from './axios'
 
 export const createForm = async (data, token) => {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};

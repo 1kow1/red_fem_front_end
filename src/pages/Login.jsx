@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/auth';
 import logoClinica from '../assets/logos/rosa-rfcc.png';
 import logoKow from '../assets/logos/logoKow.jpg';
 import logoBackground from '../assets/logos/Component 1.svg';
@@ -6,16 +8,22 @@ import { ButtonPrimary } from '../components/Button';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [senha, setSenha] = useState('');
+  const { login, isLoading, error } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    console.log('Tentativa de login com:', { email, password });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const res = await login(email, senha);
+    if (res.success) {
+      navigate("/"); // ou onde quiser mandar
+    } else {
+      alert("Login falhou: " + (res.error?.message || JSON.stringify(res.error)));
+    }
   };
 
   return (
     <div className="relative w-screen h-screen bg-gray-50">
-
       <img
         src={logoBackground}
         alt="Arte de fundo"
@@ -23,33 +31,44 @@ export default function LoginPage() {
       />
 
       <div className="relative z-10 w-full h-full flex items-center justify-end pr-8 sm:pr-16 lg:pr-24">
-        
         <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-sm">
           <div className="flex flex-col items-center mb-8">
             <img src={logoClinica} alt="Clínica Solidária" className="h-10 mb-2" />
             <h1 className="text-xl text-gray-700">Clínica Solidária</h1>
           </div>
 
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-1">E-mail</label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-1">
+                E-mail
+              </label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-3 py-2 border-2 border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400"
+                required
               />
             </div>
 
             <div className="mb-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-600 mb-1">Senha</label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-600 mb-1">
+                Senha
+              </label>
               <input
                 id="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
                 className="w-full px-3 py-2 border-2 border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400"
+                required
               />
             </div>
 
@@ -61,9 +80,10 @@ export default function LoginPage() {
 
             <ButtonPrimary
               type="submit"
-              className="w-full mt-6 font-bold py-3 rounded-md hover:bg-pink-600 transition-colors flex items-center justify-center"
+              disabled={isLoading}
+              className="w-full mt-6 font-bold py-3 rounded-md hover:bg-pink-600 transition-colors flex items-center justify-center disabled:opacity-50"
             >
-              Entrar
+              {isLoading ? 'Entrando...' : 'Entrar'}
             </ButtonPrimary>
           </form>
 

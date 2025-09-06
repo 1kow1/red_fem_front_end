@@ -4,7 +4,7 @@ import FormPopUp from "../components/FormPopUp";
 import { useEffect, useState } from "react";
 import { formConfigs } from "../configs/formConfigs";
 import { adaptUserForView, adaptUserForApi } from "../adapters/userAdapter";
-import { getUsers, createUser, editUser, toggleUser } from "../api/userAPI";
+import { getUsers, createUser, editUser, toggleUser } from "../services/userAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
 import { userSchema } from "../validation/validationSchemas";
 
@@ -43,10 +43,15 @@ export default function Usuarios() {
   // CREATE
   const handleCreateUser = async (formData) => {
     try {
-      await userSchema.validate(formData, { abortEarly : false});
-      await createUser(formData, null);
-      await fetchUsers();
+      await userSchema.validate(formData, { abortEarly: false });
+  
+      // dispara mas não espera a conclusão
+      createUser(formData)
+        .then(() => fetchUsers())
+        .catch((err) => console.error("Erro ao criar usuário:", err));
+  
       setIsFormOpen(false);
+  
     } catch (err) {
       const errors = {};
       err.inner.forEach((e) => {
@@ -60,7 +65,7 @@ export default function Usuarios() {
   const handleEditUser = async (formData) => {
     const payload = adaptUserForApi({ ...(editInitialData || {}), ...formData });
   
-    await editUser(null, payload.id, payload);
+    await editUser(payload.id, payload);
     await fetchUsers();
     setIsFormOpen(false);
     setEditInitialData(null);
@@ -70,7 +75,7 @@ export default function Usuarios() {
   const handleToggleActive = async (row) => {
     console.log("ID: " +row.id);
     try {
-      await toggleUser(null, row.id);
+      await toggleUser(row.id);
       await fetchUsers();
     } catch (err) {
       console.error("Erro ao alternar status ativo:", err);

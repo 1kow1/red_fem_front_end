@@ -4,7 +4,7 @@ import rosaLogo from '../assets/logos/rosa-rfcc.png';
 import { ButtonPrimary, ButtonPrimaryDropdown, IconButton, ButtonSecondary } from "../components/Button";
 import { XIcon, MoveUpIcon, MoveDownIcon, AddIcon, DeleteIcon } from "../components/Icons";
 import Input from "../components/Input";
-import { createForm } from "../api/formApi";
+import { createForm } from "../services/formAPI";
 
 function Card({ children, className }) {
   return (

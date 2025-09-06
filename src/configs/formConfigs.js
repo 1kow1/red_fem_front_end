@@ -25,10 +25,10 @@ export const formConfigs = {
       type: "select",
       placeholder: "Selecione o cargo",
       options: [
-        { value: "Recepcionista", label: "Recepcionista" },
-        { value: "Médico", label: "Médico" },
-        { value: "Residente", label: "Residente" },
-        { value: "Acadêmico", label: "Acadêmico" }
+        { value: "RECEPCIONISTA", label: "Recepcionista" },
+        { value: "MEDICO", label: "Médico" },
+        { value: "RESIDENTE", label: "Residente" },
+        { value: "ACADEMICO", label: "Acadêmico" }
       ]
     },
     {
@@ -37,25 +37,18 @@ export const formConfigs = {
       type: "select",
       placeholder: "Selecione a especialidade",
       options: [
-        { value: "Ginecologia", label: "Ginecologia" },
-        { value: "Obstetrícia", label: "Obstetrícia" },
-        { value: "Mastologia", label: "Mastologia" },
-        { value: "Urologia", label: "Urologia" },
-        { value: "Endocrinologia", label: "Endocrinologia" },
-        { value: "Psicologia", label: "Psicologia" },
-        { value: "Psiquiatria", label: "Psiquiatria" },
-        { value: "Nutrição", label: "Nutrição" },
-        { value: "Fisioterapia", label: "Fisioterapia" },
-        { value: "Pediatria", label: "Pediatria" }
+        { value: "GINECOLOGIA", label: "Ginecologia"},
+        { value: "ONCOLOGIA", label: "Oncologia"},
+        { value: "ODONTOLOGIA", label: "Odontologia"}
       ],
-      showIf: (formData) => ["Médico", "Residente", "Acadêmico"].includes(formData.cargo)
+      showIf: (formData) => ["MEDICO", "RESIDENTE", "ACADEMICO"].includes(formData.cargo)
     },
     {
       name: "crm",
       label: "CRM",
       type: "text",
       placeholder: "CRM/PR 123456",
-      showIf: (formData) => ["Médico", "Residente", "Acadêmico"].includes(formData.cargo)
+      showIf: (formData) => ["MEDICO", "RESIDENTE"].includes(formData.cargo)
     },
   ],
 

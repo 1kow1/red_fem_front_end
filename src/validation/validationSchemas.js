@@ -35,14 +35,4 @@ export const userSchema = Yup.object().shape({
             "CRM deve estar no formato: CRM/PR 123456"
           ),
     }),
-
-  senha: Yup.string()
-    .required("Senha é obrigatória")
-    .min(8, "A senha deve ter pelo menos 8 caracteres")
-    .matches(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula")
-    .matches(/[!@#$%^&*(),.?":{}|<>]/, "A senha deve conter pelo menos um caractere especial"),
-
-  confirmarSenha: Yup.string()
-    .required("Confirmação de senha é obrigatória")
-    .oneOf([Yup.ref("senha"), null], "As senhas devem coincidir"),
 });
