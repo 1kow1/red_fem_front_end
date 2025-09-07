@@ -57,10 +57,9 @@ export const resetPassword = async ({ email, password }) => {
   try {
     const response = await axios.patch(
       "http://localhost:8003/users/senha",
-      null, // PATCH precisa de algo no corpo, mas aqui deixamos null
+      { email, senha: password },
       {
-        withCredentials: false,
-        params: { email, senha: password } // Axios gera a query string automaticamente
+        withCredentials: false,// Axios gera a query string automaticamente
       }
     );
     return response.data;

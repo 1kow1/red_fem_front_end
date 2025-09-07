@@ -7,6 +7,7 @@ import { adaptUserForView, adaptUserForApi } from "../adapters/userAdapter";
 import { getUsers, createUser, editUser, toggleUser } from "../services/userAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
 import { userSchema } from "../validation/validationSchemas";
+import { toast } from "react-toastify";
 
 export default function Usuarios() {
   const [users, setUsers] = useState([]);
@@ -57,7 +58,7 @@ export default function Usuarios() {
       err.inner.forEach((e) => {
         errors[e.path] = e.message;
       });
-      console.log("Erros de validação ao criar usuário:", errors);
+      toast.error("Erros de validação ao criar usuário:", errors)
     }
   };
 
@@ -68,6 +69,7 @@ export default function Usuarios() {
     
     await editUser(payload.id, payload);
     await fetchUsers();
+    toast.success("Usuário Atualizado!")
     setIsFormOpen(false);
     setEditInitialData(null);
   };
@@ -78,8 +80,9 @@ export default function Usuarios() {
     try {
       await toggleUser(row.id);
       await fetchUsers();
+      toast.success("Usuário Atualizado!")
     } catch (err) {
-      console.error("Erro ao alternar status ativo:", err);
+      toast.error("Erro ao Desativar/Reativar o usuário")
     }
   };
 

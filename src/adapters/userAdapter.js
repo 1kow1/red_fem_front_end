@@ -1,11 +1,11 @@
 import { format, parseISO, parse } from "date-fns";
+import { capitalizeWords, parseBoolean} from "./utils.js";
 
 export const adaptUserForView = (user) => ({
-  id: user.id,
   nome: user.nome,
   email: user.email,
-  cargo: user.cargo,
-  especialidade: user.especialidade,
+  cargo: capitalizeWords(user.cargo),
+  especialidade: capitalizeWords(user.especialidade),
   crm: user.crm,
   telefone: user.telefone,
   ativo: user.ativo ? "Sim" : "Não",
@@ -16,16 +16,6 @@ export const adaptUserForView = (user) => ({
     ? format(parseISO(user.dataAtualizacao), "dd/MM/yyyy HH:mm")
     : "-",
 });
-
-
-const parseBoolean = (val) => {
-  if (typeof val === "boolean") return val;
-  if (val == null) return null;
-  const s = String(val).trim().toLowerCase();
-  if (["true", "1", "yes", "sim"].includes(s)) return true;
-  if (["false", "0", "no", "nao", "não"].includes(s)) return false;
-  return null;
-};
 
 export const adaptUserForApi = (user) => ({
   id: user.id,

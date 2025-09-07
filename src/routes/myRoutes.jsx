@@ -52,13 +52,11 @@ function MyRoutes() {
         <Route path="usuarios" element={<Usuarios />} />
       </Route>
 
-      {/* Rota do editor também protegida */}
+      {/* Rota do editor -> podemos proteger depois */}
       <Route
         path="/editform"
         element={
-          <ProtectedRoute>
             <FormularioEditor />
-          </ProtectedRoute>
         }
       />
     </Routes>

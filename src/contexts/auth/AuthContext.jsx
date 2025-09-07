@@ -17,19 +17,25 @@ export function AuthProvider({ children }) {
     try {
       const { data, status } = await loginUser(email, senha);
       if (status >= 200 && status < 300) {
-        // backend retornou algo (p.ex. message ou usuário). Use se houver user.
         const userData = data && (data.user || data.usuario || data) ? (data.user || data.usuario || data) : { email };
         setUser(userData);
         setIsAuthenticated(true);
         return { success: true, user: userData };
       } else {
         setIsAuthenticated(false);
-        return { success: false, error: data };
+        const errMsg = (data && (data.message || data.error)) ? (data.message || data.error) : String(data);
+        setError(errMsg);
+        return { success: false, error: { message: errMsg } };
       }
     } catch (err) {
-      setError(err?.response?.data || err.message || String(err));
+      const normalized = err?.response?.data?.message
+        || err?.response?.data
+        || err?.message
+        || String(err);
+      const normalizedString = typeof normalized === 'string' ? normalized : JSON.stringify(normalized);
+      setError(normalizedString);
       setIsAuthenticated(false);
-      return { success: false, error: err };
+      return { success: false, error: { message: normalizedString } };
     } finally {
       setIsLoading(false);
     }

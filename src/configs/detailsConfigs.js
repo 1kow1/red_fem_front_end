@@ -91,23 +91,25 @@ export const popupConfigs = {
 
   // Nova configuração para formulários (será usada pela subtabela)
   formularios: {
-    getConfig: (data) => ({
-      title: data.nome,
+    getConfig: (data, callbacks = {}) => ({
+      title: data.titulo,
       fields: [
-        { label: "Nome", key: "nome" },
-        { label: "Data do Preenchimento", key: "dataPreenchimento", type: "date" },
-        { label: "Status", key: "status" },
+        { label: "Título", key: "titulo" },
+        { label: "Descrição", key: "descricao"},
+        { label: "Especialidade", key: "especialidade" },
+        { label: "Versão", key: "versao"},
+        { label: "Liberado?", key: "liberadoParaUso"}
       ],
       actions: [
         {
-          label: "Visualizar",
+          label: "Editar",
           variant: "primary",
-          onClick: (data) => console.log("Visualizar formulário:", data)
+          onClick: callbacks.onEdit
         },
         {
-          label: "Editar",
+          label: "Liberar",
           variant: "secondary",
-          onClick: (data) => console.log("Editar formulário:", data)
+          onClick: (data) => console.log("Liberar Formulário:", data)
         }
       ]
     })

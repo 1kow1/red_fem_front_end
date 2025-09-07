@@ -5,6 +5,7 @@ import logoClinica from '../assets/logos/rosa-rfcc.png';
 import logoKow from '../assets/logos/logoKow.jpg';
 import logoBackground from '../assets/logos/Component 1.svg';
 import { ButtonPrimary } from '../components/Button';
+import { toast } from "react-toastify";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -14,11 +15,18 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const res = await login(email, senha);
-    if (res.success) {
-      navigate("/"); // ou onde quiser mandar
-    } else {
-      alert("Login falhou: " + (res.error?.message || JSON.stringify(res.error)));
+    try {
+      const res = await login(email, senha);
+      if (res && res.success) {
+        toast.success("Login bem-sucedido!");
+        navigate("/");
+      } else {
+        const msg = res?.error?.message || "Credenciais inválidas";
+        toast.error(msg);
+      }
+    } catch (err) {
+      console.error("Erro durante login:", err);
+      toast.error(err);
     }
   };
 
