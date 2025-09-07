@@ -23,17 +23,16 @@ export default function Table({
   }), [onEditRow, onToggleRow]);
 
   useEffect(() => {
-    // Se os dados mudarem no parent (ex: após fetchUsers),
-    // atualiza selectedRowData para a versão atualizada (caso exista)
     if (!selectedRowData) return;
 
     const updated = data.find(d => d.id === selectedRowData.id);
     if (updated) {
       setSelectedRowData(updated);
 
-      // Regera o popupConfig com a versão atualizada dos dados
       try {
         const configGenerator = popupConfigs[dataType];
+        console.log(callbacks)
+        console.log(configGenerator)
         if (configGenerator) {
           const newConfig = configGenerator.getConfig(updated, callbacks);
           setPopupConfig(newConfig);
@@ -42,7 +41,6 @@ export default function Table({
         console.error("Erro ao regenerar popupConfig:", err);
       }
     } else {
-      // registro removido ou página mudou -> fecha popup
       handleClosePopup();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,7 +87,7 @@ export default function Table({
     if (disablePopup) return;
 
     const configGenerator = popupConfigs[dataType];
-
+    console.log("Table: handleRowClick", row);
     if (!configGenerator) {
       console.error(`Configuração não encontrada para tipo: ${dataType}`);
       console.log("Tipos disponíveis:", Object.keys(popupConfigs));
@@ -97,6 +95,7 @@ export default function Table({
     }
 
     try {
+      console.log(callbacks)
       const config = configGenerator.getConfig(row, callbacks);
       setSelectedRowData(row);
       setPopupConfig(config);

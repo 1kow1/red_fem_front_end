@@ -1,32 +1,62 @@
 export const popupConfigs = {
+  
   pacientes: {
-    getConfig: (data) => ({
+    getConfig: (data, callbacks = {}) => ({
       title: `Paciente ${data.nome}`,
       fields: [
         { label: "Sexo", key: "sexo" },
         { label: "Email", key: "email" },
         { label: "Telefone", key: "telefone" },
-        { label: "Data de Nascimento", key: "dataNasc", type: "date" },
+        { label: "Data de Nascimento", key: "dataDeNascimento", type: "date" },
         { label: "Estado Civil", key: "estadoCivil" },
         { label: "Profissão", key: "profissao" },
-        { label: "Endereço", key: "endereco" },
         { label: "Cidade", key: "cidade" },
         { label: "Estado", key: "uf" },
-        { label: "CPF", key: "cpf" }
+        { label: "CPF", key: "cpf" },
+        { label: "Ativo", key: "ativo" }
       ],
       actions: [
         {
-          label: "Desativar",
+          label: data.ativo === "Sim" ? "Desativar" : "Reativar",
           variant: "secondary",
-          onClick: (data) => console.log("Desativar paciente:", data)
+          onClick: callbacks.onToggle
         },
         {
           label: "Editar",
           variant: "primary",
-          onClick: (data) => console.log("Editar paciente:", data)
+          onClick: callbacks.onEdit
         }
       ]
     })
+  },
+
+  usuarios: {
+    getConfig: (data, callbacks = {}) => {
+      const isActive = data.ativo === true || data.ativo === "Sim";
+      return {
+        title: data.nome,
+        fields: [
+          { label: "Email", key: "email" },
+          { label: "Telefone", key: "telefone"},
+          { label: "Cargo", key: "cargo" },
+          { label: "Especialidade", key: "especialidade" },
+          { label: "CRM", key: "crm" },
+          { label: "Ativo", key: "ativo" }
+        ],
+        actions: [
+          {
+            label: isActive ? "Desativar" : "Reativar",
+            variant: "secondary",
+            onClick: callbacks.onToggle
+          },
+          {
+            label: "Editar",
+            variant: "primary",
+            onClick: callbacks.onEdit
+          }
+        ]
+      };
+    }
   },
 
   consultas: {
@@ -81,35 +111,6 @@ export const popupConfigs = {
         }
       ]
     })
-  },
-
-  usuarios: {
-    getConfig: (data, callbacks = {}) => {
-      const isActive = data.ativo === true || data.ativo === "Sim";
-      return {
-        title: data.nome,
-        fields: [
-          { label: "Email", key: "email" },
-          { label: "Telefone", key: "telefone"},
-          { label: "Cargo", key: "cargo" },
-          { label: "Especialidade", key: "especialidade" },
-          { label: "CRM", key: "crm" },
-          { label: "Ativo", key: "ativo" }
-        ],
-        actions: [
-          {
-            label: isActive ? "Desativar" : "Reativar",
-            variant: "secondary",
-            onClick: callbacks.onToggle
-          },
-          {
-            label: "Editar",
-            variant: "primary",
-            onClick: callbacks.onEdit
-          }
-        ]
-      };
-    }
   },
 
   // Configuração GENÉRICA (fallback)

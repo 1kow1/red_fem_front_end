@@ -1,39 +1,148 @@
-import DataFrame from "../components/DataFrame"
-import { testData } from '../data/testData';
-import { formConfigs } from '../configs/formConfigs';
+/* eslint-disable no-unused-vars */
+import DataFrame from "../components/DataFrame";
+import FormPopUp from "../components/FormPopUp";
+import { useEffect, useState } from "react";
+import { formConfigs } from "../configs/formConfigs";
+import { adaptPacienteForView, adaptPacienteForApi } from "../adapters/pacienteAdapter";
+import { getPacientes, createPaciente, editPaciente, togglePaciente } from "../services/pacienteAPI";
+import { PaginationFooter } from "../components/PaginationFooter";
+import { pacienteSchema } from "../validation/validationSchemas";
 
 export default function Pacientes() {
+  const [pacientes, setPacientes] = useState([]);
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(15);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const filterQuery = (paciente, searchQuery) => {
-    const removeAccents = (string) => {
-      return string.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  // modal control
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState("create"); // create | edit
+  const [editInitialData, setEditInitialData] = useState(null);
+
+  const fetchPacientes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const data = await getPacientes(page, size);
+      const mapped = data.content.map(adaptPacienteForView);
+
+      setPacientes(mapped);
+      setTotalPages(data.totalPages);
+    } catch (err) {
+      setError("Erro ao buscar pacientes: " + err.message);
+    } finally {
+      setLoading(false);
     }
-    
-    // Busca no nome, CPF ou email
-    const nomeMatch = removeAccents(paciente.nome || "").includes(
-      removeAccents(searchQuery)
-    );
-    
-    const cpfMatch = (paciente.cpf || "").includes(searchQuery);
-    
-    const emailMatch = removeAccents(paciente.email || "").includes(
-      removeAccents(searchQuery)
-    );
-    
-    return nomeMatch || cpfMatch || emailMatch;
-  }
+  };
 
-  return <>
+  // CREATE
+  const handleCreatePaciente = async (formData) => {
+    try {
+      await pacienteSchema.validate(formData, { abortEarly: false });
+  
+      const payload = adaptPacienteForApi(formData);
+  
+      createPaciente(payload)
+        .then(() => fetchPacientes())
+        .catch((err) => console.error("Erro ao criar paciente:", err));
+  
+      setIsFormOpen(false);
+    } catch (err) {
+      const errors = {};
+      err.inner.forEach((e) => {
+        errors[e.path] = e.message;
+      });
+      console.log("Erros de validação ao criar paciente:", errors);
+    }
+  };
+
+  // EDIT
+  const handleEditPaciente = async (formData) => {
+    await pacienteSchema.validate(formData, { abortEarly: false });
+    const payload = adaptPacienteForApi({ ...(editInitialData || {}), ...formData });
+    
+    await editPaciente(payload.id, payload);
+    await fetchPacientes();
+    setIsFormOpen(false);
+    setEditInitialData(null);
+  };
+
+  // REATIVAR / DESATIVAR
+  const handleToggleActive = async (row) => {
+    try {
+      await togglePaciente(row.id);
+      await fetchPacientes();
+    } catch (err) {
+      console.error("Erro ao alternar status ativo:", err);
+    }
+  };
+
+  // abrir criação
+  const openCreateForm = () => {
+    setFormMode("create");
+    setEditInitialData(null);
+    setIsFormOpen(true);
+  };
+
+  // abrir edição // DataFrame -> Table -> DetailsPopup -> chama onEditRow
+  const openEditForm = (row) => {
+    setFormMode("edit");
+    setEditInitialData(row);
+    setIsFormOpen(true);
+  };
+
+  useEffect(() => {
+    fetchPacientes();
+  }, [page, size]);
+
+  // debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(0);
+      fetchPacientes();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  return (
     <div>
       <h1 className="text-lg mb-4">Pacientes</h1>
+
+      {loading && <p>Carregando...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
       <DataFrame
         title="Paciente"
-        filterQuery={filterQuery}
-        data={testData.pacientes}
+        data={pacientes}
         dataType="pacientes"
         formFields={formConfigs.pacientes}
+        onAddRow={openCreateForm}
+        onEditRow={openEditForm}
+        onToggleRow={handleToggleActive}
+        fetchData={fetchPacientes}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
+
+      <PaginationFooter
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+      />
+
+      <FormPopUp
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        title={formMode === "create" ? "Criar Paciente" : "Editar Paciente"}
+        fields={formConfigs.pacientes}
+        initialData={editInitialData}
+        onSubmit={formMode === "create" ? handleCreatePaciente : handleEditPaciente}
+        validationSchema={pacienteSchema}
       />
     </div>
-  </>
+  );
 }
-

@@ -17,7 +17,7 @@ export const formConfigs = {
       name: "telefone",
       label: "Telefone",
       type: "tel",
-      placeholder: "(42) 9 9999-9999",
+      placeholder: "42999999999",
     },
     {
       name: "cargo",
@@ -67,16 +67,15 @@ export const formConfigs = {
       placeholder: "000.000.000-00",
     },
     {
-      name: "dataNascimento",
+      name: "dataDeNascimento",
       label: "Data de Nascimento",
       type: "date",
-      placeholder: "",
     },
     {
       name: "telefone",
       label: "Telefone",
       type: "tel",
-      placeholder: "(00) 90000-0000",
+      placeholder: "42999999999",
     },
     {
       name: "email",
@@ -85,13 +84,40 @@ export const formConfigs = {
       placeholder: "paciente@email.com",
     },
     {
+      name: "profissao",
+      label: "Profissão",
+      type: "text",
+      placeholder: "Digite a profissão",
+    },
+    {
+      name: "sexo",
+      label: "Sexo",
+      type: "select",
+      placeholder: "Selecione o sexo",
+      options: [
+        { value: "F", label: "Feminino" },
+      ],
+    },
+    {
+      name: "estadoCivil",
+      label: "Estado Civil",
+      type: "select",
+      placeholder: "Selecione o estado civil",
+      options: [
+        { value: "SOLTEIRA", label: "Solteira" },
+        { value: "CASADA", label: "Casada" },
+        { value: "DIVORCIADA", label: "Divorciada" },
+        { value: "VIÚVA", label: "Viúva" },
+      ],
+    },
+    {
       name: "cidade",
       label: "Cidade",
       type: "text",
       placeholder: "Nome da cidade",
     },
     {
-      name: "estado",
+      name: "uf",
       label: "Estado",
       type: "select",
       placeholder: "Selecione o estado",
