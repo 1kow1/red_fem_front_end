@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 // src/contexts/auth/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
 import { loginUser, pingProtected } from "../../services/authAPI";
@@ -7,7 +6,8 @@ export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // null = not checked yet, false = not authenticated, true = authenticated
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -45,34 +45,43 @@ export function AuthProvider({ children }) {
     try {
       await fetch("http://localhost:8003/logout", { method: "POST", credentials: "include" });
     } catch (err) {
-      console.warn("Logout falhou", err);
+      console.warn("Logout failed", err);
     } finally {
       setUser(null);
       setIsAuthenticated(false);
     }
   };
 
-  // on mount: tenta pingar endpoint protegido (verifica se cookie existe/é válido)
+  // on mount: ping protected endpoint to check session cookie
   useEffect(() => {
+    let mounted = true;
     (async () => {
       setIsLoading(true);
+      setIsAuthenticated(null); // unknown at start
       try {
-        const { status } = await pingProtected();
-        if (status >= 200 && status < 300) {
+        const res = await pingProtected(); // must include credentials in implementation
+        // res can be { status, data }
+        if (!mounted) return;
+        if (res?.status >= 200 && res?.status < 300) {
+          // if server sends back user info use it, otherwise keep user null
+          const serverUser = res.data && (res.data.user || res.data.usuario || res.data) ? (res.data.user || res.data.usuario || res.data) : null;
+          setUser(serverUser);
           setIsAuthenticated(true);
-          setUser({}); // não temos dados detalhados, apenas confirmação de sessão
         } else {
-          setIsAuthenticated(false);
           setUser(null);
+          setIsAuthenticated(false);
         }
-      // eslint-disable-next-line no-unused-vars
       } catch (err) {
-        setIsAuthenticated(false);
+        if (!mounted) return;
+        console.warn("pingProtected error:", err);
         setUser(null);
+        setIsAuthenticated(false);
       } finally {
-        setIsLoading(false);
+        if (mounted) setIsLoading(false);
       }
     })();
+
+    return () => { mounted = false; };
   }, []);
 
   return (

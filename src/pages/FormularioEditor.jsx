@@ -248,6 +248,11 @@ export default function FormularioEditor() {
         isNova: !isEditMode
       };
 
+      delete pergunta.id
+      pergunta.map((alternativa) => {
+        delete alternativa.id
+      })
+
       if (pergunta.tipo === 'TEXTUAL') {
         delete perguntaProcessada.alternativas;
       }
@@ -294,7 +299,7 @@ export default function FormularioEditor() {
       liberadoParaUso: isEditMode ? formulario.liberadoParaUso : false,
       editavel: true,
       especialidade: formulario.especialidade || 'GINECOLOGIA',
-      medicoId: formulario.medicoId || '68bdee8d1fa8f0adfedad380',
+      medicoId: formulario.medicoId || '68bf66718e169da24cd793df',
     };
 
     if (isEditMode && formulario.id) {
