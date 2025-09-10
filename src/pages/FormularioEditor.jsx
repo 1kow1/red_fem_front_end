@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect, useCallback } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import rosaLogo from '../assets/logos/rosa-rfcc.png';
@@ -19,8 +20,7 @@ function Card({ children, className }) {
 export default function FormularioEditor() {
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // Dados para edição vindos da navegação
+
   const formDataToEdit = location.state?.formData;
   const isEditMode = Boolean(formDataToEdit);
 
@@ -33,6 +33,9 @@ export default function FormularioEditor() {
     perguntas: []
   });
 
+  // Snapshot das perguntas originais (id -> normalized JSON)
+  const originalPerguntasRef = useRef({});
+
   const tiposPergunta = [
     { value: 'TEXTUAL', label: 'Texto' },
     { value: 'DICOTOMICA', label: 'Sim/Não' },
@@ -40,9 +43,48 @@ export default function FormularioEditor() {
     { value: 'SELECAO_UNICA', label: 'Seleção Única' }
   ];
 
-  // Inicializar formulário para edição
+  // --- Helpers para normalizar/compare ---
+  function normalizePerguntaForCompare(pergunta) {
+    const enunciado = (pergunta.enunciado || '').trim();
+    const tipo = pergunta.tipo || '';
+    const alternativas = (pergunta.alternativas || [])
+      .map(a => ({ texto: (a.texto || '').trim() }));
+    return JSON.stringify({ enunciado, tipo, alternativas });
+  }
+
+  function isPerguntaEdited(pergunta) {
+    // New IDs start with 'new-' => considered edited
+    if (String(pergunta.id).startsWith('new-')) return true;
+    const orig = originalPerguntasRef.current[pergunta.id];
+    if (!orig) return true; // não existe snapshot -> é nova ou mudou id
+    const atual = normalizePerguntaForCompare(pergunta);
+    return atual !== orig;
+  }
+
+  // --- Inicializa formulário em modo edição ---
   useEffect(() => {
     if (formDataToEdit) {
+      // Cria snapshot e prepara perguntas com isNova:false (somente as existentes)
+      const perguntasOriginais = (formDataToEdit.perguntas || []).map(p => {
+        // manter o id existente (assumimos que backend tem id)
+        return {
+          // clonamos os campos relevantes
+          id: p.id ?? `orig-${Date.now()}-${Math.random()}`,
+          enunciado: p.enunciado ?? '',
+          tipo: p.tipo ?? 'TEXTUAL',
+          alternativas: (p.alternativas || []).map(a => ({ ...a })),
+          // usaremos isNova:false pois são versões salvas
+          isNova: false
+        };
+      });
+
+      // Preencher snapshot (id -> normalized)
+      const map = {};
+      perguntasOriginais.forEach(p => {
+        map[p.id] = normalizePerguntaForCompare(p);
+      });
+      originalPerguntasRef.current = map;
+
       setFormulario({
         titulo: formDataToEdit.titulo || "",
         descricao: formDataToEdit.descricao || "",
@@ -52,14 +94,12 @@ export default function FormularioEditor() {
         liberadoParaUso: formDataToEdit.liberadoParaUso,
         editavel: formDataToEdit.editavel,
         idFormularioVersaoAntiga: formDataToEdit.id,
-        perguntas: formDataToEdit.perguntas?.map(pergunta => ({
-          ...pergunta,
-          id: pergunta.id || Date.now() + Math.random(),
-        })) || []
+        perguntas: perguntasOriginais
       });
     }
   }, [formDataToEdit]);
 
+  // --- campos simples ---
   const setTitulo = useCallback((value) => {
     setFormulario(prev => ({
       ...prev,
@@ -77,12 +117,14 @@ export default function FormularioEditor() {
     }));
   }, []);
 
+  // --- adicionar pergunta (nova) ---
   const onAddPergunta = useCallback(() => {
     const novaPergunta = {
-      id: Date.now() + Math.random(),
+      id: `new-${Date.now()}-${Math.random()}`,
       enunciado: '',
-      tipo: 'TEXTUAL', // Usar o mesmo padrão do select
-      alternativas: []
+      tipo: 'TEXTUAL',
+      alternativas: [],
+      isNova: true
     };
 
     setFormulario(prev => ({
@@ -90,14 +132,13 @@ export default function FormularioEditor() {
       perguntas: [...prev.perguntas, novaPergunta]
     }));
 
-    // Limpar erro geral sobre não ter perguntas
     if (errosGeral.some(erro => erro.includes('pelo menos uma pergunta'))) {
       setErrosGeral(prev => prev.filter(erro => !erro.includes('pelo menos uma pergunta')));
     }
   }, [errosGeral]);
 
+  // --- deletar pergunta ---
   const onDeletePergunta = useCallback((perguntaId) => {
-    // Confirmar antes de deletar
     const confirmar = window.confirm('Tem certeza que deseja excluir esta pergunta?');
     if (!confirmar) return;
 
@@ -106,14 +147,21 @@ export default function FormularioEditor() {
       perguntas: prev.perguntas.filter(pergunta => pergunta.id !== perguntaId)
     }));
 
-    // Limpar erros da pergunta deletada
     setErros(prevErros => {
       const novosErros = { ...prevErros };
       delete novosErros[perguntaId];
       return novosErros;
     });
+
+    // também remover snapshot caso exista
+    if (originalPerguntasRef.current[perguntaId]) {
+      const copy = { ...originalPerguntasRef.current };
+      delete copy[perguntaId];
+      originalPerguntasRef.current = copy;
+    }
   }, []);
 
+  // --- mudanças em uma pergunta ---
   const onChangePergunta = useCallback((perguntaId, campo, valor) => {
     setErros(prevErros => {
       const novosErros = { ...prevErros };
@@ -121,34 +169,43 @@ export default function FormularioEditor() {
       return novosErros;
     });
 
-    setFormulario(prev => ({
-      ...prev,
-      perguntas: prev.perguntas.map(pergunta =>
-        pergunta.id === perguntaId ? { ...pergunta, [campo]: valor } : pergunta
-      )
-    }));
+    setFormulario(prev => {
+      const novas = prev.perguntas.map(pergunta => {
+        if (pergunta.id !== perguntaId) return pergunta;
+        const updated = { ...pergunta, [campo]: valor };
+        // recalcula isNova: se já era nova mantém true, senão compara com snapshot
+        const edited = isPerguntaEdited(updated);
+        return { ...updated, isNova: pergunta.isNova || edited };
+      });
+      return { ...prev, perguntas: novas };
+    });
   }, []);
 
+  // --- mover para cima ---
   const onMoveUp = useCallback((index) => {
-    const novasPerguntas = [...formulario.perguntas];
-    const novoIndex = index - 1;
+    setFormulario(prev => {
+      const novasPerguntas = [...prev.perguntas];
+      const novoIndex = index - 1;
+      if (novoIndex >= 0) {
+        [novasPerguntas[index], novasPerguntas[novoIndex]] = [novasPerguntas[novoIndex], novasPerguntas[index]];
+      }
+      return { ...prev, perguntas: novasPerguntas };
+    });
+  }, []);
 
-    if (novoIndex >= 0) {
-      [novasPerguntas[index], novasPerguntas[novoIndex]] = [novasPerguntas[novoIndex], novasPerguntas[index]];
-      setFormulario(prev => ({ ...prev, perguntas: novasPerguntas }));
-    }
-  }, [formulario.perguntas]);
-
+  // --- mover para baixo ---
   const onMoveDown = useCallback((index) => {
-    const novasPerguntas = [...formulario.perguntas];
-    const novoIndex = index + 1;
+    setFormulario(prev => {
+      const novasPerguntas = [...prev.perguntas];
+      const novoIndex = index + 1;
+      if (novoIndex < novasPerguntas.length) {
+        [novasPerguntas[index], novasPerguntas[novoIndex]] = [novasPerguntas[novoIndex], novasPerguntas[index]];
+      }
+      return { ...prev, perguntas: novasPerguntas };
+    });
+  }, []);
 
-    if (novoIndex < novasPerguntas.length) {
-      [novasPerguntas[index], novasPerguntas[novoIndex]] = [novasPerguntas[novoIndex], novasPerguntas[index]];
-      setFormulario(prev => ({ ...prev, perguntas: novasPerguntas }));
-    }
-  }, [formulario.perguntas]);
-
+  // --- alternativas ---
   const onAddAlternativa = useCallback((perguntaId) => {
     setFormulario(prev => ({
       ...prev,
@@ -156,7 +213,8 @@ export default function FormularioEditor() {
         pergunta.id === perguntaId
           ? {
             ...pergunta,
-            alternativas: [...pergunta.alternativas, { id: Date.now() + Math.random(), texto: '' }]
+            alternativas: [...(pergunta.alternativas || []), { id: `alt-${Date.now()}-${Math.random()}`, texto: '' }],
+            isNova: pergunta.isNova || true // se já era editada mantém, senão marca como editada (adicionar alternativa = mudança)
           }
           : pergunta
       )
@@ -170,7 +228,8 @@ export default function FormularioEditor() {
         pergunta.id === perguntaId
           ? {
             ...pergunta,
-            alternativas: pergunta.alternativas.filter(alt => alt.id !== alternativaId)
+            alternativas: (pergunta.alternativas || []).filter(alt => alt.id !== alternativaId),
+            isNova: pergunta.isNova || true
           }
           : pergunta
       )
@@ -184,21 +243,21 @@ export default function FormularioEditor() {
       return novosErros;
     });
 
-    setFormulario(prev => ({
-      ...prev,
-      perguntas: prev.perguntas.map(pergunta =>
-        pergunta.id === perguntaId
-          ? {
-            ...pergunta,
-            alternativas: pergunta.alternativas.map(alt =>
-              alt.id === alternativaId ? { ...alt, texto } : alt
-            )
-          }
-          : pergunta
-      )
-    }));
+    setFormulario(prev => {
+      const novas = prev.perguntas.map(pergunta => {
+        if (pergunta.id !== perguntaId) return pergunta;
+        const alternativasAtualizadas = (pergunta.alternativas || []).map(alt =>
+          alt.id === alternativaId ? { ...alt, texto } : alt
+        );
+        const updated = { ...pergunta, alternativas: alternativasAtualizadas };
+        const edited = isPerguntaEdited(updated);
+        return { ...updated, isNova: pergunta.isNova || edited };
+      });
+      return { ...prev, perguntas: novas };
+    });
   }, []);
 
+  // --- validação antes do envio ---
   const checkFormulario = useCallback(() => {
     const novosErros = {};
     const novosErrosGeral = [];
@@ -215,7 +274,7 @@ export default function FormularioEditor() {
       }
 
       if (pergunta.tipo === 'MULTIPLA_ESCOLHA' || pergunta.tipo === 'SELECAO_UNICA') {
-        const alternativasValidas = pergunta.alternativas.filter(alt => alt.texto && alt.texto.trim() !== '');
+        const alternativasValidas = (pergunta.alternativas || []).filter(alt => alt.texto && alt.texto.trim() !== '');
         if (alternativasValidas.length < 2) {
           errosPergunta.push('Adicione pelo menos 2 alternativas válidas.');
         }
@@ -240,47 +299,37 @@ export default function FormularioEditor() {
     return Object.keys(novosErros).length === 0 && novosErrosGeral.length === 0;
   }, [formulario]);
 
+  // --- monta payload sem mutar state e com posições/isNova corretos ---
   const setPerguntasPosicao = useCallback(() => {
-    return formulario.perguntas.map((pergunta, index) => {
-      const perguntaProcessada = {
-        ...pergunta,
+    return (formulario.perguntas || []).map((pergunta, index) => {
+      const base = {
+        enunciado: pergunta.enunciado,
+        tipo: pergunta.tipo,
         posicao: index,
-        isNova: !isEditMode
+        isNova: Boolean(pergunta.isNova)
       };
 
-      delete pergunta.id
-      pergunta.map((alternativa) => {
-        delete alternativa.id
-      })
-
       if (pergunta.tipo === 'TEXTUAL') {
-        delete perguntaProcessada.alternativas;
-      }
-      else if (pergunta.tipo === 'DICOTOMICA') {
-        perguntaProcessada.alternativas = [
-          { id: 'Sim', texto: 'Sim' },
-          { id: 'Não', texto: 'Não' }
+        // manter apenas enunciado/tipo/posicao/isNova
+      } else if (pergunta.tipo === 'DICOTOMICA') {
+        base.alternativas = [
+          { texto: 'Sim', posicao: 0 },
+          { texto: 'Não', posicao: 1 }
         ];
-      }
-      else if (pergunta.tipo === 'MULTIPLA_ESCOLHA' || pergunta.tipo === 'SELECAO_UNICA') {
-        perguntaProcessada.alternativas = pergunta.alternativas.filter(alt =>
-          alt.texto && alt.texto.trim() !== ''
-        );
-      }
-
-      if (perguntaProcessada.alternativas) {
-        perguntaProcessada.alternativas = perguntaProcessada.alternativas.map(
-          (alt, altIndex) => ({
-            ...alt,
+      } else if (pergunta.tipo === 'MULTIPLA_ESCOLHA' || pergunta.tipo === 'SELECAO_UNICA') {
+        base.alternativas = (pergunta.alternativas || [])
+          .filter(alt => alt.texto && alt.texto.trim() !== '')
+          .map((alt, altIndex) => ({
+            texto: alt.texto,
             posicao: altIndex
-          })
-        );
+          }));
       }
 
-      return perguntaProcessada;
+      return base;
     });
-  }, [formulario.perguntas, isEditMode]);
+  }, [formulario.perguntas]);
 
+  // --- salvar ---
   const onSave = useCallback(async () => {
     setErros({});
     setErrosGeral([]);
@@ -312,38 +361,42 @@ export default function FormularioEditor() {
   const handleSaveForm = async (formularioFinal) => {
     try {
       setLoading(true);
-      
+
       console.log('Dados enviados:', {
         isEditMode,
         formularioId: formulario.id,
         idFormularioVersaoAntiga: formularioFinal.idFormularioVersaoAntiga,
         formularioCompleto: formularioFinal
       });
-      
+
       await createForm(formularioFinal);
       toast.success(isEditMode ? 'Formulário atualizado com sucesso!' : 'Formulário criado com sucesso!');
-      
+
+      // Após salvar, você pode atualizar snapshot: se quiser continuar editando, atualize originalPerguntasRef
+      // Exemplo: rebuild snapshot a partir do payload salvo (assumindo que backend retornou dados)
+      // Aqui apenas navegamos
       navigate('/formularios');
-      
+
     } catch (error) {
       console.error('Erro ao salvar formulário:', error);
-      const message = error?.response?.data?.message || 
-                     error?.message || 
-                     `Erro ao ${isEditMode ? 'atualizar' : 'criar'} formulário`;
+      const message = error?.response?.data?.message ||
+        error?.message ||
+        `Erro ao ${isEditMode ? 'atualizar' : 'criar'} formulário`;
       toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
+  // --- cancelar ---
   const onCancel = useCallback(() => {
     const hasChanges = formulario.titulo || formulario.descricao || formulario.perguntas.length > 0;
-    
+
     if (hasChanges) {
       const confirmar = window.confirm('Tem certeza que deseja cancelar? Todas as alterações serão perdidas.');
       if (!confirmar) return;
     }
-    
+
     navigate('/formularios');
   }, [formulario, navigate]);
 
@@ -352,6 +405,7 @@ export default function FormularioEditor() {
     return tipo ? tipo.label : tipoValue;
   };
 
+  // --- UI render ---
   return (
     <div>
       <div
@@ -364,7 +418,7 @@ export default function FormularioEditor() {
           <ButtonPrimaryDropdown>Exportar Dados</ButtonPrimaryDropdown>
         </div>
         <div className="flex flex-row gap-2">
-          <ButtonSecondary 
+          <ButtonSecondary
             onClick={onCancel}
             disabled={loading}
           >
@@ -378,7 +432,7 @@ export default function FormularioEditor() {
           </ButtonPrimary>
         </div>
       </div>
-      
+
       <div className="pt-24 pb-4 px-80 bg-redfemVariantPink bg-opacity-10 min-h-screen">
         <div className="flex flex-col gap-4">
           <Card
@@ -435,7 +489,7 @@ export default function FormularioEditor() {
                 )}
 
                 {/* Move Up */}
-                <IconButton 
+                <IconButton
                   onClick={() => onMoveUp(index)}
                   disabled={index === 0}
                   aria-label="Mover pergunta para cima"
@@ -514,7 +568,7 @@ export default function FormularioEditor() {
                                 onChange={(e) => onChangeAlternativa(pergunta.id, alternativa.id, e.target.value)}
                                 aria-label={`Alternativa ${altIndex + 1} da pergunta ${index + 1}`}
                               />
-                              <IconButton 
+                              <IconButton
                                 onClick={() => onDeleteAlternativa(pergunta.id, alternativa.id)}
                                 aria-label={`Excluir alternativa ${altIndex + 1}`}
                               >
@@ -537,7 +591,7 @@ export default function FormularioEditor() {
 
                 {/* Delete */}
                 <div className="w-full h-0 flex justify-end">
-                  <IconButton 
+                  <IconButton
                     onClick={() => onDeletePergunta(pergunta.id)}
                     aria-label={`Excluir pergunta ${index + 1}`}
                   >
@@ -546,7 +600,7 @@ export default function FormularioEditor() {
                 </div>
 
                 {/* Move Down */}
-                <IconButton 
+                <IconButton
                   onClick={() => onMoveDown(index)}
                   disabled={index === formulario.perguntas.length - 1}
                   aria-label="Mover pergunta para baixo"
