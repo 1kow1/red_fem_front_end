@@ -13,6 +13,7 @@ export default function Formularios() {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(15);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,6 +30,7 @@ export default function Formularios() {
       const mapped = (data.content || []).map(adaptFormForView);
       setForms(mapped);
       setTotalPages(data.totalPages ?? 0);
+      setTotalRecords(data.totalElements);
     } catch (err) {
       console.error("Erro ao buscar formulários:", err);
       const msg = err?.message || JSON.stringify(err);
@@ -129,7 +131,12 @@ export default function Formularios() {
         setSearchQuery={setSearchQuery}
       />
 
-      <PaginationFooter page={page} totalPages={totalPages} onPageChange={setPage} />
+      <PaginationFooter
+        page={page}
+        totalPages={totalPages}
+        totalRecords={totalRecords}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

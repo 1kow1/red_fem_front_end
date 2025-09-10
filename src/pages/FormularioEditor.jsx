@@ -64,11 +64,8 @@ export default function FormularioEditor() {
   // --- Inicializa formulário em modo edição ---
   useEffect(() => {
     if (formDataToEdit) {
-      // Cria snapshot e prepara perguntas com isNova:false (somente as existentes)
       const perguntasOriginais = (formDataToEdit.perguntas || []).map(p => {
-        // manter o id existente (assumimos que backend tem id)
         return {
-          // clonamos os campos relevantes
           id: p.id ?? `orig-${Date.now()}-${Math.random()}`,
           enunciado: p.enunciado ?? '',
           tipo: p.tipo ?? 'TEXTUAL',
@@ -348,7 +345,7 @@ export default function FormularioEditor() {
       liberadoParaUso: isEditMode ? formulario.liberadoParaUso : false,
       editavel: true,
       especialidade: formulario.especialidade || 'GINECOLOGIA',
-      medicoId: formulario.medicoId || '68bf66718e169da24cd793df',
+      medicoId: formulario.medicoId || '68bdeef11fa8f0adfedad396',
     };
 
     if (isEditMode && formulario.id) {

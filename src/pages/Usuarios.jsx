@@ -14,6 +14,7 @@ export default function Usuarios() {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(15);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,6 +35,7 @@ export default function Usuarios() {
 
       setUsers(mapped);
       setTotalPages(data.totalPages);
+      setTotalRecords(data.totalElements);
     } catch (err) {
       setError("Erro ao buscar usuários: " + err.message);
     } finally {
@@ -137,6 +139,7 @@ export default function Usuarios() {
       <PaginationFooter
         page={page}
         totalPages={totalPages}
+        totalRecords={totalRecords}
         onPageChange={setPage}
       />
 
