@@ -1,12 +1,13 @@
 /* eslint-disable no-unused-vars */
 import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
-import { useEffect, useState } from "react";
+import { useEffect, useState  } from "react";
 import { formConfigs } from "../configs/formConfigs";
 import { adaptPacienteForView, adaptPacienteForApi } from "../adapters/pacienteAdapter";
 import { getPacientes, createPaciente, editPaciente, togglePaciente } from "../services/pacienteAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
 import { pacienteSchema } from "../validation/validationSchemas";
+import { toast } from "react-toastify";
 
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState([]);
@@ -36,6 +37,7 @@ export default function Pacientes() {
       setTotalRecords(data.totalElements);
     } catch (err) {
       setError("Erro ao buscar pacientes: " + err.message);
+      toast.error("Erro ao buscar pacientes: " + err.message)
     } finally {
       setLoading(false);
     }
@@ -58,7 +60,7 @@ export default function Pacientes() {
       err.inner.forEach((e) => {
         errors[e.path] = e.message;
       });
-      console.log("Erros de validação ao criar paciente:", errors);
+      toast.error("Erros de validação ao criar paciente:", errors)
     }
   };
 
@@ -71,6 +73,7 @@ export default function Pacientes() {
     await fetchPacientes();
     setIsFormOpen(false);
     setEditInitialData(null);
+    toast.success("Paciente Atualizado!")
   };
 
   // REATIVAR / DESATIVAR
@@ -78,8 +81,9 @@ export default function Pacientes() {
     try {
       await togglePaciente(row.id);
       await fetchPacientes();
+      toast.success("Paciente Atualizado!")
     } catch (err) {
-      console.error("Erro ao alternar status ativo:", err);
+      toast.error("Erro ao alternar status ativo:", err)
     }
   };
 
@@ -138,9 +142,11 @@ export default function Pacientes() {
       />
 
       <FormPopUp
+        key={formMode === "create" ? Date.now() : editInitialData?.id ?? "edit"}
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         title={formMode === "create" ? "Criar Paciente" : "Editar Paciente"}
+        mode={formMode}
         fields={formConfigs.pacientes}
         initialData={editInitialData}
         onSubmit={formMode === "create" ? handleCreatePaciente : handleEditPaciente}

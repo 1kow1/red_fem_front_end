@@ -1,6 +1,26 @@
-import { format, parseISO } from "date-fns";
+// adapters/pacienteAdapter.js
+import { format, parseISO, parse, isValid } from "date-fns";
 
-const mapSexo = (sexo) => {
+const parseMaybeDate = (raw) => {
+  if (!raw) return null;
+  if (raw instanceof Date) return raw;
+
+  // formato dd/MM/yyyy (view)
+  if (typeof raw === "string" && raw.includes("/")) {
+    const d = parse(raw, "dd/MM/yyyy", new Date());
+    return isValid(d) ? d : null;
+  }
+
+  // tenta ISO
+  try {
+    const d = parseISO(raw);
+    return isValid(d) ? d : null;
+  } catch {
+    return null;
+  }
+};
+
+const mapSexoForView = (sexo) => {
   if (!sexo) return "-";
   switch (sexo.toUpperCase()) {
     case "M":
@@ -10,10 +30,11 @@ const mapSexo = (sexo) => {
     case "O":
       return "Outro";
     default:
-      return sexo; // fallback: mostra o valor original se não for reconhecido
+      return sexo; // fallback
   }
 };
-const mapEstadoCivil = (estadoCivil) => {
+
+const mapEstadoCivilForView = (estadoCivil) => {
   if (!estadoCivil) return "-";
   switch (estadoCivil.toUpperCase()) {
     case "SOLTEIRA":
@@ -23,7 +44,7 @@ const mapEstadoCivil = (estadoCivil) => {
     case "VIUVA":
       return "Viúva";
     case "VIUVO":
-      return "Viúvo"; 
+      return "Viúvo";
     case "CASADA":
       return "Casada";
     case "CASADO":
@@ -41,36 +62,51 @@ const parseBoolean = (val) => {
   if (["false", "0", "no", "nao", "não"].includes(s)) return false;
   return null;
 };
-export const adaptPacienteForView = (paciente) => ({
-  id: paciente.id,
-  nome: paciente.nome,
-  email: paciente.email,
-  telefone: paciente.telefone,
-  cpf: paciente.cpf,
-  sexo: mapSexo(paciente.sexo),
-  estadoCivil: mapEstadoCivil(paciente.estadoCivil),
-  profissao: paciente.profissao,
-  cidade: paciente.cidade,
-  uf: paciente.uf,
-  ativo: paciente.ativo ? "Sim" : "Não",
-  dataDeNascimento: paciente.dataDeNascimento
-    ? format(parseISO(paciente.dataDeNascimento), "dd/MM/yyyy")
-    : "-",
-});
 
-export const adaptPacienteForApi = (paciente) => ({
-  id: paciente.id,
-  nome: paciente.nome,
-  email: paciente.email,
-  telefone: paciente.telefone ? String(paciente.telefone).replace(/\D/g, "") : null,
-  cpf: paciente.cpf ? String(paciente.cpf).replace(/\D/g, "") : null,
-  sexo: paciente.sexo,
-  estadoCivil: paciente.estadoCivil,
-  profissao: paciente.profissao,
-  cidade: paciente.cidade,
-  uf: paciente.uf,
-  ativo: parseBoolean(paciente.ativo),
-  dataDeNascimento: paciente.dataDeNascimento
-    ? format(new Date(paciente.dataDeNascimento), "yyyy-MM-dd")
-    : null,
-});
+export const adaptPacienteForView = (paciente = {}) => {
+  const id = paciente.id ?? paciente._id ?? paciente.pacienteId ?? null;
+  const nascimentoDate = parseMaybeDate(paciente.dataDeNascimento);
+
+  return {
+    id,
+    nome: paciente.nome ?? "",
+    email: paciente.email ?? "",
+    telefone: paciente.telefone ?? "",
+    cpf: paciente.cpf ?? "",
+    sexo: mapSexoForView(paciente.sexo),
+    estadoCivil: mapEstadoCivilForView(paciente.estadoCivil),
+    profissao: paciente.profissao ?? "",
+    cidade: paciente.cidade ?? "",
+    uf: paciente.uf ?? "",
+    ativo: paciente.ativo ? "Sim" : "Não",
+    dataDeNascimento: nascimentoDate
+      ? format(nascimentoDate, "dd/MM/yyyy")
+      : "-",
+  };
+};
+
+export const adaptPacienteForApi = (paciente = {}) => {
+  const id = paciente.id ?? paciente._id ?? null;
+  const nascimentoDate = parseMaybeDate(paciente.dataDeNascimento);
+
+  return {
+    id,
+    nome: paciente.nome,
+    email: paciente.email,
+    telefone: paciente.telefone
+      ? String(paciente.telefone).replace(/\D/g, "")
+      : null,
+    cpf: paciente.cpf ? String(paciente.cpf).replace(/\D/g, "") : null,
+    sexo: paciente.sexo ? paciente.sexo.toUpperCase() : null,
+    estadoCivil: paciente.estadoCivil
+      ? paciente.estadoCivil.toUpperCase()
+      : null,
+    profissao: paciente.profissao,
+    cidade: paciente.cidade,
+    uf: paciente.uf,
+    ativo: parseBoolean(paciente.ativo),
+    dataDeNascimento: nascimentoDate
+      ? format(nascimentoDate, "yyyy-MM-dd")
+      : null,
+  };
+};

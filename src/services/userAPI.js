@@ -51,8 +51,6 @@ export const toggleUser = async (id) => {
   }
 };
 
-
-
 export const resetPassword = async ({ email, password }) => {
   try {
     const response = await axios.patch(

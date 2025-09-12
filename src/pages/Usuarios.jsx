@@ -78,7 +78,6 @@ export default function Usuarios() {
 
   // REATIVAR / DESATIVAR
   const handleToggleActive = async (row) => {
-    console.log("ID: " +row.id);
     try {
       await toggleUser(row.id);
       await fetchUsers();
@@ -90,17 +89,17 @@ export default function Usuarios() {
 
   // abrir criação
   const openCreateForm = () => {
+    setEditInitialData({});
     setFormMode("create");
-    setEditInitialData(null);
     setIsFormOpen(true);
   };
 
   // abrir edição // DataFrame -> Table -> DetailsPopup -> chama onEditRow
   const openEditForm = (row) => {
-    setFormMode("edit");
     setEditInitialData(row);
+    setFormMode("edit");
     setIsFormOpen(true);
-  };
+  };  
 
   useEffect(() => {
     fetchUsers();
@@ -127,7 +126,6 @@ export default function Usuarios() {
         data={users}
         dataType="usuarios"
         formFields={formConfigs.usuarios}
-        // Passa TODOS os handlers pra DataFrame/Table
         onAddRow={openCreateForm}
         onEditRow={openEditForm}
         onToggleRow={handleToggleActive}
@@ -144,11 +142,13 @@ export default function Usuarios() {
       />
 
       <FormPopUp
+        key={formMode === "create" ? Date.now() : editInitialData?.id ?? "edit"}
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         title={formMode === "create" ? "Criar Usuário" : "Editar Usuário"}
+        mode={formMode}
         fields={formConfigs.usuarios}
-        initialData={editInitialData}
+        initialData={formMode === "create" ? null : editInitialData}
         onSubmit={formMode === "create" ? handleCreateUser : handleEditUser}
         validationSchema={userSchema}
       />
