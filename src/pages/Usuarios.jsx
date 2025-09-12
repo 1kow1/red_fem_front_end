@@ -2,22 +2,30 @@
 import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
 import { useEffect, useState } from "react";
-import { formConfigs } from "../configs/formConfigs";
+import { formConfigs } from "../config/formConfig";
 import { adaptUserForView, adaptUserForApi } from "../adapters/userAdapter";
 import { getUsers, createUser, editUser, toggleUser } from "../services/userAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
+import { usePagination } from "../hooks/usePagination";
 import { userSchema } from "../validation/validationSchemas";
 import { toast } from "react-toastify";
 
 export default function Usuarios() {
   const [users, setUsers] = useState([]);
-  const [page, setPage] = useState(0);
-  const [size, setSize] = useState(15);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalRecords, setTotalRecords] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const {
+    page,
+    setPage,
+    size,
+    setSize,
+    totalPages,
+    setTotalPages,
+    totalRecords,
+    setTotalRecords,
+    resetPagination,
+  } = usePagination();
   
 
   // modal control

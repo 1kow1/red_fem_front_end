@@ -82,3 +82,40 @@ export const pacienteSchema = Yup.object().shape({
 
   ativo: Yup.boolean().nullable(),
 });
+
+export const consultaSchema = Yup.object().shape({
+  dataHora: Yup.date()
+    .required("Data e hora são obrigatórias")
+    .min(new Date(), "Data e hora devem ser no futuro"),
+
+  especialidade: Yup.string()
+    .oneOf(
+      ["ODONTOLOGIA", "CARDIOLOGIA", "NEUROLOGIA", "PEDIATRIA", "GINECOLOGIA", "UROLOGIA", "DERMATOLOGIA", "PSIQUIATRIA", "ONCOLOGIA", "ORTOPEDIA"],
+      "Especialidade inválida"
+    )
+    .required("Especialidade é obrigatória"),
+
+  medicoId: Yup.string()
+    .required("Médico é obrigatório")
+    .min(1, "Médico deve ser selecionado"),
+
+  patientId: Yup.string()
+    .required("Paciente é obrigatório")
+    .min(1, "Paciente deve ser selecionado"),
+
+  tipoConsulta: Yup.string()
+    .oneOf(
+      ["INITIAL", "FOLLOWUP", "EMERGENCY", "ROUTINE"],
+      "Tipo de consulta inválido"
+    )
+    .required("Tipo de consulta é obrigatório"),
+
+  status: Yup.string()
+    .oneOf(
+      ["PENDENTE", "CONFIRMADA", "EM_ANDAMENTO", "FINALIZADA", "CANCELADA"],
+      "Status inválido"
+    )
+    .nullable(),
+
+  ativo: Yup.boolean().nullable(),
+});

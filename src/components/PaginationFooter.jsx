@@ -1,4 +1,4 @@
-export function PaginationFooter({ page, totalPages, onPageChange, className, totalRecords }) {
+export function PaginationFooter({ page, totalPages, onPageChange, className, totalRecords, size }) {
   // Calcula as páginas para mostrar
   const getVisiblePages = () => {
     const delta = 2; // Quantas páginas mostrar de cada lado
@@ -59,11 +59,11 @@ export function PaginationFooter({ page, totalPages, onPageChange, className, to
             <>
               Mostrando{" "}
               <span className="font-semibold text-gray-900">
-                {(page * 10) + 1}
+                {(page * size) + 1}
               </span>{" "}
               até{" "}
               <span className="font-semibold text-gray-900">
-                {Math.min((page + 1) * 10, totalRecords)}
+                {Math.min((page + 1) * size, totalRecords)}
               </span>{" "}
               de{" "}
               <span className="font-semibold text-gray-900">

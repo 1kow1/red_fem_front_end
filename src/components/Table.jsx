@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useMemo } from "react";
 import DetailsPopup from "./DetailsPopup.jsx";
-import { popupConfigs } from "../configs/detailsConfigs.js";
+import { popupConfigs } from "../config/detailsConfig.js";
 
 export default function Table({ 
   data, 
