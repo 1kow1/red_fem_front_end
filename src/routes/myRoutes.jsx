@@ -9,6 +9,7 @@ import Usuarios from "../pages/Usuarios";
 import FormularioEditor from "../pages/FormularioEditor";
 import ResetarSenha from "../pages/ResetarSenha";
 import { useAuth } from "../contexts/auth";
+import ExecucaoFormulario from "../pages/ExecucaoFormulario";
 
 function ProtectedRoute({ children, redirectTo = "/login" }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -58,6 +59,9 @@ function MyRoutes() {
 
       {/* Rota do editor  */}
       <Route path="/editform" element={<FormularioEditor />} />
+      
+      {/* Rota do execucao formulario  */}
+      <Route path="/formexec" element={<ExecucaoFormulario />} />
 
       {/* catch-all: redireciona para /login ou /consultas conforme auth */}
       <Route
