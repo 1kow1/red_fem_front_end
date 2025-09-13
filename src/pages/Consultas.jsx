@@ -9,6 +9,7 @@ import { PaginationFooter } from "../components/PaginationFooter";
 import { usePagination } from "../hooks/usePagination";
 import { consultaSchema } from "../validation/validationSchemas";
 import { toast } from "react-toastify";
+import ConfirmationPopup from "../components/ConfirmationPopup";
 
 export default function Consultas() {
   const [consultas, setConsultas] = useState([]);
@@ -28,6 +29,8 @@ export default function Consultas() {
   } = usePagination();
 
   // modal control
+  const [row, setRow] = useState({});
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState("create"); // create | edit
   const [editInitialData, setEditInitialData] = useState(null);
@@ -52,7 +55,7 @@ export default function Consultas() {
 
   // CREATE
   const handleCreateConsulta = async (formData) => {
-    
+
     console.log("DEBUG FormData completo:", formData);
     console.log("dataConsulta:", {
       valor: formData.dataConsulta,
@@ -62,19 +65,19 @@ export default function Consultas() {
       valor: formData.horario,
       tipo: typeof formData.horario,
     });
-    
+
     try {
       // ⭐ USAR O ADAPTER PARA TRANSFORMAR OS DADOS
       const payload = adaptConsultaForApi(formData);
       console.log("🔄 Payload transformado pelo adapter:", payload);
-      
+
       const resultado = await createConsulta(payload);
       console.log("✅ API retornou:", resultado);
-      
+
       await fetchConsultas();
       setIsFormOpen(false);
       toast.success("Consulta criada com sucesso!");
-      
+
     } catch (err) {
       console.error("❌ ERRO:", err);
       toast.error("Erro: " + (err?.response?.data?.message || err.message));
@@ -86,7 +89,7 @@ export default function Consultas() {
     try {
       await consultaSchema.validate(formData, { abortEarly: false });
       const payload = adaptConsultaForApi({ ...(editInitialData || {}), ...formData });
-      
+
       await editConsulta(payload.id, payload);
       await fetchConsultas();
       toast.success("Consulta atualizada!");
@@ -107,14 +110,24 @@ export default function Consultas() {
 
   // REATIVAR / DESATIVAR
   const handleToggleActive = async (row) => {
+    setIsConfirmOpen(true);
+    setRow(row);
+  };
+
+  const handleConfirmToggle = async () => {
     try {
       await toggleConsulta(row.id);
       await fetchConsultas();
-      toast.success("Consulta atualizada!");
-    } catch (err) {
-      toast.error("Erro ao ativar/desativar a consulta");
+      toast.success("Consulta atualizada com sucesso!");
     }
-  };
+    catch (err) {
+      toast.error("Erro ao atualizar consulta");
+    }
+    finally {
+      setIsConfirmOpen(false);
+      setRow({});
+    }
+  }
 
   // abrir criação
   const openCreateForm = () => {
@@ -128,7 +141,7 @@ export default function Consultas() {
     setEditInitialData(row);
     setFormMode("edit");
     setIsFormOpen(true);
-  };  
+  };
 
   useEffect(() => {
     fetchConsultas();
@@ -181,6 +194,13 @@ export default function Consultas() {
         initialData={formMode === "create" ? null : editInitialData}
         onSubmit={formMode === "create" ? handleCreateConsulta : handleEditConsulta}
         validationSchema={consultaSchema}
+      />
+
+      <ConfirmationPopup
+        isOpen={isConfirmOpen}
+        message={`Tem certeza que deseja ${row.ativo ? "desativar" : "reativar"} o usuário ${row.nome}?`}
+        onConfirm={handleConfirmToggle}
+        onCancel={() => { setIsConfirmOpen(false); setRow({}); }}
       />
     </div>
   );
