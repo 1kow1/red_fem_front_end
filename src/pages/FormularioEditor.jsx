@@ -8,14 +8,7 @@ import { ButtonPrimary, ButtonPrimaryDropdown, IconButton, ButtonSecondary } fro
 import { XIcon, MoveUpIcon, MoveDownIcon, AddIcon, DeleteIcon } from "../components/Icons";
 import Input from "../components/Input";
 import { createForm } from "../services/formAPI";
-
-function Card({ children, className }) {
-  return (
-    <div className={`border bg-white border-gray-300 rounded-lg shadow-md ${className}`}>
-      {children}
-    </div>
-  )
-}
+import Card from "../components/Card";
 
 export default function FormularioEditor() {
   const location = useLocation();
@@ -345,7 +338,6 @@ export default function FormularioEditor() {
       liberadoParaUso: isEditMode ? formulario.liberadoParaUso : false,
       editavel: true,
       especialidade: formulario.especialidade || 'GINECOLOGIA',
-      medicoId: formulario.medicoId || '68bdeef11fa8f0adfedad396',
     };
 
     if (isEditMode && formulario.id) {

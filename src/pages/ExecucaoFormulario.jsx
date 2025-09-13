@@ -5,7 +5,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import rosaLogo from '../assets/logos/rosa-rfcc.png';
 import { ButtonPrimary, ButtonPrimaryDropdown, IconButton, ButtonSecondary } from "../components/Button";
-import { XIcon, MoveUpIcon, MoveDownIcon, AddIcon, DeleteIcon } from "../components/Icons";
 import Input from "../components/Input";
 import Card from "../components/Card";
 
@@ -14,6 +13,8 @@ export default function ExecucaoFormulario() {
 
   const [loading, setLoading] = useState(false);
   const [erros, setErros] = useState({});
+
+  const [respostas, setRespostas] = useState([]);
   const [formulario, setFormulario] = useState({
     titulo: "Anamnese Ginecológica",
     descricao: "Formulário padrão de anamnese ginecológica.",
@@ -68,9 +69,37 @@ export default function ExecucaoFormulario() {
     navigate('/consultas');
   }, [formulario, navigate]);
 
+  const onChangeInput = (e) => {
+    const { perguntaId, texto } = e.target;
+    setRespostas((prev) => ([
+      ...prev.filter(r => r.perguntaId !== perguntaId),
+      { perguntaId: perguntaId, texto: texto }
+    ]));
+  }
+
+  const checkFormulario = () => {
+    const newErros = {};
+
+    formulario.perguntas.forEach((pergunta) => {
+      const resposta = respostas.find(r => r.perguntaId === pergunta.id);
+      if (!resposta || !resposta.texto || resposta.texto.trim() === '') {
+        newErros[pergunta.id] = ['Este campo é obrigatório.'];
+      }
+    });
+
+    setErros(newErros);
+    return Object.keys(newErros).length === 0;
+  }
+
   const onSave = useCallback(async () => {
-    setLoading(true);
     setErros({});
+
+    if (!checkFormulario()) {
+      toast.error('Corrija os erros antes de salvar.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       // Simulação de chamada à API
@@ -115,9 +144,21 @@ export default function ExecucaoFormulario() {
 
       <div className="pt-24 pb-4 px-80 bg-redfemVariantPink bg-opacity-10 min-h-screen">
         <div className="flex flex-col gap-4">
-          <Card>
+          <Card
+            className={`${erros.length > 0 ? 'border border-red-500' : ''}`}
+          >
             <div className="bg-redfemDarkPink w-full h-2 rounded-t-lg"></div>
             <div className="py-4 px-8">
+              {erros.length > 0 && (
+                <ul className="w-full flex flex-col mb-4">
+                  {erros.map((erro, index) => (
+                    <li key={index} className="text-red-500 text-sm">
+                      • {erro}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
               <p
                 className="text-2xl mb-2"
               >
