@@ -4,15 +4,15 @@ export const popupConfigs = {
     getConfig: (data, callbacks = {}) => ({
       title: `Paciente ${data.nome}`,
       fields: [
-        { label: "Sexo", key: "sexo" },
-        { label: "Email", key: "email" },
-        { label: "Telefone", key: "telefone" },
-        { label: "Data de Nascimento", key: "dataDeNascimento", type: "date" },
-        { label: "Estado Civil", key: "estadoCivil" },
-        { label: "Profissão", key: "profissao" },
-        { label: "Cidade", key: "cidade" },
-        { label: "Estado", key: "uf" },
         { label: "CPF", key: "cpf" },
+        { label: "Email", key: "email" },
+        { label: "Sexo", key: "_sexo" },
+        { label: "Telefone", key: "telefone" },
+        { label: "Data de Nascimento", key: "_dataDeNascimento", type: "date" },
+        { label: "Estado Civil", key: "_estadoCivil" },
+        { label: "Profissão", key: "_profissao" },
+        { label: "Estado", key: "_uf" },
+        { label: "Cidade", key: "_cidade" },
         { label: "Ativo", key: "ativo" }
       ],
       actions: [
@@ -61,12 +61,16 @@ export const popupConfigs = {
 
   consultas: {
     getConfig: (data) => ({
-      title: data.pacienteNome || data.nome,
+      title: "Consulta - " + data.pacienteNome || data.nome,
       fields: [
-        { label: "Médico Solicitante", key: "medico" },
-        { label: "Data da Consulta", key: "dataConsulta", type: "datetime" },
+        { label: "Paciente", key: "pacienteNome" },
+        { label: "Médico", key: "medicoNome" },
+        { label: "Especialidade", key: "especialidade" },
         { label: "Tipo da Consulta", key: "tipoConsulta" },
-        { label: "Status", key: "status" }
+        { label: "Data e Hora", key: "dataHora" },
+        { label: "Status", key: "status" },
+        { label: "Status da Execução", key: "_statusExecucao" },
+        { label: "Ativo", key: "_ativo" },
       ],
       actions: [
         {

@@ -50,9 +50,9 @@ export default function Table({
     return <div className="text-center py-8 text-muted-foreground">No data available</div>
   }
 
-  const headers = Object.keys(data[0]).filter(
-    (key) => !Array.isArray(data[0][key]) // remove arrays como "formularios"
-  );
+  const headers = Object.keys(data[0])
+  .filter((key) => !Array.isArray(data[0][key]))
+  .filter((key) => !key.startsWith('_')); // OCULTAR CAMPOS COM _
 
   const formatHeader = (key) => {
     return key

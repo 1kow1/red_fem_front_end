@@ -96,16 +96,6 @@ export default function FormularioPopUp({
     })();
   }, [isOpen, mode, initialData, fields, setValue]);
 
-  useEffect(() => {
-    console.log("form values snapshot:", {
-      dataConsulta: watch("dataConsulta"),
-      horario: watch("horario"),
-      dataHora: watch("dataHora"),
-      especialidade: watch("especialidade"),
-      medicoId: watch("medicoId"),
-    });
-  }, [watch("dataConsulta"), watch("horario"), watch("dataHora"), watch("especialidade"), watch("medicoId")]);
-
   const handleFormSubmit = async (data) => {
     try {
       const cleaned = {};
@@ -116,11 +106,14 @@ export default function FormularioPopUp({
           cleaned[name] = initialData[name];
       });
 
-      console.log("FormularioPopUp -> submitting payload:", cleaned);
       await onSubmit?.(cleaned);
-      if (closeOnSubmit) onClose?.();
+
+      if (closeOnSubmit) {
+        onClose?.();
+      }
     } catch (err) {
-      console.error("Erro no submit do FormPopUp:", err);
+      console.error("❌ Erro no handleFormSubmit do FormPopUp:", err);
+      console.error("📊 Stack:", err.stack);
     }
   };
 
@@ -301,11 +294,8 @@ export default function FormularioPopUp({
             <ButtonSecondary onClick={onClose} type="button">
               Cancelar
             </ButtonSecondary>
-            <ButtonPrimary
-              onClick={handleSubmit(handleFormSubmit)}
-              type="button"
-            >
-              {submitText}
+            <ButtonPrimary type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Salvando..." : submitText}
             </ButtonPrimary>
           </div>
         </form>
