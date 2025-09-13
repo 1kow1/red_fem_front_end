@@ -7,6 +7,8 @@ import rosaLogo from '../assets/logos/rosa-rfcc.png';
 import { ButtonPrimary, ButtonPrimaryDropdown, IconButton, ButtonSecondary } from "../components/Button";
 import Input from "../components/Input";
 import Card from "../components/Card";
+import { createExec, getExecById } from "../services/execAPI";
+import { getFormById } from "../services/formAPI";
 
 export default function ExecucaoFormulario() {
   const navigate = useNavigate();
@@ -15,47 +17,27 @@ export default function ExecucaoFormulario() {
   const [erros, setErros] = useState({});
 
   const [respostas, setRespostas] = useState([]);
-  const [formulario, setFormulario] = useState({
-    titulo: "Anamnese Ginecológica",
-    descricao: "Formulário padrão de anamnese ginecológica.",
-    perguntas: [
-      { id: 1, posicao: 0, enunciado: "Você já teve alguma infecção sexualmente transmissível?", tipo: "DICOTOMICA", alternativas: ["Sim", "Não"] },
-      { id: 2, posicao: 1, enunciado: "Você já teve alguma infecção sexualmente transmissível?", tipo: "DICOTOMICA", alternativas: ["Sim", "Não"] },
-      { id: 3, posicao: 2, enunciado: "Quantos parceiros sexuais você teve nos últimos 12 meses?", tipo: "TEXTUAL" },
-      {
-        id: 4, posicao: 3, enunciado: "Quais métodos contraceptivos você utiliza?", tipo: "MULTIPLA_ESCOLHA", alternativas: [
-          { id: 1, texto: "Preservativo", posicao: 0 },
-          { id: 2, texto: "Pílula", posicao: 1 },
-          { id: 3, texto: "DIU", posicao: 2 },
-          { id: 4, texto: "Implante", posicao: 3 },
-          { id: 5, texto: "Outro", posicao: 4 }
-        ]
-      },
-      {
-        id: 5, posicao: 4, enunciado: "Com que frequência você realiza o exame preventivo?", tipo: "SELECAO_UNICA", alternativas: [
-          { id: 1, texto: "Anualmente", posicao: 0 },
-          { id: 2, texto: "A cada 2 anos", posicao: 1 },
-          { id: 3, texto: "Nunca fiz", posicao: 2 }
-        ]
-      },
-      {
-        id: 6, posicao: 5, enunciado: "Quais métodos contraceptivos você utiliza?", tipo: "MULTIPLA_ESCOLHA", alternativas: [
-          { id: 1, texto: "Preservativo", posicao: 0 },
-          { id: 2, texto: "Pílula", posicao: 1 },
-          { id: 3, texto: "DIU", posicao: 2 },
-          { id: 4, texto: "Implante", posicao: 3 },
-          { id: 5, texto: "Outro", posicao: 4 }
-        ]
-      },
-      {
-        id: 7, posicao: 6, enunciado: "Com que frequência você realiza o exame preventivo?", tipo: "SELECAO_UNICA", alternativas: [
-          { id: 1, texto: "Anualmente", posicao: 0 },
-          { id: 2, texto: "A cada 2 anos", posicao: 1 },
-          { id: 3, texto: "Nunca fiz", posicao: 2 }
-        ]
-      },
-    ]
-  });
+  const [formulario, setFormulario] = useState({});
+
+  const fetchFormulario = async () => {
+    try {
+      const response = await getFormById("68c0c499c53f79425367bf24");
+      setFormulario(response);
+      console.log(response);
+    }
+    catch (error) {
+      console.error("Erro ao buscar formulário:", error);
+      toast.error("Erro ao buscar formulário");
+    }
+    finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log('ExecucaoFormulario montado');
+    fetchFormulario();
+  }, []);
 
   // --- cancelar ---
   const onCancel = useCallback(() => {
@@ -69,21 +51,66 @@ export default function ExecucaoFormulario() {
     navigate('/consultas');
   }, [formulario, navigate]);
 
-  const onChangeInput = (e) => {
-    const { perguntaId, texto } = e.target;
-    setRespostas((prev) => ([
-      ...prev.filter(r => r.perguntaId !== perguntaId),
-      { perguntaId: perguntaId, texto: texto }
-    ]));
+  const onChangeInput = (value, perguntaId) => {
+    console.log('onChangeInput chamado:', { value, perguntaId });
+    console.log('Respostas antes:', respostas);
+
+    setRespostas((prev) => {
+      const novasRespostas = [
+        ...prev.filter(r => r.perguntaId !== perguntaId),
+        { perguntaId: perguntaId, texto: value }
+      ];
+
+      console.log('Novas respostas:', novasRespostas);
+      return novasRespostas;
+    });
+  }
+
+  const onChangeComAlternativas = (value, perguntaId, isMultiple = false) => {
+    console.log('onChangeComAlternativas:', { value, perguntaId, isMultiple });
+
+    setRespostas((prev) => {
+      if (isMultiple) {
+        // Para múltipla escolha, verifica se já existe uma resposta com o mesmo perguntaId e texto
+        const existeResposta = prev.find(r => r.perguntaId === perguntaId && r.texto === value);
+
+        if (existeResposta) {
+          // Se existe, remove (desmarca)
+          return prev.filter(r => !(r.perguntaId === perguntaId && r.texto === value));
+        } else {
+          // Se não existe, adiciona (marca)
+          return [...prev, { perguntaId: perguntaId, texto: value }];
+        }
+      } else {
+        // Para seleção única, remove todas as respostas da pergunta e adiciona a nova
+        const filtered = prev.filter(r => r.perguntaId !== perguntaId);
+        return [...filtered, { perguntaId: perguntaId, texto: value }];
+      }
+    });
+  }
+
+  // Função auxiliar para verificar se uma alternativa está selecionada
+  const isAlternativaSelecionada = (perguntaId, textoAlternativa) => {
+    return respostas.some(r => r.perguntaId === perguntaId && r.texto === textoAlternativa);
   }
 
   const checkFormulario = () => {
     const newErros = {};
 
     formulario.perguntas.forEach((pergunta) => {
-      const resposta = respostas.find(r => r.perguntaId === pergunta.id);
-      if (!resposta || !resposta.texto || resposta.texto.trim() === '') {
-        newErros[pergunta.id] = ['Este campo é obrigatório.'];
+      const respostasParaPergunta = respostas.filter(r => r.perguntaId === pergunta.id);
+
+      if (pergunta.tipo === "MULTIPLA_ESCOLHA") {
+        // Para múltipla escolha, verifica se há pelo menos uma resposta
+        if (respostasParaPergunta.length === 0) {
+          newErros[pergunta.id] = ['Este campo é obrigatório.'];
+        }
+      } else {
+        // Para outros tipos, verifica se existe resposta e se não está vazia
+        const resposta = respostasParaPergunta[0];
+        if (!resposta || !resposta.texto || resposta.texto.trim() === '') {
+          newErros[pergunta.id] = ['Este campo é obrigatório.'];
+        }
       }
     });
 
@@ -94,6 +121,20 @@ export default function ExecucaoFormulario() {
   const onSave = useCallback(async () => {
     setErros({});
 
+    let data = {
+      formularioId: formulario.id,
+      idConsulta: "68c5b99ddd8cb9861815b698",
+      paciente: {
+        id: "68c0a50127da4c6557d60c7e"
+      },
+      usuarioDTO: {
+        id: "68bf66718e169da24cd793df"
+      },
+      respostas: respostas
+    }
+
+    console.log('Dados enviados:', data);
+
     if (!checkFormulario()) {
       toast.error('Corrija os erros antes de salvar.');
       return;
@@ -103,7 +144,8 @@ export default function ExecucaoFormulario() {
 
     try {
       // Simulação de chamada à API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+      await createExec(data);
       toast.success('Formulário salvo com sucesso!');
       navigate('/consultas');
     } catch (error) {
@@ -112,7 +154,7 @@ export default function ExecucaoFormulario() {
     } finally {
       setLoading(false);
     }
-  }, [formulario, navigate]);
+  }, [respostas, navigate]);
 
 
   // --- UI render ---
@@ -142,7 +184,7 @@ export default function ExecucaoFormulario() {
         </div>
       </div>
 
-      <div className="pt-24 pb-4 px-80 bg-redfemVariantPink bg-opacity-10 min-h-screen">
+      <div className="pt-24 pb-4 px-80 max-[1200px]:px-20 bg-redfemVariantPink bg-opacity-10 min-h-screen">
         <div className="flex flex-col gap-4">
           <Card
             className={`${erros.length > 0 ? 'border border-red-500' : ''}`}
@@ -171,7 +213,7 @@ export default function ExecucaoFormulario() {
           </Card>
 
           <div className="flex flex-col gap-4">
-            {formulario.perguntas.map((pergunta, index) => (
+            {formulario.perguntas && formulario.perguntas.map((pergunta, index) => (
               <Card
                 key={pergunta.id}
                 className={`
@@ -207,60 +249,43 @@ export default function ExecucaoFormulario() {
                         disabled:bg-gray-50`}
                       placeholder="Resposta..."
                       rows={1}
+                      value={respostas.find(r => r.perguntaId === pergunta.id)?.texto || ''}
                       onChange={(e) => {
-                        e.preventDefault();
                         e.target.style.height = 'auto';
                         e.target.style.height = `${e.target.scrollHeight + 8}px`;
+                        onChangeInput(e.target.value, pergunta.id);
                       }}
                     />
                   )}
 
                   {pergunta.tipo === "DICOTOMICA" && (
                     <div className={`flex flex-row gap-4 mb-2`}>
-                      <div
-                        className="hidden"
-                      >
-                        <input
-                          type="radio"
-                          name={`pergunta_${pergunta.id}`}
-                          id={`pergunta_${pergunta.id}_sim`} />
-
-                        <input
-                          type="radio"
-                          name={`pergunta_${pergunta.id}`}
-                          id={`pergunta_${pergunta.id}_nao`} />
-                      </div>
-
                       <button
                         className={`
-                          w-full justify-center
-                          px-4 py-2 h-fit rounded-md
-                          text-white bg-redfemGray
-                          flex gap-2 items-center`}
+                          w-full justify-center px-4 py-2 h-fit rounded-md
+                          text-white flex gap-2 items-center
+                          ${respostas.find(r => r.perguntaId === pergunta.id)?.texto === "Sim"
+                            ? 'bg-redfemActionPink' : 'bg-redfemGray'}
+                          `}
                         onClick={(e) => {
                           e.preventDefault();
-                          e.target.style.backgroundColor = '#ff2194';
-                          document.getElementById(`pergunta_${pergunta.id}_sim`).checked = true;
-                          document.getElementById(`pergunta_${pergunta.id}_nao_button`).style.backgroundColor = '#a3a3a3';
+                          onChangeInput("Sim", pergunta.id);
                         }}
-                        id={`pergunta_${pergunta.id}_sim_button`}
                       >
                         Sim
                       </button>
 
                       <button
                         className={`
-                          w-full justify-center
-                          px-4 py-2 h-fit rounded-md
-                          text-white bg-redfemGray
-                          flex gap-2 items-center`}
+                          w-full justify-center px-4 py-2 h-fit rounded-md
+                          text-white flex gap-2 items-center
+                          ${respostas.find(r => r.perguntaId === pergunta.id)?.texto === "Não"
+                            ? 'bg-redfemActionPink' : 'bg-redfemGray'}
+                        `}
                         onClick={(e) => {
                           e.preventDefault();
-                          e.target.style.backgroundColor = '#ff2194';
-                          document.getElementById(`pergunta_${pergunta.id}_nao`).checked = true;
-                          document.getElementById(`pergunta_${pergunta.id}_sim_button`).style.backgroundColor = '#a3a3a3';
+                          onChangeInput("Não", pergunta.id);
                         }}
-                        id={`pergunta_${pergunta.id}_nao_button`}
                       >
                         Não
                       </button>
@@ -282,6 +307,19 @@ export default function ExecucaoFormulario() {
                                     pergunta.tipo === "MULTIPLA_ESCOLHA" ?
                                       "checkbox" : "radio"
                                   }
+                                  value={alternativa.texto}
+                                  checked={
+                                    pergunta.tipo === "MULTIPLA_ESCOLHA"
+                                      ? isAlternativaSelecionada(pergunta.id, alternativa.texto)
+                                      : respostas.find(r => r.perguntaId === pergunta.id)?.texto === alternativa.texto
+                                  }
+                                  onChange={(e) => {
+                                    if (pergunta.tipo === "MULTIPLA_ESCOLHA") {
+                                      onChangeComAlternativas(alternativa.texto, pergunta.id, true);
+                                    } else {
+                                      onChangeComAlternativas(alternativa.texto, pergunta.id);
+                                    }
+                                  }}
                                 />
                                 <p className="inline ml-2">
                                   {alternativa.texto}
@@ -289,10 +327,11 @@ export default function ExecucaoFormulario() {
                               </label>
                             </div>
                           ))}
-
                         </div>
                       </div>
-                    )}
+                    )
+                  }
+
                 </div>
 
               </Card>

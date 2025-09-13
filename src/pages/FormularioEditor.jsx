@@ -422,7 +422,7 @@ export default function FormularioEditor() {
         </div>
       </div>
 
-      <div className="pt-24 pb-4 px-80 bg-redfemVariantPink bg-opacity-10 min-h-screen">
+      <div className="pt-24 pb-4 px-80 max-[1200px]:px-20 bg-redfemVariantPink bg-opacity-10 min-h-screen">
         <div className="flex flex-col gap-4">
           <Card
             className={`${errosGeral.length > 0 ? 'border border-red-500' : ''}`}
