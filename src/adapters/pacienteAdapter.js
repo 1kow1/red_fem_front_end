@@ -70,16 +70,16 @@ export const adaptPacienteForView = (paciente = {}) => {
   return {
     id,
     nome: paciente.nome ?? "",
+    cpf: paciente.cpf ?? "",
     email: paciente.email ?? "",
     telefone: paciente.telefone ?? "",
-    cpf: paciente.cpf ?? "",
-    sexo: mapSexoForView(paciente.sexo),
-    estadoCivil: mapEstadoCivilForView(paciente.estadoCivil),
-    profissao: paciente.profissao ?? "",
-    cidade: paciente.cidade ?? "",
-    uf: paciente.uf ?? "",
+    _sexo: mapSexoForView(paciente.sexo),
+    _estadoCivil: mapEstadoCivilForView(paciente.estadoCivil),
+    _profissao: paciente.profissao ?? "",
+    _cidade: paciente.cidade ?? "",
+    _uf: paciente.uf ?? "",
     ativo: paciente.ativo ? "Sim" : "Não",
-    dataDeNascimento: nascimentoDate
+    _dataDeNascimento: nascimentoDate
       ? format(nascimentoDate, "dd/MM/yyyy")
       : "-",
   };

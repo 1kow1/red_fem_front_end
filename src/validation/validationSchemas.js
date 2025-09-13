@@ -84,38 +84,17 @@ export const pacienteSchema = Yup.object().shape({
 });
 
 export const consultaSchema = Yup.object().shape({
-  dataHora: Yup.date()
-    .required("Data e hora são obrigatórias")
-    .min(new Date(), "Data e hora devem ser no futuro"),
-
-  especialidade: Yup.string()
-    .oneOf(
-      ["ODONTOLOGIA", "CARDIOLOGIA", "NEUROLOGIA", "PEDIATRIA", "GINECOLOGIA", "UROLOGIA", "DERMATOLOGIA", "PSIQUIATRIA", "ONCOLOGIA", "ORTOPEDIA"],
-      "Especialidade inválida"
-    )
-    .required("Especialidade é obrigatória"),
-
-  medicoId: Yup.string()
-    .required("Médico é obrigatório")
-    .min(1, "Médico deve ser selecionado"),
-
-  patientId: Yup.string()
-    .required("Paciente é obrigatório")
-    .min(1, "Paciente deve ser selecionado"),
-
-  tipoConsulta: Yup.string()
-    .oneOf(
-      ["INITIAL", "FOLLOWUP", "EMERGENCY", "ROUTINE"],
-      "Tipo de consulta inválido"
-    )
-    .required("Tipo de consulta é obrigatório"),
-
-  status: Yup.string()
-    .oneOf(
-      ["PENDENTE", "CONFIRMADA", "EM_ANDAMENTO", "FINALIZADA", "CANCELADA"],
-      "Status inválido"
-    )
-    .nullable(),
-
-  ativo: Yup.boolean().nullable(),
+  patientId: Yup.string().required("Paciente é obrigatório"),
+  medicoId: Yup.string().required("Médico é obrigatório"),
+  dataConsulta: Yup.date()
+    .required("Data da consulta é obrigatória")
+    .typeError("Data inválida"),
+  horario: Yup.string()
+    .required("Horário é obrigatório")
+    .matches(/^([0-1]\d|2[0-3]):([0-5]\d)$/, "Horário inválido (HH:mm)"),
+  tipoConsulta: Yup.string().required("Tipo da consulta é obrigatório"),
+  status: Yup.string().oneOf(
+    ["pendente", "cancelada", "finalizada"],
+    "Status inválido"
+  ),
 });

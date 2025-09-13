@@ -52,22 +52,32 @@ export default function Consultas() {
 
   // CREATE
   const handleCreateConsulta = async (formData) => {
+    
+    console.log("DEBUG FormData completo:", formData);
+    console.log("dataConsulta:", {
+      valor: formData.dataConsulta,
+      tipo: typeof formData.dataConsulta,
+    });
+    console.log("horario:", {
+      valor: formData.horario,
+      tipo: typeof formData.horario,
+    });
+    
     try {
-      await consultaSchema.validate(formData, { abortEarly: false });
-
-      createConsulta(formData)
-        .then(() => fetchConsultas())
-        .catch((err) => console.error("Erro ao criar consulta:", err));
-  
+      // ⭐ USAR O ADAPTER PARA TRANSFORMAR OS DADOS
+      const payload = adaptConsultaForApi(formData);
+      console.log("🔄 Payload transformado pelo adapter:", payload);
+      
+      const resultado = await createConsulta(payload);
+      console.log("✅ API retornou:", resultado);
+      
+      await fetchConsultas();
       setIsFormOpen(false);
       toast.success("Consulta criada com sucesso!");
-  
+      
     } catch (err) {
-      const errors = {};
-      err.inner.forEach((e) => {
-        errors[e.path] = e.message;
-      });
-      toast.error("Erros de validação ao criar consulta:", errors)
+      console.error("❌ ERRO:", err);
+      toast.error("Erro: " + (err?.response?.data?.message || err.message));
     }
   };
 

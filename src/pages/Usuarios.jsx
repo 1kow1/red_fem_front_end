@@ -4,7 +4,12 @@ import FormPopUp from "../components/FormPopUp";
 import { useEffect, useState } from "react";
 import { formConfigs } from "../config/formConfig";
 import { adaptUserForView, adaptUserForApi } from "../adapters/userAdapter";
-import { getUsers, createUser, editUser, toggleUser } from "../services/userAPI";
+import {
+  getUsers,
+  createUser,
+  editUser,
+  toggleUser,
+} from "../services/userAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
 import { usePagination } from "../hooks/usePagination";
 import { userSchema } from "../validation/validationSchemas";
@@ -26,7 +31,6 @@ export default function Usuarios() {
     setTotalRecords,
     resetPagination,
   } = usePagination();
-  
 
   // modal control
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -54,32 +58,31 @@ export default function Usuarios() {
   // CREATE
   const handleCreateUser = async (formData) => {
     try {
-      await userSchema.validate(formData, { abortEarly: false });
-
       // Com o await, teriamos que esperar de 5-10 segundos para o e-mail ser enviado
       createUser(formData)
         .then(() => fetchUsers())
         .catch((err) => console.error("Erro ao criar usuário:", err));
-  
+
       setIsFormOpen(false);
-  
     } catch (err) {
       const errors = {};
       err.inner.forEach((e) => {
         errors[e.path] = e.message;
       });
-      toast.error("Erros de validação ao criar usuário:", errors)
+      toast.error("Erros de validação ao criar usuário:", errors);
     }
   };
 
   // EDIT
   const handleEditUser = async (formData) => {
-    await userSchema.validate(formData, {àbortEarly:false})
-    const payload = adaptUserForApi({ ...(editInitialData || {}), ...formData });
-    
+    const payload = adaptUserForApi({
+      ...(editInitialData || {}),
+      ...formData,
+    });
+
     await editUser(payload.id, payload);
     await fetchUsers();
-    toast.success("Usuário Atualizado!")
+    toast.success("Usuário Atualizado!");
     setIsFormOpen(false);
     setEditInitialData(null);
   };
@@ -89,9 +92,9 @@ export default function Usuarios() {
     try {
       await toggleUser(row.id);
       await fetchUsers();
-      toast.success("Usuário Atualizado!")
+      toast.success("Usuário Atualizado!");
     } catch (err) {
-      toast.error("Erro ao Desativar/Reativar o usuário")
+      toast.error("Erro ao Desativar/Reativar o usuário");
     }
   };
 
@@ -107,7 +110,7 @@ export default function Usuarios() {
     setEditInitialData(row);
     setFormMode("edit");
     setIsFormOpen(true);
-  };  
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -147,6 +150,7 @@ export default function Usuarios() {
         totalPages={totalPages}
         totalRecords={totalRecords}
         onPageChange={setPage}
+        size={size}
       />
 
       <FormPopUp
