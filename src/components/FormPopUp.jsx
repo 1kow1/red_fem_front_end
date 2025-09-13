@@ -1,7 +1,12 @@
-import React, { useEffect, useMemo } from "react";
+/* eslint-disable no-unused-vars */
+import React, { useEffect, useMemo, useState } from "react";
 import { ButtonPrimary, ButtonSecondary } from "./Button";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { getPacientes, getPacienteById } from "../services/pacienteAPI";
+import { getUsers, getUserById } from "../services/userAPI";
+import SearchAsyncSelect from "../components/SearchAsyncSelect";
+import { parseISO, isValid } from "date-fns";
 
 export default function FormularioPopUp({
   isOpen,
@@ -16,16 +21,21 @@ export default function FormularioPopUp({
   validationSchema,
 }) {
   const {
+    control,
     register,
     handleSubmit,
     reset,
     watch,
     setValue,
-    formState: { errors },
+    getValues,
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: validationSchema ? yupResolver(validationSchema) : undefined,
     defaultValues: {},
   });
+
+  // guarda labels carregadas para selects assíncronos { fieldName: { value, label } }
+  const [asyncDefaults, setAsyncDefaults] = useState({});
 
   // detecta dinamicamente qual propriedade parece ser o ID
   const idKey = useMemo(() => {
@@ -35,52 +45,108 @@ export default function FormularioPopUp({
 
   useEffect(() => {
     if (!isOpen) return;
-    
-    if (mode === "create") {
-      reset({}); // limpa tudo
-      return;
-    }
+    if (mode !== "edit" || !initialData) return;
 
-    if (fields.length === 0) return; // espera fields carregarem
-  
-    if (mode === "edit" && initialData) {
-      const normalized = {};
-      fields.forEach(field => {
-        const name = field.name;
-        let val = initialData[name];
-        if (val === undefined) return;
-  
-        if (field.type === "select") {
-          if (Array.isArray(field.options)) {
-            const match = field.options.find(
-              o => o.value === val || o.label === val
-            );
-            normalized[name] = match?.value ?? val;
-          } else {
-            normalized[name] = val;
+    (async () => {
+      const newDefaults = {};
+      await Promise.all(
+        fields.map(async (field) => {
+          if (field.type !== "async-select") return;
+
+          const idValue = initialData[field.name];
+          if (!idValue) return;
+
+          try {
+            if (field.apiKey === "pacientes") {
+              const p = await getPacienteById(idValue);
+              newDefaults[field.name] = {
+                value: idValue,
+                label: p.nome ?? p.name ?? String(idValue),
+              };
+            } else if (field.apiKey === "users") {
+              const u = await getUserById(idValue);
+              newDefaults[field.name] = {
+                value: idValue,
+                label: u.nome ?? u.name ?? String(idValue),
+              };
+            } else if (field.apiKey === "forms") {
+              // se tiver getFormById, use-o
+              // const f = await getFormById(idValue);
+              // newDefaults[field.name] = { value: idValue, label: f.titulo ?? String(idValue) };
+            }
+          } catch (err) {
+            console.warn("Erro ao carregar default async-select:", err);
+            newDefaults[field.name] = {
+              value: idValue,
+              label: String(idValue),
+            };
           }
-        } else if (field.type === "checkbox") {
-          normalized[name] = Boolean(val);
-        } else {
-          normalized[name] = val;
+        })
+      );
+
+      setAsyncDefaults(newDefaults);
+
+      // também setar os valores dos campos no form (apenas o id)
+      fields.forEach((field) => {
+        if (field.type === "async-select") {
+          const idValue = initialData[field.name];
+          if (idValue) setValue(field.name, idValue);
         }
       });
-  
-      reset(normalized);
-      if (idKey) setValue(idKey, initialData[idKey]);
-    } else {
-      reset({}); // create mode limpa tudo
-    }
-  }, [isOpen, initialData, fields, idKey, mode, reset, setValue]);
+    })();
+  }, [isOpen, mode, initialData, fields, setValue]);
+
+  useEffect(() => {
+    console.log("form values snapshot:", {
+      dataConsulta: watch("dataConsulta"),
+      horario: watch("horario"),
+      dataHora: watch("dataHora"),
+      especialidade: watch("especialidade"),
+      medicoId: watch("medicoId"),
+    });
+  }, [watch("dataConsulta"), watch("horario"), watch("dataHora"), watch("especialidade"), watch("medicoId")]);
 
   const handleFormSubmit = async (data) => {
     try {
-      const payload = { ...initialData, ...data };
-      console.log("FormularioPopUp -> submitting payload:", payload);
-      await onSubmit?.(payload);
+      const cleaned = {};
+      fields.forEach((f) => {
+        const name = f.name;
+        if (data[name] !== undefined) cleaned[name] = data[name];
+        else if (initialData && initialData[name] !== undefined)
+          cleaned[name] = initialData[name];
+      });
+
+      console.log("FormularioPopUp -> submitting payload:", cleaned);
+      await onSubmit?.(cleaned);
       if (closeOnSubmit) onClose?.();
     } catch (err) {
       console.error("Erro no submit do FormPopUp:", err);
+    }
+  };
+
+  // função genérica para buscar opções (retorna lista [{value,label}])
+  const loadOptions = async (inputValue, field) => {
+    try {
+      if (field.apiKey === "pacientes") {
+        const res = await getPacientes(0, 10, inputValue);
+        // adaptar dependendo do shape do seu backend: aqui assumimos res.content ou res.items...
+        const items = res.content ?? res.items ?? res;
+        return (items || []).map((p) => ({
+          value: p._id ?? p.id ?? p.identifier,
+          label: p.nome ?? p.fullName ?? p.name,
+        }));
+      } else if (field.apiKey === "users") {
+        const res = await getUsers(inputValue, 0, 10);
+        const items = res.content ?? res.items ?? res;
+        return (items || []).map((u) => ({
+          value: u._id ?? u.id ?? u.identifier,
+          label: u.nome ?? u.name,
+        }));
+      }
+      return [];
+    } catch (err) {
+      console.error("Erro em loadOptions:", err);
+      return [];
     }
   };
 
@@ -104,6 +170,57 @@ export default function FormularioPopUp({
               if (field.showIf && !field.showIf(watch())) return null;
               const name = field.name;
 
+              if (field.type === "async-select") {
+                const name = field.name;
+                return (
+                  <div key={name}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {field.label}
+                    </label>
+
+                    <Controller
+                      control={control}
+                      name={name}
+                      render={({ field: controllerField }) => {
+                        const valueObj = asyncDefaults[name] || null;
+
+                        return (
+                          <SearchAsyncSelect
+                            apiKey={field.apiKey}
+                            value={valueObj}
+                            onChange={(opt) => {
+                              controllerField.onChange(opt ? opt.value : "");
+                              // Atualizar o asyncDefaults para manter a label
+                              if (opt) {
+                                setAsyncDefaults((prev) => ({
+                                  ...prev,
+                                  [name]: opt,
+                                }));
+                              } else {
+                                setAsyncDefaults((prev) => {
+                                  const newDefaults = { ...prev };
+                                  delete newDefaults[name];
+                                  return newDefaults;
+                                });
+                              }
+                            }}
+                            placeholder={field.placeholder}
+                            pageSize={field.pageSize ?? 10}
+                            hasError={!!errors[name]}
+                          />
+                        );
+                      }}
+                    />
+
+                    {errors[name] && (
+                      <p className="text-red-500 text-sm">
+                        {errors[name].message}
+                      </p>
+                    )}
+                  </div>
+                );
+              }
+
               if (field.type === "select") {
                 return (
                   <div key={name}>
@@ -116,7 +233,9 @@ export default function FormularioPopUp({
                         errors[name] ? "border-red-500" : "border-gray-400"
                       }`}
                     >
-                      <option value="">{field.placeholder ?? "Selecione"}</option>
+                      <option value="">
+                        {field.placeholder ?? "Selecione"}
+                      </option>
                       {Array.isArray(field.options) &&
                         field.options.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -124,7 +243,11 @@ export default function FormularioPopUp({
                           </option>
                         ))}
                     </select>
-                    {errors[name] && <p className="text-red-500 text-sm">{errors[name].message}</p>}
+                    {errors[name] && (
+                      <p className="text-red-500 text-sm">
+                        {errors[name].message}
+                      </p>
+                    )}
                   </div>
                 );
               }
@@ -132,26 +255,58 @@ export default function FormularioPopUp({
               if (field.type === "checkbox") {
                 return (
                   <div key={name} className="flex items-center gap-2">
-                    <input type="checkbox" {...register(name)} className={`h-4 w-4 ${errors[name] ? "border-red-500" : ""}`} />
-                    <label className="text-sm font-medium text-gray-700">{field.label}</label>
-                    {errors[name] && <p className="text-red-500 text-sm">{errors[name].message}</p>}
+                    <input
+                      type="checkbox"
+                      {...register(name)}
+                      className={`h-4 w-4 ${
+                        errors[name] ? "border-red-500" : ""
+                      }`}
+                    />
+                    <label className="text-sm font-medium text-gray-700">
+                      {field.label}
+                    </label>
+                    {errors[name] && (
+                      <p className="text-red-500 text-sm">
+                        {errors[name].message}
+                      </p>
+                    )}
                   </div>
                 );
               }
 
               return (
                 <div key={name}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{field.label}</label>
-                  <input type={field.type || "text"} placeholder={field.placeholder} {...register(name)} className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${errors[name] ? "border-red-500" : "border-gray-400"}`} />
-                  {errors[name] && <p className="text-red-500 text-sm">{errors[name].message}</p>}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {field.label}
+                  </label>
+                  <input
+                    type={field.type || "text"}
+                    placeholder={field.placeholder}
+                    {...register(name)}
+                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
+                      errors[name] ? "border-red-500" : "border-gray-400"
+                    }`}
+                  />
+                  {errors[name] && (
+                    <p className="text-red-500 text-sm">
+                      {errors[name].message}
+                    </p>
+                  )}
                 </div>
               );
             })}
           </div>
 
           <div className="flex justify-end gap-4 mt-8">
-            <ButtonSecondary onClick={onClose} type="button">Cancelar</ButtonSecondary>
-            <ButtonPrimary type="submit">{submitText}</ButtonPrimary>
+            <ButtonSecondary onClick={onClose} type="button">
+              Cancelar
+            </ButtonSecondary>
+            <ButtonPrimary
+              onClick={handleSubmit(handleFormSubmit)}
+              type="button"
+            >
+              {submitText}
+            </ButtonPrimary>
           </div>
         </form>
       </div>

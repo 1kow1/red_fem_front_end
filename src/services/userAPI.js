@@ -21,6 +21,15 @@ export const getUsers = async (buscaGenerica = "", page = 0, size = 10) => {
   }
 };
 
+export const getUserById = async (id) => {
+  try {
+    const response = await api.get(`/users/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error("Failed to get user by id: " + error);
+  }
+};
+
 // ------------- POST -------------
 export const createUser = async (data) => {
   try {

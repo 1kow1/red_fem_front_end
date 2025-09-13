@@ -24,7 +24,7 @@ export const getConsultas = async (page = 0, size = 10) => {
 // ------------- POST -------------
 export const createConsulta = async (data) => {
   try {
-    const response = await api.post("/consultas", cleanPayload(data));
+    const response = await api.post("/consultas", data);
     return response.data;
   } catch (error) {
     throw new Error("Failed to create consulta: " + error.message);

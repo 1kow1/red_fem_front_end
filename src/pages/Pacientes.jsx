@@ -53,9 +53,7 @@ export default function Pacientes() {
 
   // CREATE
   const handleCreatePaciente = async (formData) => {
-    try {
-      await pacienteSchema.validate(formData, { abortEarly: false });
-  
+    try {  
       const payload = adaptPacienteForApi(formData);
   
       createPaciente(payload)
@@ -74,7 +72,6 @@ export default function Pacientes() {
 
   // EDIT
   const handleEditPaciente = async (formData) => {
-    await pacienteSchema.validate(formData, { abortEarly: false });
     const payload = adaptPacienteForApi({ ...(editInitialData || {}), ...formData });
     
     await editPaciente(payload.id, payload);

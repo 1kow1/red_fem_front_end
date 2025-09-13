@@ -156,21 +156,18 @@ export const formConfigs = {
   // Formulário para CONSULTAS
   consultas: [
     {
-      name: "pacienteNome",
-      label: "Nome do Paciente",
-      type: "text",
-      placeholder: "Digite o nome do paciente",
+      name: "patientId",
+      label: "Paciente",
+      type: "async-select",
+      placeholder: "Digite para buscar paciente",
+      apiKey: "pacientes" // usado para abstrair qual endpoint chamar
     },
     {
-      name: "medicoSolicitante",
-      label: "Médico Solicitante",
-      type: "select",
-      placeholder: "Selecione o médico",
-      options: [
-        { value: "dr-lima-barreto", label: "Dr. Lima Barreto" },
-        { value: "dr-carlos-mendes", label: "Dr. Carlos Mendes" },
-        { value: "dra-fernanda-oliveira", label: "Dra. Fernanda Oliveira" },
-      ],
+      name: "medicoId",
+      label: "Médico",
+      type: "async-select",
+      placeholder: "Digite para buscar médico",
+      apiKey: "users" // chama getUsers
     },
     {
       name: "dataConsulta",
@@ -192,7 +189,6 @@ export const formConfigs = {
       options: [
         { value: "primeira-consulta", label: "Primeira Consulta" },
         { value: "retorno", label: "Retorno" },
-        { value: "consulta-rotina", label: "Consulta de Rotina" },
         { value: "urgencia", label: "Urgência" },
       ],
     },

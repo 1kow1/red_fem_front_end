@@ -105,14 +105,14 @@ export const consultaSchema = Yup.object().shape({
 
   tipoConsulta: Yup.string()
     .oneOf(
-      ["INITIAL", "FOLLOWUP", "EMERGENCY", "ROUTINE"],
+      ["primeira-consulta", "retorno", "urgencia"],
       "Tipo de consulta inválido"
     )
     .required("Tipo de consulta é obrigatório"),
 
   status: Yup.string()
     .oneOf(
-      ["PENDENTE", "CONFIRMADA", "EM_ANDAMENTO", "FINALIZADA", "CANCELADA"],
+      ["pendente", "finalizada", "cancelada"],
       "Status inválido"
     )
     .nullable(),

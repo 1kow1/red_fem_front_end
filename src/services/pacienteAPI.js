@@ -20,6 +20,15 @@ export const getPacientes = async (page = 0, size = 10, ativo) => {
   }
 };
 
+export const getPacienteById = async (id) => {
+  try {
+    const response = await api.get(`/pacientes/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error("Failed to get paciente by id: " + error);
+  }
+};
+
 // ------------- POST -------------
 export const createPaciente = async (data) => {
   try {
