@@ -38,7 +38,6 @@ export const editConsulta = async (id, consultaData) => {
 
 // ------------- PATCH -------------
 export const toggleConsulta = async (id) => {
-  console.log("id:"+id)
   try {
     const response = await api.patch(`/consultas/${id}`);
     return response.data;

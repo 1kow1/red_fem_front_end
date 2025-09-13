@@ -197,7 +197,7 @@ export default function Consultas() {
 
       <ConfirmationPopUp
         isOpen={isConfirmOpen}
-        message={`Tem certeza que deseja ${row.ativo ? "desativar" : "reativar"} o usuário ${row.nome}?`}
+        message={`Tem certeza que deseja desmarcar a consulta?`}
         onConfirm={handleConfirmToggle}
         onCancel={() => { setIsConfirmOpen(false); setRow({}); }}
       />

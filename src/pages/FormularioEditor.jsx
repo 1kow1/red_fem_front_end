@@ -9,6 +9,7 @@ import { XIcon, MoveUpIcon, MoveDownIcon, AddIcon, DeleteIcon } from "../compone
 import Input from "../components/Input";
 import { createForm } from "../services/formAPI";
 import Card from "../components/Card";
+import ConfirmationPopUp from "../components/ConfirmationPopUp";
 
 export default function FormularioEditor() {
   const location = useLocation();
@@ -16,6 +17,10 @@ export default function FormularioEditor() {
 
   const formDataToEdit = location.state?.formData;
   const isEditMode = Boolean(formDataToEdit);
+
+  const [isConfirmOpenFormulario, setIsConfirmOpenFormulario] = useState(false);
+  const [isConfirmOpenPergunta, setIsConfirmOpenPergunta] = useState(false);
+  const [perguntaIdToDelete, setPerguntaIdToDelete] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [erros, setErros] = useState({});
@@ -129,27 +134,32 @@ export default function FormularioEditor() {
 
   // --- deletar pergunta ---
   const onDeletePergunta = useCallback((perguntaId) => {
-    const confirmar = window.confirm('Tem certeza que deseja excluir esta pergunta?');
-    if (!confirmar) return;
+    setIsConfirmOpenPergunta(true);
+    setPerguntaIdToDelete(perguntaId);
+  }, []);
 
+  const handleConfirmDelete = useCallback(() => {
     setFormulario(prev => ({
       ...prev,
-      perguntas: prev.perguntas.filter(pergunta => pergunta.id !== perguntaId)
+      perguntas: prev.perguntas.filter(pergunta => pergunta.id !== perguntaIdToDelete)
     }));
 
     setErros(prevErros => {
       const novosErros = { ...prevErros };
-      delete novosErros[perguntaId];
+      delete novosErros[perguntaIdToDelete];
       return novosErros;
     });
 
     // também remover snapshot caso exista
-    if (originalPerguntasRef.current[perguntaId]) {
+    if (originalPerguntasRef.current[perguntaIdToDelete]) {
       const copy = { ...originalPerguntasRef.current };
-      delete copy[perguntaId];
+      delete copy[perguntaIdToDelete];
       originalPerguntasRef.current = copy;
     }
-  }, []);
+
+    setIsConfirmOpenPergunta(false);
+    setPerguntaIdToDelete(null);
+  }, [perguntaIdToDelete]);
 
   // --- mudanças em uma pergunta ---
   const onChangePergunta = useCallback((perguntaId, campo, valor) => {
@@ -382,10 +392,12 @@ export default function FormularioEditor() {
     const hasChanges = formulario.titulo || formulario.descricao || formulario.perguntas.length > 0;
 
     if (hasChanges) {
-      const confirmar = window.confirm('Tem certeza que deseja cancelar? Todas as alterações serão perdidas.');
-      if (!confirmar) return;
+      setIsConfirmOpenFormulario(true);
     }
+  }, [formulario, navigate]);
 
+  const handleConfirmCancel = useCallback(() => {
+    setIsConfirmOpenFormulario(false);
     navigate('/formularios');
   }, [formulario, navigate]);
 
@@ -397,6 +409,20 @@ export default function FormularioEditor() {
   // --- UI render ---
   return (
     <div>
+      <ConfirmationPopUp
+        isOpen={isConfirmOpenFormulario}
+        message={`Tem certeza que deseja descartar todas as alterações?`}
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setIsConfirmOpenFormulario(false)}
+      />
+
+      <ConfirmationPopUp
+        isOpen={isConfirmOpenPergunta}
+        message={`Tem certeza que deseja excluir esta pergunta?`}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsConfirmOpenPergunta(false)}
+      />
+
       <div
         className="
           flex flex-row justify-between items-center p-4
@@ -411,7 +437,7 @@ export default function FormularioEditor() {
             onClick={onCancel}
             disabled={loading}
           >
-            Cancelar
+            Descartar
           </ButtonSecondary>
           <ButtonPrimary
             onClick={onSave}
