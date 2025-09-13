@@ -8,14 +8,7 @@ import { ButtonPrimary, ButtonPrimaryDropdown, IconButton, ButtonSecondary } fro
 import { XIcon, MoveUpIcon, MoveDownIcon, AddIcon, DeleteIcon } from "../components/Icons";
 import Input from "../components/Input";
 import { createForm } from "../services/formAPI";
-
-function Card({ children, className }) {
-  return (
-    <div className={`border bg-white border-gray-300 rounded-lg shadow-md ${className}`}>
-      {children}
-    </div>
-  )
-}
+import Card from "../components/Card";
 
 export default function FormularioEditor() {
   const location = useLocation();
@@ -345,7 +338,6 @@ export default function FormularioEditor() {
       liberadoParaUso: isEditMode ? formulario.liberadoParaUso : false,
       editavel: true,
       especialidade: formulario.especialidade || 'GINECOLOGIA',
-      medicoId: formulario.medicoId || '68bdeef11fa8f0adfedad396',
     };
 
     if (isEditMode && formulario.id) {
@@ -430,7 +422,7 @@ export default function FormularioEditor() {
         </div>
       </div>
 
-      <div className="pt-24 pb-4 px-80 bg-redfemVariantPink bg-opacity-10 min-h-screen">
+      <div className="pt-24 pb-4 px-80 max-[1200px]:px-20 bg-redfemVariantPink bg-opacity-10 min-h-screen">
         <div className="flex flex-col gap-4">
           <Card
             className={`${errosGeral.length > 0 ? 'border border-red-500' : ''}`}
