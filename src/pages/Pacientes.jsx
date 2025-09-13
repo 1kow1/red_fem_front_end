@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
-import { useEffect, useState  } from "react";
+import { useEffect, useState } from "react";
 import { formConfigs } from "../config/formConfig";
 import { adaptPacienteForView, adaptPacienteForApi } from "../adapters/pacienteAdapter";
 import { getPacientes, createPaciente, editPaciente, togglePaciente } from "../services/pacienteAPI";
@@ -9,6 +9,7 @@ import { PaginationFooter } from "../components/PaginationFooter";
 import { usePagination } from "../hooks/usePagination";
 import { pacienteSchema } from "../validation/validationSchemas";
 import { toast } from "react-toastify";
+import ConfirmationPopup from "../components/ConfirmationPopup";
 
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState([]);
@@ -28,6 +29,8 @@ export default function Pacientes() {
   } = usePagination();
 
   // modal control
+  const [row, setRow] = useState({});
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState("create"); // create | edit
   const [editInitialData, setEditInitialData] = useState(null);
@@ -53,13 +56,13 @@ export default function Pacientes() {
 
   // CREATE
   const handleCreatePaciente = async (formData) => {
-    try {  
+    try {
       const payload = adaptPacienteForApi(formData);
-  
+
       createPaciente(payload)
         .then(() => fetchPacientes())
         .catch((err) => console.error("Erro ao criar paciente:", err));
-  
+
       setIsFormOpen(false);
     } catch (err) {
       const errors = {};
@@ -73,7 +76,7 @@ export default function Pacientes() {
   // EDIT
   const handleEditPaciente = async (formData) => {
     const payload = adaptPacienteForApi({ ...(editInitialData || {}), ...formData });
-    
+
     await editPaciente(payload.id, payload);
     await fetchPacientes();
     setIsFormOpen(false);
@@ -83,12 +86,20 @@ export default function Pacientes() {
 
   // REATIVAR / DESATIVAR
   const handleToggleActive = async (row) => {
+    setIsConfirmOpen(true);
+    setRow(row);
+  };
+
+  const handleConfirmToggle = async () => {
     try {
       await togglePaciente(row.id);
       await fetchPacientes();
       toast.success("Paciente Atualizado!")
     } catch (err) {
       toast.error("Erro ao alternar status ativo:", err)
+    } finally {
+      setIsConfirmOpen(false);
+      setRow({});
     }
   };
 
@@ -157,6 +168,13 @@ export default function Pacientes() {
         initialData={editInitialData}
         onSubmit={formMode === "create" ? handleCreatePaciente : handleEditPaciente}
         validationSchema={pacienteSchema}
+      />
+
+      <ConfirmationPopup
+        isOpen={isConfirmOpen}
+        message={`Tem certeza que deseja ${row.ativo ? "desativar" : "reativar"} o paciente ${row.nome}?`}
+        onConfirm={handleConfirmToggle}
+        onCancel={() => { setIsConfirmOpen(false); setRow({}); }}
       />
     </div>
   );

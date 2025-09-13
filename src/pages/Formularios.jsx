@@ -48,10 +48,10 @@ export default function Formularios() {
   const handleEditForm = async (row) => {
     try {
       setEditLoading(true);
-      
+
       console.log("Buscando dados completos do formulário:", row.id);
       const fullFormData = await getFormById(row.id);
-      
+
       const formDataForEdit = {
         ...fullFormData,
         perguntas: (fullFormData.perguntas || []).map((pergunta, index) => ({
@@ -66,29 +66,17 @@ export default function Formularios() {
 
       console.log("Dados preparados para edição:", formDataForEdit);
       navigate("/editForm", { state: { formData: formDataForEdit } });
-      
+
     } catch (err) {
       console.error("Erro ao buscar dados completos do formulário:", err);
-      const message = err?.response?.data?.message || 
-                     err?.message || 
-                     "Erro ao carregar formulário para edição";
+      const message = err?.response?.data?.message ||
+        err?.message ||
+        "Erro ao carregar formulário para edição";
       toast.error(message);
     } finally {
       setEditLoading(false);
     }
   };
-
-  // TOGGLE ACTIVE / DEACTIVE
-  // const handleToggleActive = async (row) => {
-  //   try {
-  //     await toggleForm(row.id);
-  //     await fetchForms();
-  //     toast.success("Formulário atualizado!");
-  //   } catch (err) {
-  //     console.error("Erro ao ativar/desativar formulário:", err);
-  //     toast.error("Erro ao ativar/desativar formulário");
-  //   }
-  // };
 
   // fetch on page/size change
   useEffect(() => {

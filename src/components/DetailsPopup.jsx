@@ -116,7 +116,7 @@ export default function DetailsPopup({ isOpen, onClose, data, config = {} }) {
                   onClick={() => action.onClick?.(data)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                     action.variant === "primary"
-                      ? "bg-pink-500 hover:bg-pink-600 text-white"
+                      ? "bg-redfemActionPink hover:bg-redfemDarkPink text-white"
                       : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                   }`}
                 >

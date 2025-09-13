@@ -9,6 +9,7 @@ import { PaginationFooter } from "../components/PaginationFooter";
 import { usePagination } from "../hooks/usePagination";
 import { userSchema } from "../validation/validationSchemas";
 import { toast } from "react-toastify";
+import ConfirmationPopup from "../components/ConfirmationPopup";
 
 export default function Usuarios() {
   const [users, setUsers] = useState([]);
@@ -28,6 +29,8 @@ export default function Usuarios() {
   } = usePagination();
 
   // modal control
+  const [row, setRow] = useState({});
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState("create"); // create | edit
   const [editInitialData, setEditInitialData] = useState(null);
@@ -84,14 +87,24 @@ export default function Usuarios() {
 
   // REATIVAR / DESATIVAR
   const handleToggleActive = async (row) => {
+    setIsConfirmOpen(true);
+    setRow(row);
+  };
+
+  const handleConfirmToggle = async () => {
     try {
       await toggleUser(row.id);
       await fetchUsers();
-      toast.success("Usuário Atualizado!");
-    } catch (err) {
-      toast.error("Erro ao Desativar/Reativar o usuário");
+      toast.success("Usuário atualizado com sucesso!");
     }
-  };
+    catch (err) {
+      toast.error("Erro ao atualizar usuário");
+    }
+    finally {
+      setIsConfirmOpen(false);
+      setRow({});
+    }
+  }
 
   // abrir criação
   const openCreateForm = () => {
@@ -158,6 +171,13 @@ export default function Usuarios() {
         initialData={formMode === "create" ? null : editInitialData}
         onSubmit={formMode === "create" ? handleCreateUser : handleEditUser}
         validationSchema={userSchema}
+      />
+
+      <ConfirmationPopup
+        isOpen={isConfirmOpen}
+        message={`Tem certeza que deseja ${row.ativo ? "desativar" : "reativar"} o usuário ${row.nome}?`}
+        onConfirm={handleConfirmToggle}
+        onCancel={() => { setIsConfirmOpen(false); setRow({}); }}
       />
     </div>
   );
