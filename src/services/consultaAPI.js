@@ -1,13 +1,6 @@
 
-/* eslint-disable no-unused-vars */
+ 
 import api from "./axios";
-
-// used to clear empty fields
-export const cleanPayload = (data) => {
-  return Object.fromEntries(
-    Object.entries(data).filter(([_, v]) => v !== "" && v !== undefined)
-  );
-};
 
 // ------------- GET -------------
 export const getConsultas = async (page = 0, size = 10) => {
@@ -45,10 +38,12 @@ export const editConsulta = async (id, consultaData) => {
 
 // ------------- PATCH -------------
 export const toggleConsulta = async (id) => {
+  console.log("id:"+id)
   try {
-    const response = await api.patch(`/consultas`, { id });
+    const response = await api.patch(`/consultas/${id}`);
     return response.data;
   } catch (error) {
-    throw new Error("Failed to toggle consulta: " + error.message);
+    throw new Error("Failed to toggle consulta: " + error);
   }
 };
+

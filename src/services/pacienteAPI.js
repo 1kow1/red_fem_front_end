@@ -60,3 +60,4 @@ export const togglePaciente = async (id) => {
     throw new Error("Failed to toggle paciente: " + error);
   }
 };
+

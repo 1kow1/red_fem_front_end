@@ -25,11 +25,10 @@ export const adaptConsultaForView = (consulta = {}) => {
   const dataHoraDate = parseMaybeDate(consulta.dataHora);
 
   // Extrair nomes do paciente e médico
-  const pacienteObj = consulta.pacienteDTO ?? consulta.execucaoFormulario?.paciente ?? null;
   const medicoObj = consulta.usuarioDTO ?? consulta.execucaoFormulario?.medico ?? null;
-
-  const pacienteNome = pacienteObj?.nome ?? consulta.execucaoFormulario?.paciente?.nome ?? "N/A";
   const medicoNome = medicoObj?.nome ?? consulta.execucaoFormulario?.usuarioDTO?.nome ?? "N/A";
+
+  const pacienteNome = consulta.pacienteNome ?? consulta.execucaoFormulario?.paciente?.nome ?? "N/A";
 
   return {
     id,
@@ -41,8 +40,6 @@ export const adaptConsultaForView = (consulta = {}) => {
     
     // Estes campos são mantidos para funcionalidade mas não são exibidos
     _statusExecucao: "Pendente",
-    _formularioTitulo: "N/A",
-    _formularioId: null,
     _ativo: consulta.ativo ? "Sim" : "Não",
     _patientId: consulta.patientId,
     _medicoId: consulta.medicoId,

@@ -60,12 +60,11 @@ export const popupConfigs = {
   },
 
   consultas: {
-    getConfig: (data) => ({
-      title: "Consulta - " + data.pacienteNome || data.nome,
+    getConfig: (data, callbacks = {}) => ({
+      title: "Consulta",  
       fields: [
         { label: "Paciente", key: "pacienteNome" },
         { label: "Médico", key: "medicoNome" },
-        { label: "Especialidade", key: "especialidade" },
         { label: "Tipo da Consulta", key: "tipoConsulta" },
         { label: "Data e Hora", key: "dataHora" },
         { label: "Status", key: "status" },
@@ -76,19 +75,19 @@ export const popupConfigs = {
         {
           label: "Deletar",
           variant: "secondary",
-          onClick: (data) => console.log("Cancelar consulta:", data)
+          onClick: callbacks.onToggle
         },
         {
           label: "Editar",
           variant: "primary",
-          onClick: (data) => console.log("Editar consulta:", data)
-        }
+          onClick: callbacks.onEdit
+        },
       ],
-      subTable: data.formularios && data.formularios.length > 0 ? {
+      subTable: data.execucaoFormulario ? {
         title: "Formulários",
-        data: data.formularios,
+        data: data.execucaoFormulario,
         dataType: "formularios", // Novo: tipo de dados para o Table
-        addButton: { label: "Novo Formulário" }
+        addButton: { label: "Associar Formulário" }
       } : null
     })
   },
@@ -107,11 +106,6 @@ export const popupConfigs = {
       actions: [
         {
           label: "Editar",
-          variant: "primary",
-          onClick: callbacks.onEdit
-        },
-        {
-          label: "Associar Formulário",
           variant: "primary",
           onClick: callbacks.onEdit
         },
