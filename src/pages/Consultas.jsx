@@ -9,7 +9,7 @@ import { PaginationFooter } from "../components/PaginationFooter";
 import { usePagination } from "../hooks/usePagination";
 import { consultaSchema } from "../validation/validationSchemas";
 import { toast } from "react-toastify";
-import ConfirmationPopup from "../components/ConfirmationPopup";
+import ConfirmationPopUp from "../components/ConfirmationPopUp";
 
 export default function Consultas() {
   const [consultas, setConsultas] = useState([]);
@@ -195,7 +195,7 @@ export default function Consultas() {
         validationSchema={consultaSchema}
       />
 
-      <ConfirmationPopup
+      <ConfirmationPopUp
         isOpen={isConfirmOpen}
         message={`Tem certeza que deseja ${row.ativo ? "desativar" : "reativar"} o usuário ${row.nome}?`}
         onConfirm={handleConfirmToggle}
