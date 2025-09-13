@@ -93,8 +93,6 @@ export const consultaSchema = Yup.object().shape({
     .required("Horário é obrigatório")
     .matches(/^([0-1]\d|2[0-3]):([0-5]\d)$/, "Horário inválido (HH:mm)"),
   tipoConsulta: Yup.string().required("Tipo da consulta é obrigatório"),
-  status: Yup.string().oneOf(
-    ["pendente", "cancelada", "finalizada"],
-    "Status inválido"
-  ),
 });
+
+// Form e Execução form é feito dentro da propria página

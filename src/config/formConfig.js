@@ -192,16 +192,5 @@ export const formConfigs = {
         { value: "urgencia", label: "Urgência" },
       ],
     },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      placeholder: "Selecione o status",
-      options: [
-        { value: "pendente", label: "Pendente" },
-        { value: "cancelada", label: "Cancelada" },
-        { value: "finalizada", label: "Finalizada" }
-      ],
-    },
   ],
 };

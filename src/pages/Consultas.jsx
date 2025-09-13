@@ -64,7 +64,6 @@ export default function Consultas() {
     });
     
     try {
-      // ⭐ USAR O ADAPTER PARA TRANSFORMAR OS DADOS
       const payload = adaptConsultaForApi(formData);
       console.log("🔄 Payload transformado pelo adapter:", payload);
       

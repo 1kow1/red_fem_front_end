@@ -4,12 +4,7 @@ import FormPopUp from "../components/FormPopUp";
 import { useEffect, useState } from "react";
 import { formConfigs } from "../config/formConfig";
 import { adaptUserForView, adaptUserForApi } from "../adapters/userAdapter";
-import {
-  getUsers,
-  createUser,
-  editUser,
-  toggleUser,
-} from "../services/userAPI";
+import {getUsers, createUser, editUser, toggleUser} from "../services/userAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
 import { usePagination } from "../hooks/usePagination";
 import { userSchema } from "../validation/validationSchemas";

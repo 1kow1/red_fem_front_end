@@ -26,16 +26,15 @@ export const adaptConsultaForView = (consulta = {}) => {
 
   // Extrair nomes do paciente e médico
   const pacienteObj = consulta.pacienteDTO ?? consulta.execucaoFormulario?.paciente ?? null;
-  const medicoObj = consulta.execucaoFormulario?.usuarioDTO ?? consulta.execucaoFormulario?.medico ?? null;
+  const medicoObj = consulta.usuarioDTO ?? consulta.execucaoFormulario?.medico ?? null;
 
   const pacienteNome = pacienteObj?.nome ?? consulta.execucaoFormulario?.paciente?.nome ?? "N/A";
   const medicoNome = medicoObj?.nome ?? consulta.execucaoFormulario?.usuarioDTO?.nome ?? "N/A";
 
   return {
     id,
-    pacienteNome,
-    medicoNome,
-    especialidade: consulta.especialidade ? capitalizeWords(consulta.especialidade) : "N/A",
+    pacienteNome: pacienteNome,
+    medicoNome: medicoNome,
     tipoConsulta: consulta.tipoConsulta ? capitalizeWords(consulta.tipoConsulta) : "N/A",
     dataHora: dataHoraDate ? format(dataHoraDate, "dd/MM/yyyy HH:mm") : "N/A",
     status: consulta.status ? capitalizeWords(consulta.status) : "N/A",
@@ -159,7 +158,6 @@ export const adaptConsultaForApi = (consulta = {}) => {
   const payloadFinal = {
     id,
     dataHora: parsedDataHora ? parsedDataHora.toISOString() : null,
-    especialidade: "GINECOLOGIA",
     medicoId: consulta.medicoId ?? (consulta.usuarioDTO?.id ?? null),
     patientId: consulta.patientId ?? (consulta.pacienteDTO?.id ?? null),
     tipoConsulta: consulta.tipoConsulta,

@@ -111,7 +111,12 @@ export const popupConfigs = {
           onClick: callbacks.onEdit
         },
         {
-          label: "Liberar",
+          label: "Associar Formulário",
+          variant: "primary",
+          onClick: callbacks.onEdit
+        },
+        {
+          label: "Desativar",
           variant: "secondary",
           onClick: (data) => console.log("Liberar Formulário:", data)
         }
