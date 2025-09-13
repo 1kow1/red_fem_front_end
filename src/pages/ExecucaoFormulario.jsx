@@ -23,10 +23,8 @@ export default function ExecucaoFormulario() {
     try {
       const response = await getFormById("68c0c499c53f79425367bf24");
       setFormulario(response);
-      console.log(response);
     }
     catch (error) {
-      console.error("Erro ao buscar formulário:", error);
       toast.error("Erro ao buscar formulário");
     }
     finally {
@@ -35,7 +33,6 @@ export default function ExecucaoFormulario() {
   };
 
   useEffect(() => {
-    console.log('ExecucaoFormulario montado');
     fetchFormulario();
   }, []);
 
@@ -52,23 +49,17 @@ export default function ExecucaoFormulario() {
   }, [formulario, navigate]);
 
   const onChangeInput = (value, perguntaId) => {
-    console.log('onChangeInput chamado:', { value, perguntaId });
-    console.log('Respostas antes:', respostas);
-
     setRespostas((prev) => {
       const novasRespostas = [
         ...prev.filter(r => r.perguntaId !== perguntaId),
         { perguntaId: perguntaId, texto: value }
       ];
 
-      console.log('Novas respostas:', novasRespostas);
       return novasRespostas;
     });
   }
 
   const onChangeComAlternativas = (value, perguntaId, isMultiple = false) => {
-    console.log('onChangeComAlternativas:', { value, perguntaId, isMultiple });
-
     setRespostas((prev) => {
       if (isMultiple) {
         // Para múltipla escolha, verifica se já existe uma resposta com o mesmo perguntaId e texto
@@ -133,8 +124,6 @@ export default function ExecucaoFormulario() {
       respostas: respostas
     }
 
-    console.log('Dados enviados:', data);
-
     if (!checkFormulario()) {
       toast.error('Corrija os erros antes de salvar.');
       return;
@@ -143,13 +132,10 @@ export default function ExecucaoFormulario() {
     setLoading(true);
 
     try {
-      // Simulação de chamada à API
-      // await new Promise((resolve) => setTimeout(resolve, 1000));
       await createExec(data);
       toast.success('Formulário salvo com sucesso!');
       navigate('/consultas');
     } catch (error) {
-      console.error('Erro ao salvar formulário:', error);
       toast.error('Erro ao salvar formulário. Tente novamente.');
     } finally {
       setLoading(false);
