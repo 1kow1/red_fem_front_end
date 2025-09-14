@@ -33,8 +33,9 @@ export const adaptUserForView = (user = {}) => {
     crm: user.crm ?? "",
     telefone: user.telefone ?? "",
     ativo: user.ativo ? "Sim" : "Não",
-    dataCriacao: dataCriacaoDate ? format(dataCriacaoDate, "dd/MM/yyyy HH:mm") : "-",
-    dataAtualizacao: dataAtualizacaoDate ? format(dataAtualizacaoDate, "dd/MM/yyyy HH:mm") : "-",
+    // Hidden fields for form editing (not displayed in table)
+    _dataCriacao: dataCriacaoDate ? format(dataCriacaoDate, "dd/MM/yyyy HH:mm") : "-",
+    _dataAtualizacao: dataAtualizacaoDate ? format(dataAtualizacaoDate, "dd/MM/yyyy HH:mm") : "-",
   };
 };
 

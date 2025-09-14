@@ -57,15 +57,19 @@ export const adaptConsultaForView = (consulta = {}) => {
     tipoConsulta: consulta.tipoConsulta ? capitalizeWords(consulta.tipoConsulta) : "N/A",
     dataHora: dataHoraDate ? format(dataHoraDate, "dd/MM/yyyy HH:mm") : "N/A",
     status: consulta.status ? capitalizeWords(consulta.status) : "N/A",
-    
-    // execucaoFormulario formatada para a subtabela (não aparece na tabela principal)
-    _execucaoFormulario: execucaoFormulario,
-    
-    // Campos mantidos para funcionalidade (com underscore para não exibir)
-    _statusExecucao: "Pendente",
-    _ativo: consulta.ativo ? "Sim" : "Não",
+
+    // Original field names for form editing (hidden from table with underscore)
     _patientId: consulta.patientId,
     _medicoId: medicoId,
+    _ativo: consulta.ativo,
+    _dataConsulta: dataHoraDate ? format(dataHoraDate, "yyyy-MM-dd") : null,
+    _horario: dataHoraDate ? format(dataHoraDate, "HH:mm") : null,
+
+    // execucaoFormulario formatada para a subtabela (não aparece na tabela principal)
+    _execucaoFormulario: execucaoFormulario,
+
+    // Campos mantidos para funcionalidade (com underscore para não exibir)
+    _statusExecucao: "Pendente",
   };
 };
 
@@ -102,7 +106,7 @@ export const adaptConsultaForApi = (consulta = {}) => {
         parsedDataHora = dataHoraCombinada;
       }
       
-    } catch (error) {
+    } catch {
       parsedDataHora = null;
     }
   } else if (consulta.dataHora) {
@@ -145,10 +149,10 @@ export const adaptConsultaForApi = (consulta = {}) => {
   const payloadFinal = {
     id,
     dataHora: parsedDataHora ? parsedDataHora.toISOString() : null,
-    medicoId: consulta.medicoId ?? (consulta.usuarioDTO?.id ?? null),
-    patientId: consulta.patientId ?? (consulta.pacienteDTO?.id ?? null),
+    medicoId: consulta._medicoId ?? consulta.medicoId ?? (consulta.usuarioDTO?.id ?? null),
+    patientId: consulta._patientId ?? consulta.patientId ?? (consulta.pacienteDTO?.id ?? null),
     tipoConsulta: consulta.tipoConsulta,
-    ativo: parseBoolean(consulta.ativo),
+    ativo: parseBoolean(consulta._ativo ?? consulta.ativo),
     status: typeof consulta.status === "string" ? consulta.status.toUpperCase() : consulta.status,
     execucaoFormulario: Object.keys(cleanedExec).length ? cleanedExec : undefined,
   };

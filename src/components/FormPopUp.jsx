@@ -19,6 +19,7 @@ export default function FormularioPopUp({
   initialData = {},
   closeOnSubmit = false,
   validationSchema,
+  columns = 1, // Nova prop para controlar número de colunas
 }) {
   const {
     control,
@@ -65,8 +66,9 @@ export default function FormularioPopUp({
       
       fields.forEach((field) => {
         const fieldName = field.name;
-        let value = initialData[fieldName];
-        
+        // Procura primeiro pelo campo original, depois pela versão com underscore
+        let value = initialData[fieldName] ?? initialData[`_${fieldName}`];
+
         if (value === undefined || value === null) return;
         
         // Processa diferentes tipos de campo
@@ -218,9 +220,14 @@ export default function FormularioPopUp({
 
   if (!isOpen) return null;
 
+  const getModalWidth = () => {
+    if (columns === 2) return "max-w-4xl";
+    return "max-w-md";
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+      <div className={`bg-white rounded-lg shadow-xl p-6 w-full ${getModalWidth()} max-h-[90vh] overflow-y-auto`}>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">{title}</h2>
           <button onClick={onClose} className="text-2xl font-light">
@@ -231,137 +238,23 @@ export default function FormularioPopUp({
         <form onSubmit={handleSubmit(handleFormSubmit)}>
           {idKey && <input type="hidden" {...register(idKey)} />}
 
-          <div className="space-y-4">
-            {fields.map((field) => {
-              if (field.showIf && !field.showIf(watch())) return null;
-              const name = field.name;
-
-              if (field.type === "async-select") {
-                const name = field.name;
-                return (
-                  <div key={name}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {field.label}
-                    </label>
-
-                    <Controller
-                      control={control}
-                      name={name}
-                      render={({ field: controllerField }) => {
-                        const valueObj = asyncDefaults[name] || null;
-
-                        return (
-                          <SearchAsyncSelect
-                            apiKey={field.apiKey}
-                            value={valueObj}
-                            onChange={(opt) => {
-                              controllerField.onChange(opt ? opt.value : "");
-                              // Atualizar o asyncDefaults para manter a label
-                              if (opt) {
-                                setAsyncDefaults((prev) => ({
-                                  ...prev,
-                                  [name]: opt,
-                                }));
-                              } else {
-                                setAsyncDefaults((prev) => {
-                                  const newDefaults = { ...prev };
-                                  delete newDefaults[name];
-                                  return newDefaults;
-                                });
-                              }
-                            }}
-                            placeholder={field.placeholder}
-                            pageSize={field.pageSize ?? 10}
-                            hasError={!!errors[name]}
-                          />
-                        );
-                      }}
-                    />
-
-                    {errors[name] && (
-                      <p className="text-red-500 text-sm">
-                        {errors[name].message}
-                      </p>
-                    )}
-                  </div>
-                );
-              }
-
-              if (field.type === "select") {
-                return (
-                  <div key={name}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {field.label}
-                    </label>
-                    <select
-                      {...register(name)}
-                      className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
-                        errors[name] ? "border-red-500" : "border-gray-400"
-                      }`}
-                    >
-                      <option value="">
-                        {field.placeholder ?? "Selecione"}
-                      </option>
-                      {Array.isArray(field.options) &&
-                        field.options.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                    </select>
-                    {errors[name] && (
-                      <p className="text-red-500 text-sm">
-                        {errors[name].message}
-                      </p>
-                    )}
-                  </div>
-                );
-              }
-
-              if (field.type === "checkbox") {
-                return (
-                  <div key={name} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      {...register(name)}
-                      className={`h-4 w-4 ${
-                        errors[name] ? "border-red-500" : ""
-                      }`}
-                    />
-                    <label className="text-sm font-medium text-gray-700">
-                      {field.label}
-                    </label>
-                    {errors[name] && (
-                      <p className="text-red-500 text-sm">
-                        {errors[name].message}
-                      </p>
-                    )}
-                  </div>
-                );
-              }
-
-              return (
-                <div key={name}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {field.label}
-                  </label>
-                  <input
-                    type={field.type || "text"}
-                    placeholder={field.placeholder}
-                    {...register(name)}
-                    className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
-                      errors[name] ? "border-red-500" : "border-gray-400"
-                    }`}
-                  />
-                  {errors[name] && (
-                    <p className="text-red-500 text-sm">
-                      {errors[name].message}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          {columns === 2 ? (
+            // Layout de 2 colunas
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+              {fields.map((field) => {
+                if (field.showIf && !field.showIf(watch())) return null;
+                return renderField(field);
+              })}
+            </div>
+          ) : (
+            // Layout de 1 coluna (original)
+            <div className="space-y-4">
+              {fields.map((field) => {
+                if (field.showIf && !field.showIf(watch())) return null;
+                return renderField(field);
+              })}
+            </div>
+          )}
 
           <div className="flex justify-end gap-4 mt-8">
             <ButtonSecondary onClick={onClose} type="button">
@@ -375,4 +268,133 @@ export default function FormularioPopUp({
       </div>
     </div>
   );
+
+  // Função para renderizar cada campo
+  function renderField(field) {
+    const name = field.name;
+
+    if (field.type === "async-select") {
+      return (
+        <div key={name}>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {field.label}
+          </label>
+
+          <Controller
+            control={control}
+            name={name}
+            render={({ field: controllerField }) => {
+              const valueObj = asyncDefaults[name] || null;
+
+              return (
+                <SearchAsyncSelect
+                  apiKey={field.apiKey}
+                  value={valueObj}
+                  onChange={(opt) => {
+                    controllerField.onChange(opt ? opt.value : "");
+                    // Atualizar o asyncDefaults para manter a label
+                    if (opt) {
+                      setAsyncDefaults((prev) => ({
+                        ...prev,
+                        [name]: opt,
+                      }));
+                    } else {
+                      setAsyncDefaults((prev) => {
+                        const newDefaults = { ...prev };
+                        delete newDefaults[name];
+                        return newDefaults;
+                      });
+                    }
+                  }}
+                  placeholder={field.placeholder}
+                  pageSize={field.pageSize ?? 10}
+                  hasError={!!errors[name]}
+                />
+              );
+            }}
+          />
+
+          {errors[name] && (
+            <p className="text-red-500 text-sm">
+              {errors[name].message}
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    if (field.type === "select") {
+      return (
+        <div key={name}>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {field.label}
+          </label>
+          <select
+            {...register(name)}
+            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
+              errors[name] ? "border-red-500" : "border-gray-400"
+            }`}
+          >
+            <option value="">
+              {field.placeholder ?? "Selecione"}
+            </option>
+            {Array.isArray(field.options) &&
+              field.options.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+          </select>
+          {errors[name] && (
+            <p className="text-red-500 text-sm">
+              {errors[name].message}
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    if (field.type === "checkbox") {
+      return (
+        <div key={name} className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            {...register(name)}
+            className={`h-4 w-4 ${
+              errors[name] ? "border-red-500" : ""
+            }`}
+          />
+          <label className="text-sm font-medium text-gray-700">
+            {field.label}
+          </label>
+          {errors[name] && (
+            <p className="text-red-500 text-sm">
+              {errors[name].message}
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div key={name}>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {field.label}
+        </label>
+        <input
+          type={field.type || "text"}
+          placeholder={field.placeholder}
+          {...register(name)}
+          className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
+            errors[name] ? "border-red-500" : "border-gray-400"
+          }`}
+        />
+        {errors[name] && (
+          <p className="text-red-500 text-sm">
+            {errors[name].message}
+          </p>
+        )}
+      </div>
+    );
+  }
 }

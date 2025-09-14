@@ -203,6 +203,7 @@ export default function Pacientes() {
         initialData={editInitialData}
         onSubmit={formMode === "create" ? handleCreatePaciente : handleEditPaciente}
         validationSchema={pacienteSchema}
+        columns={2}
       />
 
       <ConfirmationPopUp
