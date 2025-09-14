@@ -116,7 +116,7 @@ export const formConfigs = {
         { value: "CASADA", label: "Casada" },
         { value: "CASADO", label: "Casado" },
         { value: "DIVORCIADA", label: "Divorciada" },
-        { value: "DIVORCIAD0", label: "Divorciado" },
+        { value: "DIVORCIADO", label: "Divorciado" },
         { value: "SOLTEIRA", label: "Solteira" }, 
         { value: "SOLTEIRO", label: "Solteiro" }, 
         { value: "VIÚVA", label: "Viúva" },

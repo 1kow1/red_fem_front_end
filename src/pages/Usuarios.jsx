@@ -3,6 +3,7 @@ import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
 import { useEffect, useState } from "react";
 import { formConfigs } from "../config/formConfig";
+import { filterConfigs } from "../config/filterConfig";
 import { adaptUserForView, adaptUserForApi } from "../adapters/userAdapter";
 import { getUsers, createUser, editUser, toggleUser } from "../services/userAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
@@ -34,10 +35,7 @@ export default function Usuarios() {
   const [formMode, setFormMode] = useState("create"); // create | edit
   const [editInitialData, setEditInitialData] = useState(null);
 
-  const avaiableFilters = {
-    cargo: ["Medico", "Residente", "Academico", "Recepcionista"],
-    especialidade: ["Ginecologia", "Odontologia", "Dermatologia"]
-  }
+  const avaiableFilters = filterConfigs['usuarios']
 
   const fetchUsers = async () => {
     try {
