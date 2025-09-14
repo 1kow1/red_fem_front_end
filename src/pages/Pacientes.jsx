@@ -35,6 +35,10 @@ export default function Pacientes() {
   const [formMode, setFormMode] = useState("create"); // create | edit
   const [editInitialData, setEditInitialData] = useState(null);
 
+  const avaiableFilters = {
+    status: ["Ativo", "Inativo"],
+  }
+
   const fetchPacientes = async () => {
     try {
       setLoading(true);
@@ -140,6 +144,7 @@ export default function Pacientes() {
       <DataFrame
         title="Paciente"
         data={pacientes}
+        avaiableFilters={avaiableFilters}
         dataType="pacientes"
         formFields={formConfigs.pacientes}
         onAddRow={openCreateForm}

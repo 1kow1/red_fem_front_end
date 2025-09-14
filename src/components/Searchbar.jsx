@@ -1,7 +1,7 @@
 import { SearchIcon, FilterIcon } from "./Icons"
 import { ButtonSecondary } from "./Button"
 
-export default function Searchbar({placeholder, searchQuery, setSearchQuery, fetchData}) {
+export default function Searchbar({placeholder, searchQuery, setSearchQuery, onClickFilter, fetchData}) {
 
   return <>
     <div className="flex gap-2 mb-4 items-center w-full">
@@ -18,8 +18,8 @@ export default function Searchbar({placeholder, searchQuery, setSearchQuery, fet
         />
         <button
           className="absolute right-4 bottom-3 hover:text-redfemPink active:text-redfemDarkPink"
+          onClick={onClickFilter}
           // variant={isFilterOpen ? "default" : "outline"}
-          // onClick={() => setIsFilterOpen(!isFilterOpen)}
         >
           <FilterIcon />
           {/* {activeFiltersCount > 0 && (

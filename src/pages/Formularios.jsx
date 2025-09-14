@@ -20,6 +20,11 @@ export default function Formularios() {
   const [editLoading, setEditLoading] = useState(false);
   const navigate = useNavigate();
 
+  const avaiableFilters = {
+    especialidade: ["Ginecologia", "Odontologia", "Dermatologia"],
+    liberado_para_uso: ["Sim", "Não"]
+  }
+
   // FETCH
   const fetchForms = async () => {
     try {
@@ -111,6 +116,7 @@ export default function Formularios() {
       <DataFrame
         title="Formulário"
         data={forms}
+        avaiableFilters={avaiableFilters}
         dataType="formularios"
         onAddRow={handleCreateForm}
         onEditRow={handleEditForm}

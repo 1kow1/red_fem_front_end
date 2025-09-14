@@ -35,6 +35,11 @@ export default function Consultas() {
   const [formMode, setFormMode] = useState("create"); // create | edit
   const [editInitialData, setEditInitialData] = useState(null);
 
+  const avaiableFilters = {
+    desde: ["Hoje", "Esta semana", "Este mês", "Este ano"],
+    status: ["Pendente", "Cancelada", "Concluída"]
+  }
+
   const fetchConsultas = async () => {
     try {
       setLoading(true);
@@ -165,6 +170,7 @@ export default function Consultas() {
       <DataFrame
         title="Consulta"
         data={consultas}
+        avaiableFilters={avaiableFilters}
         dataType="consultas"
         formFields={formConfigs.consultas}
         onAddRow={openCreateForm}
