@@ -205,6 +205,30 @@ export default function DetailsPopup({
                   disablePopup={subTable.disablePopup || false}
                   statusConfig={subTable.statusConfig || null}
                   callbacks={callbacks}
+                  onRowClick={
+                    // Para consultas: redirecionar diretamente para execução
+                    subTable.dataType === "consultas" && callbacks.onAbrirExecucao
+                      ? (row) => {
+                          console.log("🚀 Clique direto na consulta:", row);
+                          // Extrair ID da execução e dados
+                          const execId = row._execucaoFormulario?.id || row.id;
+                          const execData = row._execucaoFormulario || row;
+                          if (execId && callbacks.onAbrirExecucao) {
+                            callbacks.onAbrirExecucao(execId, execData);
+                          }
+                        }
+                      : // Para execuções: redirecionar diretamente para execução
+                      subTable.dataType === "execucaoFormulario" && callbacks.onAbrirExecucao
+                      ? (row) => {
+                          console.log("🚀 Clique direto na execução:", row);
+                          const execId = row.id || row._exec?.id;
+                          const execData = row._exec || row;
+                          if (execId && callbacks.onAbrirExecucao) {
+                            callbacks.onAbrirExecucao(execId, execData);
+                          }
+                        }
+                      : null
+                  }
                 />
               ) : (
                 <div className="bg-white rounded-lg p-8 text-center text-gray-500">

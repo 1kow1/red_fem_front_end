@@ -12,6 +12,7 @@ export default function Table({
   onEditRow,
   onToggleRow,
   onAssociarFormulario,
+  onRowClick, // Nova prop para callback customizada no clique da linha
   callbacks: externalCallbacks
 }) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -93,6 +94,12 @@ export default function Table({
   }
 
   const handleRowClick = (row, index) => {
+    // Se existe callback customizada, usar ela em vez do popup
+    if (onRowClick) {
+      onRowClick(row, index);
+      return;
+    }
+
     if (disablePopup) return;
 
     const configGenerator = popupConfigs[dataType];
@@ -136,9 +143,9 @@ export default function Table({
             {data.map((row, index) => (
               <tr
                 key={index}
-                className={`${!disablePopup ? 'hover:bg-redfemHoverPink cursor-pointer' : ''}`}
+                className={`${(!disablePopup || onRowClick) ? 'hover:bg-redfemHoverPink cursor-pointer' : ''}`}
                 onClick={() => handleRowClick(row, index)}
-                role={!disablePopup ? 'button' : undefined}
+                role={(!disablePopup || onRowClick) ? 'button' : undefined}
               >
                 {headers.map((header) => (
                   (header==='id')?null:

@@ -1,33 +1,77 @@
 export const popupConfigs = {
   
   pacientes: {
-    getConfig: (data, callbacks = {}) => ({
-      title: `Paciente ${data.nome}`,
-      fields: [
-        { label: "CPF", key: "cpf" },
-        { label: "Email", key: "email" },
-        { label: "Sexo", key: "_sexo" },
-        { label: "Telefone", key: "telefone" },
-        { label: "Data de Nascimento", key: "_dataDeNascimento", type: "date" },
-        { label: "Estado Civil", key: "_estadoCivil" },
-        { label: "Profissão", key: "_profissao" },
-        { label: "Estado", key: "_uf" },
-        { label: "Cidade", key: "_cidade" },
-        { label: "Ativo", key: "ativo" }
-      ],
-      actions: [
-        {
-          label: data.ativo === "Sim" ? "Desativar" : "Reativar",
-          variant: "secondary",
-          onClick: callbacks.onToggle
-        },
-        {
-          label: "Editar",
-          variant: "primary",
-          onClick: callbacks.onEdit
+    getConfig: (data, callbacks = {}) => {
+      console.log("🔍 Dados do paciente recebidos:", data);
+      console.log("🔍 Consultas do paciente:", data.consultas);
+
+      // Transformar consultas do paciente em array para exibição na subtabela
+      const consultasArray = data.consultas && Array.isArray(data.consultas)
+        ? data.consultas.map(consulta => {
+            console.log("🔍 Processando consulta:", consulta);
+            return {
+              id: consulta.id,
+              medico: consulta.usuarioDTO?.nome || "Não informado",
+              tipoConsulta: consulta.tipoConsulta || "N/A",
+              dataHora: consulta.dataHora
+                ? new Date(consulta.dataHora).toLocaleDateString("pt-BR") + " " +
+                  new Date(consulta.dataHora).toLocaleTimeString("pt-BR", {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                : "N/A",
+              status: consulta.status || "N/A",
+              formulario: consulta.execucaoFormulario?.formulario?.titulo || "Não associado",
+              liberado: consulta.execucaoFormulario?.isLiberado ? "Sim" : "Não",
+              // Dados originais ocultos para funcionalidade (começam com _)
+              _consulta: consulta,
+              _execucaoFormulario: consulta.execucaoFormulario
+            };
+          })
+        : [];
+
+      console.log("📋 Array de consultas processado:", consultasArray);
+      console.log("📊 Quantidade de consultas:", consultasArray.length);
+
+      return {
+        title: `Paciente ${data.nome}`,
+        fields: [
+          { label: "CPF", key: "cpf" },
+          { label: "Email", key: "email" },
+          { label: "Sexo", key: "_sexo" },
+          { label: "Telefone", key: "telefone" },
+          { label: "Data de Nascimento", key: "_dataDeNascimento", type: "date" },
+          { label: "Estado Civil", key: "_estadoCivil" },
+          { label: "Profissão", key: "_profissao" },
+          { label: "Estado", key: "_uf" },
+          { label: "Cidade", key: "_cidade" },
+          { label: "Ativo", key: "ativo" }
+        ],
+        actions: [
+          {
+            label: data.ativo === "Sim" ? "Desativar" : "Reativar",
+            variant: "secondary",
+            onClick: callbacks.onToggle
+          },
+          {
+            label: "Editar",
+            variant: "primary",
+            onClick: callbacks.onEdit
+          },
+          {
+            label: "Gerar Relatório",
+            variant: "tertiary",
+            onClick: callbacks.onGerarRelatorio
+          }
+        ],
+        subTable: {
+          title: "Histórico de Consultas",
+          data: consultasArray,
+          dataType: "consultas",
+          disablePopup: true
         }
-      ]
-    })
+      };
+    }
   },
 
   usuarios: {
@@ -103,11 +147,11 @@ export const popupConfigs = {
           title: "Execução do Formulário",
           data: execucaoFormularioArray,
           dataType: "execucaoFormulario",
-          addButton: { 
+          addButton: {
             label: "Associar Formulário",
             onClick: callbacks.onAssociarFormulario // Nova callback
           },
-          disablePopup: execucaoFormularioArray.length === 0 // Desabilita popup se não tem dados
+          disablePopup: true // Sempre desabilitar popup - usar redirecionamento direto
         }
       };
     }

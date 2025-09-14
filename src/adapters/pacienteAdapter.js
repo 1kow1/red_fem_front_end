@@ -82,6 +82,7 @@ export const adaptPacienteForView = (paciente = {}) => {
     _dataDeNascimento: nascimentoDate
       ? format(nascimentoDate, "dd/MM/yyyy")
       : "-",
+    consultas: paciente.consultas ?? [],
   };
 };
 

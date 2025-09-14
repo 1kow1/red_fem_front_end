@@ -2,6 +2,7 @@
 import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { formConfigs } from "../config/formConfig";
 import { adaptPacienteForView, adaptPacienteForApi } from "../adapters/pacienteAdapter";
 import { getPacientes, createPaciente, editPaciente, togglePaciente } from "../services/pacienteAPI";
@@ -10,8 +11,10 @@ import { usePagination } from "../hooks/usePagination";
 import { pacienteSchema } from "../validation/validationSchemas";
 import { toast } from "react-toastify";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
+import ModalRelatorio from "../components/ModalRelatorio";
 
 export default function Pacientes() {
+  const navigate = useNavigate();
   const [pacientes, setPacientes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -34,6 +37,10 @@ export default function Pacientes() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState("create"); // create | edit
   const [editInitialData, setEditInitialData] = useState(null);
+
+  // modal relatório
+  const [isRelatorioModalOpen, setIsRelatorioModalOpen] = useState(false);
+  const [pacienteRelatorio, setPacienteRelatorio] = useState(null);
 
   const avaiableFilters = {
     status: ["Ativo", "Inativo"],
@@ -121,6 +128,23 @@ export default function Pacientes() {
     setIsFormOpen(true);
   };
 
+  // função para navegar para execução do formulário
+  const handleAbrirExecucao = (execId, execData) => {
+    navigate(`/execform/${execId}`, {
+      state: {
+        execData: execData,
+        returnPath: '/pacientes'
+      }
+    });
+  };
+
+  // função para gerar relatório
+  const handleGerarRelatorio = (pacienteData) => {
+    console.log("🔧 Gerando relatório para paciente:", pacienteData);
+    setPacienteRelatorio(pacienteData);
+    setIsRelatorioModalOpen(true);
+  };
+
   useEffect(() => {
     fetchPacientes();
   }, [page, size]);
@@ -153,6 +177,12 @@ export default function Pacientes() {
         fetchData={fetchPacientes}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        callbacks={{
+          onEdit: openEditForm,
+          onToggle: handleToggleActive,
+          onAbrirExecucao: handleAbrirExecucao,
+          onGerarRelatorio: handleGerarRelatorio
+        }}
       />
 
       <PaginationFooter
@@ -180,6 +210,16 @@ export default function Pacientes() {
         message={`Tem certeza que deseja ${row.ativo ? "desativar" : "reativar"} o paciente ${row.nome}?`}
         onConfirm={handleConfirmToggle}
         onCancel={() => { setIsConfirmOpen(false); setRow({}); }}
+      />
+
+      <ModalRelatorio
+        isOpen={isRelatorioModalOpen}
+        onClose={() => {
+          setIsRelatorioModalOpen(false);
+          setPacienteRelatorio(null);
+        }}
+        pacienteData={pacienteRelatorio}
+        consultas={pacienteRelatorio?.consultas || []}
       />
     </div>
   );

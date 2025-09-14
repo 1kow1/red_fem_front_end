@@ -21,6 +21,7 @@ export default function ExecucaoFormulario() {
   const [respostas, setRespostas] = useState([]);
   const [formulario, setFormulario] = useState({});
   const [execucaoData, setExecucaoData] = useState(null);
+  const [isLiberado, setIsLiberado] = useState(false);
 
   const fetchExecucaoData = async () => {
     if (!execId) {
@@ -39,6 +40,11 @@ export default function ExecucaoFormulario() {
       const execResponse = await getExecById(execId);
       console.log("📄 Dados da execução carregados:", execResponse);
       setExecucaoData(execResponse);
+
+      // Verificar se a execução está liberada para edição
+      const liberado = execResponse.isLiberado === false; // Se isLiberado é false, pode editar
+      setIsLiberado(!liberado);
+      console.log("🔒 Execução liberada para edição:", liberado);
 
       // Buscar dados do formulário usando formularioId ou formulario.id
       const formularioId = execResponse.formularioId || execResponse.formulario?.id;
@@ -261,9 +267,9 @@ export default function ExecucaoFormulario() {
           </ButtonSecondary>
           <ButtonPrimary
             onClick={onSave}
-            disabled={loading}
+            disabled={loading || isLiberado}
           >
-            {loading ? 'Salvando...' : 'Salvar'}
+            {loading ? 'Salvando...' : isLiberado ? 'Não Editável' : 'Salvar'}
           </ButtonPrimary>
         </div>
       </div>
@@ -299,6 +305,15 @@ export default function ExecucaoFormulario() {
                   <p className="text-yellow-800 text-sm">
                     ⚠️ Esta execução foi criada sem um formulário associado.
                     Não é possível responder perguntas neste estado.
+                  </p>
+                </div>
+              )}
+
+              {isLiberado && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                  <p className="text-blue-800 text-sm">
+                    Este formulário foi liberado e não pode mais ser editado.
+                    Você pode visualizar as respostas, mas não fazer alterações.
                   </p>
                 </div>
               )}
@@ -339,9 +354,10 @@ export default function ExecucaoFormulario() {
                         border-b border-b-gray-950 placeholder:text-gray-500
                         p-1 w-full mb-4 outline-none
                         focus:border-b-redfemActionPink focus:border-b-2 focus:bg-redfemOffWhite
-                        disabled:bg-gray-50`}
-                      placeholder="Resposta..."
+                        disabled:bg-gray-50 disabled:cursor-not-allowed`}
+                      placeholder={isLiberado ? "Não editável" : "Resposta..."}
                       rows={1}
+                      disabled={isLiberado}
                       value={respostas.find(r => r.perguntaId === pergunta.id)?.texto || ''}
                       onChange={(e) => {
                         e.target.style.height = 'auto';
@@ -359,10 +375,12 @@ export default function ExecucaoFormulario() {
                           text-white flex gap-2 items-center
                           ${respostas.find(r => r.perguntaId === pergunta.id)?.texto === "Sim"
                             ? 'bg-redfemActionPink' : 'bg-redfemGray'}
+                          ${isLiberado ? 'opacity-50 cursor-not-allowed' : ''}
                           `}
+                        disabled={isLiberado}
                         onClick={(e) => {
                           e.preventDefault();
-                          onChangeInput("Sim", pergunta.id);
+                          if (!isLiberado) onChangeInput("Sim", pergunta.id);
                         }}
                       >
                         Sim
@@ -374,10 +392,12 @@ export default function ExecucaoFormulario() {
                           text-white flex gap-2 items-center
                           ${respostas.find(r => r.perguntaId === pergunta.id)?.texto === "Não"
                             ? 'bg-redfemActionPink' : 'bg-redfemGray'}
+                          ${isLiberado ? 'opacity-50 cursor-not-allowed' : ''}
                         `}
+                        disabled={isLiberado}
                         onClick={(e) => {
                           e.preventDefault();
-                          onChangeInput("Não", pergunta.id);
+                          if (!isLiberado) onChangeInput("Não", pergunta.id);
                         }}
                       >
                         Não
@@ -392,7 +412,7 @@ export default function ExecucaoFormulario() {
 
                           {pergunta.alternativas.map((alternativa, altIndex) => (
                             <div className="flex flex-row gap-2" key={alternativa.id}>
-                              <label>
+                              <label className={isLiberado ? 'opacity-50 cursor-not-allowed' : ''}>
                                 <input
                                   className="focus:outline-2 focus:outline-red-500 mb-4"
                                   name={`pergunta_${pergunta.id}`}
@@ -401,16 +421,19 @@ export default function ExecucaoFormulario() {
                                       "checkbox" : "radio"
                                   }
                                   value={alternativa.texto}
+                                  disabled={isLiberado}
                                   checked={
                                     pergunta.tipo === "MULTIPLA_ESCOLHA"
                                       ? isAlternativaSelecionada(pergunta.id, alternativa.texto)
                                       : respostas.find(r => r.perguntaId === pergunta.id)?.texto === alternativa.texto
                                   }
                                   onChange={(e) => {
-                                    if (pergunta.tipo === "MULTIPLA_ESCOLHA") {
-                                      onChangeComAlternativas(alternativa.texto, pergunta.id, true);
-                                    } else {
-                                      onChangeComAlternativas(alternativa.texto, pergunta.id);
+                                    if (!isLiberado) {
+                                      if (pergunta.tipo === "MULTIPLA_ESCOLHA") {
+                                        onChangeComAlternativas(alternativa.texto, pergunta.id, true);
+                                      } else {
+                                        onChangeComAlternativas(alternativa.texto, pergunta.id);
+                                      }
                                     }
                                   }}
                                 />
