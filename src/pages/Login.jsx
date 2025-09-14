@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
+import { forgotPassword } from '../services/userAPI';
 import logoClinica from '../assets/logos/rosa-rfcc.png';
 import logoKow from '../assets/logos/logoKow.jpg';
 import logoBackground from '../assets/logos/Component 1.svg';
 import { ButtonPrimary } from '../components/Button';
 import { toast } from "react-toastify";
+import { useErrorHandler } from '../hooks/useErrorHandler';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const { login, isLoading, error } = useAuth();
+  const { showError, showSuccess } = useErrorHandler();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -25,8 +29,25 @@ export default function LoginPage() {
         toast.error(msg);
       }
     } catch (err) {
-      console.error("Erro durante login:", err);
-      toast.error(err);
+      showError(err);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error("Por favor, digite seu e-mail primeiro");
+      return;
+    }
+
+    try {
+      setIsResettingPassword(true);
+      await forgotPassword(email);
+      showSuccess("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
+    } catch (err) {
+      showError(err);
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -81,9 +102,14 @@ export default function LoginPage() {
             </div>
 
             <div className="text-right">
-              <a href="#" className="text-sm text-gray-500 hover:text-pink-500 hover:underline">
-                Esqueci a senha
-              </a>
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={isResettingPassword}
+                className="text-sm text-gray-500 hover:text-pink-500 hover:underline disabled:opacity-50"
+              >
+                {isResettingPassword ? "Enviando..." : "Esqueci a senha"}
+              </button>
             </div>
 
             <ButtonPrimary

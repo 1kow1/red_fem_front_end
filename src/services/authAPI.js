@@ -19,3 +19,8 @@ export const getCurrentUser = async () => {
   const resp = await api.get("/login/me"); // Endpoint para buscar dados do usuário atual
   return { data: resp.data, status: resp.status };
 };
+
+export const updateCurrentUserProfile = async (profileData) => {
+  const resp = await api.put("/login/me", profileData);
+  return { data: resp.data, status: resp.status };
+};

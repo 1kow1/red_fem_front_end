@@ -40,6 +40,15 @@ export const createUser = async (data) => {
   }
 };
 
+export const forgotPassword = async (email) => {
+  try {
+    const response = await api.post("/users/forgot-password", { email });
+    return response.data;
+  } catch (error) {
+    throw new Error("Failed to send forgot password email: " + error);
+  }
+};
+
 // ------------- PUT -------------
 export const editUser = async (id, userData) => {
   try {
@@ -60,15 +69,19 @@ export const toggleUser = async (id) => {
   }
 };
 
-export const resetPassword = async ({ email, password }) => {
+
+export const validateToken = async (token) => {
   try {
-    const response = await axios.patch(
-      "http://localhost:8003/users/senha",
-      { email, senha: password },
-      {
-        withCredentials: false,// Axios gera a query string automaticamente
-      }
-    );
+    const response = await api.get(`/users/validate-token?token=${token}`);
+    return response.data;
+  } catch (error) {
+    throw new Error("Failed to validate token: " + error);
+  }
+};
+
+export const resetPassword = async ({ token, senha }) => {
+  try {
+    const response = await api.post("/users/reset-password", { token, senha });
     return response.data;
   } catch (error) {
     throw new Error("Failed reseting the password: " + error);

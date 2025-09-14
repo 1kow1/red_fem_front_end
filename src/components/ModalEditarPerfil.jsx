@@ -1,20 +1,19 @@
 import { useState, useEffect } from 'react';
 import { X, User, Save } from 'lucide-react';
-import { toast } from 'react-toastify';
 import { useAuth } from '../contexts/auth/useAuth';
-import { getCurrentUser } from '../services/authAPI';
+import { getCurrentUser, updateCurrentUserProfile } from '../services/authAPI';
+import { useErrorHandler } from '../hooks/useErrorHandler';
 
 export default function ModalEditarPerfil({ isOpen, onClose }) {
   const { user } = useAuth();
+  const { showError, showSuccess } = useErrorHandler();
   const [loading, setLoading] = useState(false);
   const [loadingUserData, setLoadingUserData] = useState(false);
   const [userData, setUserData] = useState(null);
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
-    telefone: '',
-    crm: '',
-    especialidade: ''
+    telefone: ''
   });
 
   // Carregar dados completos do usuário quando o modal abrir
@@ -30,9 +29,7 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
       setFormData({
         nome: userData.nome || '',
         email: userData.email || '',
-        telefone: userData.telefone || '',
-        crm: userData.crm || '',
-        especialidade: userData.especialidade || ''
+        telefone: userData.telefone || ''
       });
     }
   }, [userData]);
@@ -40,25 +37,20 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
   const loadUserData = async () => {
     setLoadingUserData(true);
     try {
-      console.log('🔍 Tentando carregar dados do usuário via API...');
       const response = await getCurrentUser();
       if (response.status >= 200 && response.status < 300) {
-        console.log('✅ Dados do usuário carregados via API:', response.data);
         setUserData(response.data);
       } else {
         // Fallback: usar dados do contexto se API falhar
-        console.warn('⚠️ Falha ao carregar dados via API, usando contexto:', user);
         setUserData(user);
       }
     } catch (error) {
-      console.error('❌ Erro ao carregar dados do usuário via API:', error);
       // Fallback: usar dados do contexto
-      console.log('🔄 Usando dados do contexto como fallback:', user);
       setUserData(user);
 
       // Só mostrar warning se realmente não temos dados do contexto
       if (!user || Object.keys(user).length === 0) {
-        toast.warning('Não foi possível carregar os dados do usuário.');
+        showError(error);
       }
     } finally {
       setLoadingUserData(false);
@@ -80,19 +72,20 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
     setLoading(true);
 
     try {
-      // TODO: Implementar API para atualizar perfil do usuário
-      // await updateUserProfile(user.id, formData);
+      const response = await updateCurrentUserProfile(formData);
 
-      console.log('Dados do perfil para atualizar:', formData);
+      if (response.status >= 200 && response.status < 300) {
+        showSuccess('Perfil atualizado com sucesso!');
 
-      // Simulação de sucesso por enquanto
-      await new Promise(resolve => setTimeout(resolve, 1000));
+        // Atualizar os dados locais com a resposta da API
+        setUserData(response.data);
 
-      toast.success('Perfil atualizado com sucesso!');
-      onClose();
+        onClose();
+      } else {
+        throw new Error('Resposta inesperada da API');
+      }
     } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      toast.error('Erro ao atualizar perfil: ' + error.message);
+      showError(error);
     } finally {
       setLoading(false);
     }
@@ -104,9 +97,7 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
       setFormData({
         nome: userData.nome || '',
         email: userData.email || '',
-        telefone: userData.telefone || '',
-        crm: userData.crm || '',
-        especialidade: userData.especialidade || ''
+        telefone: userData.telefone || ''
       });
     }
     onClose();
@@ -185,38 +176,6 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
                 id="telefone"
                 name="telefone"
                 value={formData.telefone}
-                onChange={handleInputChange}
-                disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-redfemActionPink focus:border-transparent disabled:bg-gray-50"
-              />
-            </div>
-
-            {/* CRM */}
-            <div>
-              <label htmlFor="crm" className="block text-sm font-medium text-gray-700 mb-1">
-                CRM
-              </label>
-              <input
-                type="text"
-                id="crm"
-                name="crm"
-                value={formData.crm}
-                onChange={handleInputChange}
-                disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-redfemActionPink focus:border-transparent disabled:bg-gray-50"
-              />
-            </div>
-
-            {/* Especialidade */}
-            <div>
-              <label htmlFor="especialidade" className="block text-sm font-medium text-gray-700 mb-1">
-                Especialidade
-              </label>
-              <input
-                type="text"
-                id="especialidade"
-                name="especialidade"
-                value={formData.especialidade}
                 onChange={handleInputChange}
                 disabled={loading}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-redfemActionPink focus:border-transparent disabled:bg-gray-50"

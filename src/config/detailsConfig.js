@@ -50,7 +50,7 @@ export const popupConfigs = {
         actions: [
           {
             label: data.ativo === "Sim" ? "Desativar" : "Reativar",
-            variant: "secondary",
+            variant: "secondary", 
             onClick: callbacks.onToggle
           },
           {
