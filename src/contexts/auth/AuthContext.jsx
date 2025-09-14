@@ -1,6 +1,6 @@
 // src/contexts/auth/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
-import { loginUser, pingProtected } from "../../services/authAPI";
+import { loginUser, pingProtected, logoutUser } from "../../services/authAPI";
 
 export const AuthContext = createContext();
 
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await fetch("http://localhost:8003/logout", { method: "POST", credentials: "include" });
+      await logoutUser();
     } catch (err) {
       console.warn("Logout failed", err);
     } finally {

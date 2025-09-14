@@ -1,7 +1,13 @@
+import { useState } from 'react'
+import { useNavigate } from "react-router-dom"
 import Logo from "./Logo"
-import { Link } from "react-router-dom"
 import { NavLink } from "react-router-dom"
+import DropdownMenu from "./DropdownMenu"
+import ModalEditarPerfil from "./ModalEditarPerfil"
 import { CalendarIcon, FormIcon, HelpIcon, PacientIcon, SettingsIcon, UserIcon } from "./Icons"
+import { User, LogOut } from 'lucide-react'
+import { useAuth } from '../contexts/auth/useAuth'
+import { toast } from 'react-toastify'
 
 function PageLink({ to, text, children }) {
 
@@ -20,41 +26,92 @@ function PageLink({ to, text, children }) {
 }
 
 export default function Sidebar() {
-  return <>
-    <div className="fixed px-3 py-4 w-60 h-screen max-h-screen border-r-2 border-slate-200
-      flex flex-col justify-between">
-      <div className="flex flex-col gap-8 w-max">
-        <Logo />
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
+  const [isModalPerfilOpen, setIsModalPerfilOpen] = useState(false);
+
+  const handleEditProfile = () => {
+    setIsModalPerfilOpen(true);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Logout realizado com sucesso!');
+      navigate('/login');
+    } catch (error) {
+      console.error('Erro no logout:', error);
+      toast.error('Erro ao fazer logout');
+    }
+  };
+
+  const configDropdownOptions = [
+    {
+      label: 'Editar Perfil',
+      icon: User,
+      onClick: handleEditProfile
+    },
+    {
+      label: 'Logout',
+      icon: LogOut,
+      onClick: handleLogout,
+      variant: 'danger'
+    }
+  ];
+
+  return (
+    <>
+      <div className="fixed px-3 py-4 w-60 h-screen max-h-screen border-r-2 border-slate-200
+        flex flex-col justify-between">
+        <div className="flex flex-col gap-8 w-max">
+          <Logo />
+
+          <div>
+            <ul className="flex flex-col gap-1">
+              <PageLink to={'/consultas'} text={'Consultas'}>
+                <CalendarIcon color={'black'} />
+              </PageLink>
+              <PageLink to={'/formularios'} text={'Formulários'}>
+                <FormIcon color={'black'} />
+              </PageLink>
+              <PageLink to={'/pacientes'} text={'Pacientes'}>
+                <PacientIcon color={'black'} />
+              </PageLink>
+            </ul>
+          </div>
+        </div>
 
         <div>
+          <hr className="pb-1" />
           <ul className="flex flex-col gap-1">
-            <PageLink to={'/consultas'} text={'Consultas'}>
-              <CalendarIcon color={'black'} />
+            {/* Dropdown de Configurações */}
+            <li>
+              <DropdownMenu
+                trigger={
+                  <>
+                    <SettingsIcon color={'black'} />
+                    <span>Configurações</span>
+                  </>
+                }
+                options={configDropdownOptions}
+              />
+            </li>
+
+            <PageLink to={'/usuarios'} text={'Usuários'}>
+              <UserIcon color={'black'} />
             </PageLink>
-            <PageLink to={'/formularios'} text={'Formulários'}>
-              <FormIcon color={'black'} />
-            </PageLink>
-            <PageLink to={'/pacientes'} text={'Pacientes'}>
-              <PacientIcon color={'black'} />
+            <PageLink to={'/ajuda'} text={'Ajuda'}>
+              <HelpIcon color={'black'} />
             </PageLink>
           </ul>
         </div>
       </div>
 
-      <div>
-        <hr className="pb-1" />
-        <ul className="flex flex-col gap-1">
-          <PageLink to={'/configuracoes'} text={'Configurações'}>
-            <SettingsIcon color={'black'} />
-          </PageLink>
-          <PageLink to={'/usuarios'} text={'Usuários'}>
-            <UserIcon color={'black'} />
-          </PageLink>
-          <PageLink to={'/ajuda'} text={'Ajuda'}>
-            <HelpIcon color={'black'} />
-          </PageLink>
-        </ul>
-      </div>
-    </div>
-  </>
+      {/* Modal de Editar Perfil */}
+      <ModalEditarPerfil
+        isOpen={isModalPerfilOpen}
+        onClose={() => setIsModalPerfilOpen(false)}
+      />
+    </>
+  );
 }
