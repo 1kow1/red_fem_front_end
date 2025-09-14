@@ -29,7 +29,7 @@ export const editConsulta = async (id, consultaData) => {
   try {
     console.log("id: ", id);
     console.log("data: ", consultaData);
-    const response = await api.put(`/consultas/${id}`, consultaData);
+    const response = await api.put(`/consultas/`, consultaData);
     return response.data;
   } catch (error) {
     throw new Error("Failed to edit consulta: " + error.message);

@@ -20,11 +20,9 @@ export const getExecs = async (page = 0, size = 10, especialidade, isLiberado) =
     }
   };
 
-export const getExecById = async (id, especialidade) => {
+export const getExecById = async (id) => {
   try {
-    const response = await api.get(`/exec/${id}`, {
-        params: { especialidade: especialidade }
-    });
+    const response = await api.get(`/exec/${id}`);
     return response.data;
   } catch (error) {
     throw new Error("Erro ao buscar execução de formulário: " + error.message);

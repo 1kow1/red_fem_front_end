@@ -35,10 +35,8 @@ export default function ExecucaoFormulario() {
       const stateData = location.state?.execData;
       const especialidade = stateData?._exec?.usuarioDTO?.especialidade || stateData?.usuarioDTO?.especialidade;
 
-      console.log("🔍 Especialidade detectada:", especialidade);
-
       // Buscar dados da execução pela API
-      const execResponse = await getExecById(execId, especialidade);
+      const execResponse = await getExecById(execId);
       console.log("📄 Dados da execução carregados:", execResponse);
       setExecucaoData(execResponse);
 
@@ -171,16 +169,15 @@ export default function ExecucaoFormulario() {
   const onSave = useCallback(async () => {
     setErros({});
 
-    let data = {
-      formularioId: formulario.id,
-      idConsulta: "68c5b99ddd8cb9861815b698",
-      paciente: {
-        id: "68c0a50127da4c6557d60c7e"
-      },
-      usuarioDTO: {
-        id: "68bf66718e169da24cd793df"
-      },
-      respostas: respostas
+    // Validações antes de salvar
+    if (!formulario.id) {
+      toast.error('Formulário não carregado. Tente recarregar a página.');
+      return;
+    }
+
+    if (!execucaoData) {
+      toast.error('Dados da execução não carregados. Tente recarregar a página.');
+      return;
     }
 
     if (!checkFormulario()) {
@@ -188,18 +185,60 @@ export default function ExecucaoFormulario() {
       return;
     }
 
+    // Construir dados com formulário completo e dados dinâmicos da execução
+    console.log("🔍 Dados da execução para construir payload:", execucaoData);
+    console.log("🔍 Dados do state da navegação:", location.state);
+
+    // Tentar obter idConsulta de várias fontes
+    const idConsulta = execucaoData.idConsulta ||
+                       execucaoData.consulta?.id ||
+                       location.state?.execData?.idConsulta ||
+                       location.state?.execData?.consulta?.id ||
+                       location.state?.idConsulta;
+
+    if (!idConsulta) {
+      console.error("❌ ID da consulta não encontrado em nenhuma fonte");
+      toast.error('ID da consulta não encontrado. Não é possível salvar.');
+      return;
+    }
+
+    console.log("✅ ID da consulta encontrado:", idConsulta);
+
+    let data = {
+      formularioId: formulario.id,
+      formulario: formulario, // Incluir objeto completo do formulário
+      idConsulta: idConsulta,
+      paciente: execucaoData.paciente || (execucaoData.pacienteId ? {
+        id: execucaoData.pacienteId
+      } : null),
+      usuarioDTO: execucaoData.usuarioDTO || (execucaoData.usuarioId ? {
+        id: execucaoData.usuarioId
+      } : null),
+      respostas: respostas
+    }
+
+    // Remover campos null/undefined
+    Object.keys(data).forEach(key => {
+      if (data[key] === null || data[key] === undefined) {
+        delete data[key];
+      }
+    });
+
+    console.log("📤 Payload final sendo enviado:", data);
+
     setLoading(true);
 
     try {
-      await createExec(data);
+      await updateExec(execId, data);
       toast.success('Formulário salvo com sucesso!');
       navigate('/consultas');
     } catch (error) {
+      console.error('Erro ao salvar:', error);
       toast.error('Erro ao salvar formulário. Tente novamente.');
     } finally {
       setLoading(false);
     }
-  }, [respostas, navigate]);
+  }, [formulario, execucaoData, respostas, execId, navigate]);
 
 
   // --- UI render ---

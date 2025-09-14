@@ -38,7 +38,6 @@ export default function DataFrame({
     });
     setFilteredData(filtered);
   }, [filters, data]);
-  console.log("📊 DataFrame recebeu callbacks:", callbacks);
 
   return (
     <>

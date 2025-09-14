@@ -28,7 +28,6 @@ export default function Table({
       ...(externalCallbacks || {})
     };
 
-    console.log("🔧 Callbacks finais no Table:", allCallbacks);
     return allCallbacks;
   }, [onEditRow, onToggleRow, onAssociarFormulario, externalCallbacks]);
 

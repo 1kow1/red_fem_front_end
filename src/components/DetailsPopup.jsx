@@ -18,7 +18,6 @@ export default function DetailsPopup({
     subTable = null,
     onEdit,
     onDelete,
-    onAddNew,
   } = config;
 
   // Default actions if none provided

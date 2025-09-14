@@ -124,8 +124,6 @@ export default function Consultas() {
     onAbrirExecucao: handleAbrirExecucao // Callback para abrir execução
   };
 
-  console.log("📋 dataFrameCallbacks criadas:", dataFrameCallbacks);
-
   useEffect(() => {
     fetchConsultas();
   }, []);
