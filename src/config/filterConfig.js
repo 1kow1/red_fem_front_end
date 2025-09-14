@@ -4,15 +4,15 @@ export const filterConfigs = {
     usuarios: [
         {
             name: "cargo",
-            label: formConfigs['usuarios'].find(item => item.name === 'cargo').label,
-            type: formConfigs['usuarios'].find(item => item.name === 'cargo').type,
-            options: formConfigs['usuarios'].find(item => item.name === 'cargo').options
+            label: formConfigs['usuarios'].fields.find(item => item.name === 'cargo').label,
+            type: formConfigs['usuarios'].fields.find(item => item.name === 'cargo').type,
+            options: formConfigs['usuarios'].fields.find(item => item.name === 'cargo').options
         },
         {
             name: "especialidade",
-            label: formConfigs['usuarios'].find(item => item.name === 'especialidade').label,
-            type: formConfigs['usuarios'].find(item => item.name === 'especialidade').type,
-            options: formConfigs['usuarios'].find(item => item.name === 'especialidade').options
+            label: formConfigs['usuarios'].fields.find(item => item.name === 'especialidade').label,
+            type: formConfigs['usuarios'].fields.find(item => item.name === 'especialidade').type,
+            options: formConfigs['usuarios'].fields.find(item => item.name === 'especialidade').options
         },
         {
             name: "ativo",
@@ -40,15 +40,15 @@ export const filterConfigs = {
     consultas: [
         {
             name: "dataConsulta",
-            label: formConfigs['consultas'].find(item => item.name === 'dataConsulta').label,
-            type: formConfigs['consultas'].find(item => item.name === 'dataConsulta').type,
-            options: formConfigs['consultas'].find(item => item.name === 'dataConsulta').options
+            label: formConfigs['consultas'].fields.find(item => item.name === 'dataConsulta').label,
+            type: formConfigs['consultas'].fields.find(item => item.name === 'dataConsulta').type,
+            options: formConfigs['consultas'].fields.find(item => item.name === 'dataConsulta').options
         },
         {
             name: "tipoConsulta",
-            label: formConfigs['consultas'].find(item => item.name === 'tipoConsulta').label,
-            type: formConfigs['consultas'].find(item => item.name === 'tipoConsulta').type,
-            options: formConfigs['consultas'].find(item => item.name === 'tipoConsulta').options
+            label: formConfigs['consultas'].fields.find(item => item.name === 'tipoConsulta').label,
+            type: formConfigs['consultas'].fields.find(item => item.name === 'tipoConsulta').type,
+            options: formConfigs['consultas'].fields.find(item => item.name === 'tipoConsulta').options
         }
     ],
 
@@ -64,9 +64,9 @@ export const filterConfigs = {
         },
         {
             name: "especialidade",
-            label: formConfigs['usuarios'].find(item => item.name === 'especialidade').label,
-            type: formConfigs['usuarios'].find(item => item.name === 'especialidade').type,
-            options: formConfigs['usuarios'].find(item => item.name === 'especialidade').options
+            label: formConfigs['usuarios'].fields.find(item => item.name === 'especialidade').label,
+            type: formConfigs['usuarios'].fields.find(item => item.name === 'especialidade').type,
+            options: formConfigs['usuarios'].fields.find(item => item.name === 'especialidade').options
         }
     ]
 }

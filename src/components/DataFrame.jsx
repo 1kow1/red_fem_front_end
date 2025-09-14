@@ -52,25 +52,33 @@ export default function DataFrame({
       const filterValues = filters[key];
 
       if (filterType === "date") {
-        if (filterValues.start || filterValues.end) {
+        if (filterValues[0] || filterValues[1]) {
           newFilteredData = newFilteredData.filter(item => {
             const date = item["dataHora"].split(" ")[0]
-            console.log("date:", date.split("/"))
             const itemDate = new Date(
               date.split("/")[2] + "-" +
               date.split("/")[1] + "-" +
               date.split("/")[0],
-            )
-            const startDate = new Date(filterValues.start);
-            const endDate = new Date(filterValues.end);
+            ) 
+            const startDate = new Date(filterValues[0]);
+            const endDate = new Date(filterValues[1]);
 
-            if (filterValues.start && filterValues.end) {
+            console.log(item.pacienteNome)
+            console.log(
+              "itemDate:", itemDate.getTime(),
+              "startDate:", startDate.getTime(),
+              "endDate:", endDate.getTime(),
+              "max:", Math.max(itemDate.getTime(), startDate.getTime(), endDate.getTime()),
+              "min:", Math.min(itemDate.getTime(), startDate.getTime(), endDate.getTime())
+            );
+
+            if (filterValues[0] && filterValues[1]) {
               return itemDate >= startDate && itemDate <= endDate;
             }
-            else if (filterValues.start) {
+            else if (filterValues[0]) {
               return itemDate >= startDate;
             } 
-            else if (filterValues.end) {
+            else if (filterValues[1]) {
               return itemDate <= endDate;
             }
           });
@@ -134,14 +142,11 @@ export default function DataFrame({
                               newFilters[filter.name] = [];
                             }
                             if (newFilters[filter.name].includes(option.value)) {
-                              console.log("Removendo filtro:", option.value);
                               newFilters[filter.name] = newFilters[filter.name].filter(v => v !== option.value);
                             }
                             else {
-                              console.log("Adicionando filtro:", option.value);
                               newFilters[filter.name] = [...(newFilters[filter.name] || []), option.value];
                             }
-                            console.log("Novos filtros:", newFilters);
                             setFilters(newFilters);
                           }}
                         >
@@ -161,16 +166,16 @@ export default function DataFrame({
                         onChange={(e) => {
                           const newFilters = { ...filters };
                           if (!newFilters[filter.name]) {
-                            newFilters[filter.name] = { start: "", end: "" };
+                            newFilters[filter.name] = ["", ""];
                           }
                           if (e.target.value) {
-                            newFilters[filter.name].start = e.target.value;
+                            newFilters[filter.name][0] = e.target.value;
                           } else {
-                            delete newFilters[filter.name].start;
+                            delete newFilters[filter.name][0];
                           }
                           setFilters(newFilters);
                         }}
-                        value={filters[filter.name] ? filters[filter.name].start : ""}
+                        value={filters[filter.name] ? filters[filter.name][0] : ""}
                       />
                       <span className="mx-2">
                         até:
@@ -181,16 +186,16 @@ export default function DataFrame({
                         onChange={(e) => {
                           const newFilters = { ...filters };
                           if (!newFilters[filter.name]) {
-                            newFilters[filter.name] = { start: null, end: null };
+                            newFilters[filter.name] = ["", ""];
                           }
                           if (e.target.value) {
-                            newFilters[filter.name].end = e.target.value;
+                            newFilters[filter.name][1] = e.target.value;
                           } else {
-                            delete newFilters[filter.name].end;
+                            delete newFilters[filter.name][1];
                           }
                           setFilters(newFilters);
                         }}
-                        value={filters[filter.name] ? filters[filter.name].end : ""}
+                        value={filters[filter.name] ? filters[filter.name][1] : ""}
                       />
                     </div>
                   }
