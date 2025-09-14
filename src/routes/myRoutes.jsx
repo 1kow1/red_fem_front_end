@@ -6,6 +6,7 @@ import Consultas from "../pages/Consultas";
 import Pacientes from "../pages/Pacientes";
 import Formularios from "../pages/Formularios";
 import Usuarios from "../pages/Usuarios";
+import Ajuda from "../pages/Ajuda";
 import FormularioEditor from "../pages/FormularioEditor";
 import ResetarSenha from "../pages/ResetarSenha";
 import { useAuth } from "../contexts/auth";
@@ -55,6 +56,7 @@ function MyRoutes() {
         <Route path="formularios" element={<Formularios />} />
         <Route path="pacientes" element={<Pacientes />} />
         <Route path="usuarios" element={<Usuarios />} />
+        <Route path="ajuda" element={<Ajuda />} />
       </Route>
 
       {/* Rota do editor  */}
