@@ -16,7 +16,6 @@ export const consultaSchema = yup.object().shape({
   dataConsulta: yup
     .date()
     .required('Data da consulta é obrigatória')
-    .min(new Date().setHours(0, 0, 0, 0), 'Data não pode ser anterior a hoje')
     .typeError('Data inválida'),
 
   horario: yup
@@ -76,41 +75,7 @@ export const consultaSchema = yup.object().shape({
       .boolean()
       .default(false),
   }).nullable().default(null),
-
-  // Validação da combinação data + horário
-}).test(
-  'data-horario-futura',
-  'Data e horário devem ser no futuro',
-  function(value) {
-    const { dataConsulta, horario } = value;
-
-    if (!dataConsulta || !horario) {
-      return true; // Deixa a validação individual cuidar dos obrigatórios
-    }
-
-    try {
-      const [hora, minuto] = horario.split(':');
-      const dataHoraCombinada = new Date(dataConsulta);
-      dataHoraCombinada.setHours(parseInt(hora), parseInt(minuto), 0, 0);
-
-      const agora = new Date();
-
-      if (dataHoraCombinada <= agora) {
-        return this.createError({
-          path: 'horario',
-          message: 'Horário deve ser no futuro'
-        });
-      }
-
-      return true;
-    } catch {
-      return this.createError({
-        path: 'horario',
-        message: 'Erro ao validar data e horário'
-      });
-    }
-  }
-);
+});
 
 // Schema para edição (permite alguns campos serem opcionais)
 export const consultaEditSchema = yup.object().shape({

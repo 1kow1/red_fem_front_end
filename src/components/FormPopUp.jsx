@@ -29,7 +29,7 @@ export default function FormularioPopUp({
     watch,
     setValue,
     getValues,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid, isDirty },
   } = useForm({
     resolver: validationSchema ? yupResolver(validationSchema) : undefined,
     defaultValues: {},
@@ -162,7 +162,6 @@ export default function FormularioPopUp({
 
   const handleFormSubmit = async (data) => {
     try {
-      console.log("Dados do formulário antes da limpeza:", data);
       
       const cleaned = {};
       fields.forEach((f) => {
@@ -187,8 +186,8 @@ export default function FormularioPopUp({
         onClose?.();
       }
     } catch (err) {
-      console.error("❌ Erro no handleFormSubmit do FormPopUp:", err);
-      console.error("📊 Stack:", err.stack);
+      // Error is handled by the parent component via onSubmit
+      throw err;
     }
   };
 
@@ -260,7 +259,10 @@ export default function FormularioPopUp({
             <ButtonSecondary onClick={onClose} type="button">
               Cancelar
             </ButtonSecondary>
-            <ButtonPrimary type="submit" disabled={isSubmitting}>
+            <ButtonPrimary
+              type="submit"
+              disabled={isSubmitting || (validationSchema && (!isValid || !isDirty))}
+            >
               {isSubmitting ? "Salvando..." : submitText}
             </ButtonPrimary>
           </div>

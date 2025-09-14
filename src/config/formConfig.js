@@ -1,3 +1,5 @@
+import { consultaSchema } from '../schemas/consultaSchema';
+
 export const formConfigs = {
   // Formulário para USUÁRIOS
   usuarios: [
@@ -159,44 +161,54 @@ export const formConfigs = {
   ],
 
   // Formulário para CONSULTAS
-  consultas: [
-    {
-      name: "patientId",
-      label: "Paciente",
-      type: "async-select",
-      placeholder: "Digite para buscar paciente",
-      apiKey: "pacientes" // usado para abstrair qual endpoint chamar
-    },
-    {
-      name: "medicoId",
-      label: "Médico",
-      type: "async-select",
-      placeholder: "Digite para buscar médico",
-      apiKey: "users" // chama getUsers
-    },
-    {
-      name: "dataConsulta",
-      label: "Data da Consulta",
-      type: "date",
-      placeholder: "",
-    },
-    {
-      name: "horario",
-      label: "Horário",
-      type: "time",
-      placeholder: "00:00",
-    },
-    {
-      name: "tipoConsulta",
-      label: "Tipo da Consulta",
-      type: "select",
-      placeholder: "Selecione o tipo",
-      options: [
-        { value: "primeira-consulta", label: "Primeira Consulta" },
-        { value: "retorno", label: "Retorno" },
-        { value: "urgencia", label: "Urgência" },
-      ],
-    },
-  ],
+  consultas: {
+    fields: [
+      {
+        name: "patientId",
+        label: "Paciente",
+        type: "async-select",
+        placeholder: "Digite para buscar paciente",
+        apiKey: "pacientes", // usado para abstrair qual endpoint chamar
+        required: true
+      },
+      {
+        name: "medicoId",
+        label: "Médico",
+        type: "async-select",
+        placeholder: "Digite para buscar médico",
+        apiKey: "users", // chama getUsers
+        required: true
+      },
+      {
+        name: "dataConsulta",
+        label: "Data da Consulta",
+        type: "date",
+        placeholder: "",
+        required: true,
+        min: new Date().toISOString().split('T')[0] // Data mínima é hoje
+      },
+      {
+        name: "horario",
+        label: "Horário",
+        type: "time",
+        placeholder: "00:00",
+        required: true
+      },
+      {
+        name: "tipoConsulta",
+        label: "Tipo da Consulta",
+        type: "select",
+        placeholder: "Selecione o tipo",
+        required: true,
+        options: [
+          { value: "CONSULTA", label: "Consulta" },
+          { value: "RETORNO", label: "Retorno" },
+          { value: "URGENCIA", label: "Urgência" },
+          { value: "EXAME", label: "Exame" },
+        ],
+      },
+    ],
+    validationSchema: consultaSchema
+  },
   
 };

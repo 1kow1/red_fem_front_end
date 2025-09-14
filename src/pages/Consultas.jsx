@@ -194,7 +194,8 @@ export default function Consultas() {
         onClose={() => setIsFormOpen(false)}
         title={formMode === "create" ? "Criar Consulta" : "Editar Consulta"}
         mode={formMode}
-        fields={formConfigs.consultas}
+        fields={formConfigs.consultas.fields}
+        validationSchema={formConfigs.consultas.validationSchema}
         initialData={formMode === "create" ? null : editInitialData}
         onSubmit={formMode === "create" ? handleCreateConsulta : handleEditConsulta}
       />
