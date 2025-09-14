@@ -52,8 +52,8 @@ export const adaptConsultaForView = (consulta = {}) => {
 
   return {
     id,
-    pacienteNome: pacienteNome,
-    medicoNome: medicoNome,
+    paciente: pacienteNome,
+    medico: medicoNome,
     tipoConsulta: consulta.tipoConsulta ? capitalizeWords(consulta.tipoConsulta) : "N/A",
     dataHora: dataHoraDate ? format(dataHoraDate, "dd/MM/yyyy HH:mm") : "N/A",
     status: consulta.status ? capitalizeWords(consulta.status) : "N/A",

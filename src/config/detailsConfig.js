@@ -131,8 +131,8 @@ export const popupConfigs = {
       return {
         title: "Consulta",  
         fields: [
-          { label: "Paciente", key: "pacienteNome" },
-          { label: "Médico", key: "medicoNome" },
+          { label: "Paciente", key: "paciente" },
+          { label: "Médico", key: "medico" },
           { label: "Tipo da Consulta", key: "tipoConsulta" },
           { label: "Data e Hora", key: "dataHora" },
           { label: "Status", key: "status" },
