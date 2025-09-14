@@ -140,15 +140,35 @@ export default function ModalAssociarFormulario({
             </p>
           </div>
 
+          {/* Status atual da associação */}
+          {consultaData?._execucaoFormulario && (
+            <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
+              <p className="text-sm text-blue-600 font-medium">Status Atual:</p>
+              <p className="text-sm text-blue-800">
+                Formulário já associado: <strong>{consultaData._execucaoFormulario.formulario || "N/A"}</strong>
+              </p>
+              <p className="text-sm text-blue-700">
+                Status: {consultaData._execucaoFormulario.liberado || "N/A"}
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                Para associar um novo formulário, primeiro remova a associação atual.
+              </p>
+            </div>
+          )}
+
           {/* Seleção de formulário */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Selecionar Formulário:
             </label>
-            
+
             {loading ? (
               <div className="text-center py-4">
                 <p className="text-gray-500">Carregando formulários...</p>
+              </div>
+            ) : consultaData?._execucaoFormulario ? (
+              <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-500">
+                Consulta já possui formulário associado
               </div>
             ) : (
               <select
@@ -178,11 +198,15 @@ export default function ModalAssociarFormulario({
           <ButtonSecondary onClick={handleClose} disabled={submitting}>
             Cancelar
           </ButtonSecondary>
-          <ButtonPrimary 
-            onClick={handleSubmit} 
-            disabled={submitting || !selectedFormularioId || loading}
+          <ButtonPrimary
+            onClick={handleSubmit}
+            disabled={submitting || !selectedFormularioId || loading || !!consultaData?._execucaoFormulario}
           >
-            {submitting ? "Associando..." : "Associar Formulário"}
+            {consultaData?._execucaoFormulario
+              ? "Formulário Já Associado"
+              : submitting
+                ? "Associando..."
+                : "Associar Formulário"}
           </ButtonPrimary>
         </div>
       </div>

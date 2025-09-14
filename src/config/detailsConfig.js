@@ -105,8 +105,15 @@ export const popupConfigs = {
 
   consultas: {
     getConfig: (data, callbacks = {}) => {
+      // Verificar se já tem associação e se está liberado
+      const hasExecucaoFormulario = !!data._execucaoFormulario;
+      const isFormularioLiberado = hasExecucaoFormulario && (
+        data._execucaoFormulario.liberado === "Sim" ||
+        data._execucaoFormulario._exec?.isLiberado === true
+      );
+
       // Transforma execucaoFormulario (objeto) em array SUPER SIMPLES
-      const execucaoFormularioArray = data._execucaoFormulario 
+      const execucaoFormularioArray = data._execucaoFormulario
         ? [
             {
               // Campos reordenados: Formulário, Data/Hora, Liberado
@@ -147,10 +154,17 @@ export const popupConfigs = {
           title: "Execução do Formulário",
           data: execucaoFormularioArray,
           dataType: "execucaoFormulario",
-          addButton: {
+          addButton: hasExecucaoFormulario ? null : {
             label: "Associar Formulário",
-            onClick: callbacks.onAssociarFormulario // Nova callback
+            onClick: callbacks.onAssociarFormulario
           },
+          actionButtons: hasExecucaoFormulario && !isFormularioLiberado ? [
+            {
+              label: "Remover Associação",
+              variant: "danger",
+              onClick: () => callbacks.onRemoverAssociacao(data)
+            }
+          ] : [],
           disablePopup: true // Sempre desabilitar popup - usar redirecionamento direto
         }
       };
@@ -209,14 +223,14 @@ export const popupConfigs = {
       ],
       actions: [
         {
-          label: "Editar",
-          variant: "primary",
-          onClick: callbacks.onEdit
-        },
-        {
           label: "Desativar",
           variant: "secondary",
           onClick: (data) => console.log("Liberar Formulário:", data)
+        },
+        {
+          label: "Editar",
+          variant: "primary",
+          onClick: callbacks.onEdit
         }
       ]
     })

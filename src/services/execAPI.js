@@ -37,3 +37,12 @@ export const updateExec = async (id, data) => {
     throw new Error("Erro ao atualizar execução de formulário: " + error.message);
   }
 };
+
+export const deleteExec = async (id) => {
+  try {
+    const response = await api.delete(`/exec/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error("Erro ao excluir execução de formulário: " + error.message);
+  }
+};

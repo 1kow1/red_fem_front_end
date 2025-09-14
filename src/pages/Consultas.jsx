@@ -5,7 +5,9 @@ import { useNavigate } from "react-router-dom";
 import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
 import ModalAssociarFormulario from "../components/ModalAssociarFormulario"; // Novo import
+import ConfirmationPopUp from "../components/ConfirmationPopUp"; // Novo import
 import { getConsultas, createConsulta, editConsulta } from "../services/consultaAPI";
+import { deleteExec } from "../services/execAPI"; // Nova import
 import { adaptConsultaForView, adaptConsultaForApi } from "../adapters/consultaAdapter";
 import { formConfigs } from "../config/formConfig";
 import { toast } from "react-toastify";
@@ -23,6 +25,10 @@ export default function Consultas() {
   // Novo state para o modal de associar formulário
   const [isModalAssociarOpen, setIsModalAssociarOpen] = useState(false);
   const [consultaParaAssociar, setConsultaParaAssociar] = useState(null);
+
+  // States para remoção de associação
+  const [isConfirmRemoveOpen, setIsConfirmRemoveOpen] = useState(false);
+  const [consultaParaRemover, setConsultaParaRemover] = useState(null);
 
   const avaiableFilters = {
     desde: ["Hoje", "Esta semana", "Este mês", "Este ano"],
@@ -104,6 +110,39 @@ export default function Consultas() {
     setConsultaParaAssociar(null);
   };
 
+  // Nova callback para remover associação
+  const handleRemoverAssociacao = (consultaData) => {
+    console.log("Remover associação para consulta:", consultaData);
+    setConsultaParaRemover(consultaData);
+    setIsConfirmRemoveOpen(true);
+  };
+
+  // Confirmar remoção da associação
+  const handleConfirmRemoveAssociacao = async () => {
+    try {
+      const execId = consultaParaRemover._execucaoFormulario?.id ||
+                     consultaParaRemover._execucaoFormulario?._exec?.id;
+
+      if (!execId) {
+        toast.error("ID da execução não encontrado");
+        return;
+      }
+
+      await deleteExec(execId);
+      toast.success("Associação removida com sucesso!");
+
+      // Recarregar consultas para atualizar a interface
+      fetchConsultas();
+
+    } catch (error) {
+      console.error("Erro ao remover associação:", error);
+      toast.error("Erro ao remover associação");
+    } finally {
+      setIsConfirmRemoveOpen(false);
+      setConsultaParaRemover(null);
+    }
+  };
+
   // Nova função para navegar para execução do formulário
   const handleAbrirExecucao = (execId, execData) => {
     console.log("Navegando para execução:", execId, execData);
@@ -121,6 +160,7 @@ export default function Consultas() {
     onEdit: openEditForm,
     onToggle: (row) => console.log("Toggle consulta:", row),
     onAssociarFormulario: handleAssociarFormulario, // Nova callback
+    onRemoverAssociacao: handleRemoverAssociacao, // Nova callback
     onAbrirExecucao: handleAbrirExecucao // Callback para abrir execução
   };
 
@@ -165,6 +205,17 @@ export default function Consultas() {
         onClose={() => setIsModalAssociarOpen(false)}
         consultaData={consultaParaAssociar}
         onSuccess={handleAssociacaoSuccess}
+      />
+
+      {/* Modal de confirmação para remover associação */}
+      <ConfirmationPopUp
+        isOpen={isConfirmRemoveOpen}
+        message={`Tem certeza que deseja remover a associação do formulário "${consultaParaRemover?._execucaoFormulario?.formulario || "N/A"}"?`}
+        onConfirm={handleConfirmRemoveAssociacao}
+        onCancel={() => {
+          setIsConfirmRemoveOpen(false);
+          setConsultaParaRemover(null);
+        }}
       />
     </div>
   );

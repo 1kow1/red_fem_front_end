@@ -58,17 +58,15 @@ export const adaptConsultaForView = (consulta = {}) => {
     dataHora: dataHoraDate ? format(dataHoraDate, "dd/MM/yyyy HH:mm") : "N/A",
     status: consulta.status ? capitalizeWords(consulta.status) : "N/A",
 
-    // Original field names for form editing (hidden from table with underscore)
+    // execucaoFormulario formatada para a subtabela (não aparece na tabela principal)
+    _execucaoFormulario: execucaoFormulario,
+
+    // Hidden fields for form editing and associations (not displayed in table)
     _patientId: consulta.patientId,
     _medicoId: medicoId,
     _ativo: consulta.ativo,
     _dataConsulta: dataHoraDate ? format(dataHoraDate, "yyyy-MM-dd") : null,
     _horario: dataHoraDate ? format(dataHoraDate, "HH:mm") : null,
-
-    // execucaoFormulario formatada para a subtabela (não aparece na tabela principal)
-    _execucaoFormulario: execucaoFormulario,
-
-    // Campos mantidos para funcionalidade (com underscore para não exibir)
     _statusExecucao: "Pendente",
   };
 };

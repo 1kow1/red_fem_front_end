@@ -172,28 +172,50 @@ export default function DetailsPopup({
                 <h3 className="text-lg font-medium text-gray-800">
                   {subTable.title}
                 </h3>
-                {subTable.addButton && (
-                  <button
-                    onClick={() => {
-                      console.log("🔥 Botão Associar clicado, dados:", data);
+                <div className="flex gap-2">
+                  {subTable.addButton && (
+                    <button
+                      onClick={() => {
+                        console.log("🔥 Botão Associar clicado, dados:", data);
 
-                      // Usar a callback específica se estiver disponível
-                      if (subTable.addButton.onClick) {
-                        subTable.addButton.onClick(data);
-                      } else if (onAssociarFormulario) {
-                        onAssociarFormulario(data);
-                      } else {
-                        console.warn(
-                          "Nenhuma callback definida para associar formulário"
-                        );
-                      }
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg transition-colors"
-                  >
-                    <Plus size={16} />
-                    {subTable.addButton.label}
-                  </button>
-                )}
+                        // Usar a callback específica se estiver disponível
+                        if (subTable.addButton.onClick) {
+                          subTable.addButton.onClick(data);
+                        } else if (onAssociarFormulario) {
+                          onAssociarFormulario(data);
+                        } else {
+                          console.warn(
+                            "Nenhuma callback definida para associar formulário"
+                          );
+                        }
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg transition-colors"
+                    >
+                      <Plus size={16} />
+                      {subTable.addButton.label}
+                    </button>
+                  )}
+                  {subTable.actionButtons && subTable.actionButtons.length > 0 &&
+                    subTable.actionButtons.map((actionButton, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          console.log("🔥 Action button clicado, dados:", data);
+                          if (actionButton.onClick) {
+                            actionButton.onClick(data);
+                          }
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                          actionButton.variant === 'danger'
+                            ? 'bg-red-500 hover:bg-red-600 text-white'
+                            : 'bg-gray-500 hover:bg-gray-600 text-white'
+                        }`}
+                      >
+                        {actionButton.label}
+                      </button>
+                    ))
+                  }
+                </div>
               </div>
 
               {/* Reutilizando o componente Table */}
