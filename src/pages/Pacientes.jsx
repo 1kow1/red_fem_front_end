@@ -12,6 +12,7 @@ import { pacienteSchema } from "../validation/validationSchemas";
 import { toast } from "react-toastify";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import ModalRelatorio from "../components/ModalRelatorio";
+import { filterConfigs } from "../config/filterConfig";
 
 export default function Pacientes() {
   const navigate = useNavigate();
@@ -42,9 +43,7 @@ export default function Pacientes() {
   const [isRelatorioModalOpen, setIsRelatorioModalOpen] = useState(false);
   const [pacienteRelatorio, setPacienteRelatorio] = useState(null);
 
-  const avaiableFilters = {
-    status: ["Ativo", "Inativo"],
-  }
+  const avaiableFilters = filterConfigs['pacientes']  
 
   const fetchPacientes = async () => {
     try {

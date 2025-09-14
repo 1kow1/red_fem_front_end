@@ -5,6 +5,24 @@ import { ButtonPrimary } from "./Button"
 import { AddIcon } from "./Icons"
 import { useState, useEffect } from "react"
 
+function Tag({ children, isSelected, onClick }) {
+  return <span
+    className={`mr-2 border-2 rounded-lg p-1 inline-block
+      ${isSelected ? (
+        `bg-redfemActionPink border-redfemActionPink text-white
+        hover:bg-redfemDarkPink`
+      ) : (
+        `bg-redfemHoverPink border-redfemVariantPink text-redfemDarkPink
+        hover:bg-redfemVariantPink/30`
+      )}
+      cursor-pointer
+    `}
+    onClick={onClick}
+  >
+    {children}
+  </span>
+}
+
 export default function DataFrame({
   title = "",
   avaiableFilters,
@@ -23,21 +41,56 @@ export default function DataFrame({
 }) {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filteredData, setFilteredData] = useState(data);
   const [filters, setFilters] = useState({});
-  const [filteredData, setFilteredData] = useState([]);
 
   useEffect(() => {
-    let filtered = data;
-    Object.entries(filters).forEach(([filterName, filterValues]) => {
-      if (filterValues.length > 0) {
-        filtered = filtered.filter((item) => {
-          const itemValues = item[filterName] || [];
-          return filterValues.some((value) => itemValues.includes(value));
-        });
+    let newFilteredData = data;
+
+    Object.keys(filters).forEach((key) => {
+      const filterType = avaiableFilters.find(f => f.name === key).type
+      const filterValues = filters[key];
+
+      if (filterType === "date") {
+        if (filterValues.start || filterValues.end) {
+          newFilteredData = newFilteredData.filter(item => {
+            const date = item["dataHora"].split(" ")[0]
+            console.log("date:", date.split("/"))
+            const itemDate = new Date(
+              date.split("/")[2] + "-" +
+              date.split("/")[1] + "-" +
+              date.split("/")[0],
+            )
+            const startDate = new Date(filterValues.start);
+            const endDate = new Date(filterValues.end);
+
+            if (filterValues.start && filterValues.end) {
+              return itemDate >= startDate && itemDate <= endDate;
+            }
+            else if (filterValues.start) {
+              return itemDate >= startDate;
+            } 
+            else if (filterValues.end) {
+              return itemDate <= endDate;
+            }
+          });
+        }
+      }
+      else {
+        if (filterValues && filterValues.length > 0) {
+          newFilteredData = newFilteredData.filter(item =>
+            filterValues.includes(
+              filterType === "select"
+                ? item[key].toUpperCase()
+                : item[key]
+            )
+          );
+        }
       }
     });
-    setFilteredData(filtered);
-  }, [filters, data]);
+
+    setFilteredData(newFilteredData);
+  }, [data, filters]);
 
   return (
     <>
@@ -60,53 +113,87 @@ export default function DataFrame({
           <div className="px-8 pt-4 shadow-md border-2 rounded-lg">
             <p className="font-bold mb-4">Filtros:</p>
             <div>
-              {Object.entries(avaiableFilters).map(([filterName, filterOptions]) => (
-                <div key={filterName} className="flex flex-row gap-8 mb-4 items-center">
+              {avaiableFilters.map((filter) => (
+                <div key={filter.name} className="flex flex-row gap-8 mb-4 items-center">
                   <p>
-                    {filterName.charAt(0).toUpperCase() + filterName.slice(1).replaceAll("_", " ")}:
+                    {filter.label}:
                   </p>
-                  <div className="flex flex-row">
-                    {
-                      filterOptions.map((option) => (
-                        <div key={option} className="flex flex-row items-center">
-                          <input
-                            id={`filter-${filterName}-${option}`}
-                            type="checkbox"
-                            value={option}
-                            onChange={(e) => {
-                              const newFilters = { ...filters };
-                              if (e.target.checked) {
-                                if (newFilters[filterName]) {
-                                  newFilters[filterName].push(option);
-                                } else {
-                                  newFilters[filterName] = [option];
-                                }
-                              } else {
-                                newFilters[filterName] = newFilters[filterName].filter((o) => o !== option);
-                              }
-                              setFilters(newFilters);
-                              console.log(newFilters);
-                            }}
-                            className="hidden"
-                          />
-                          <label
-                            className={`mr-2 border-2 rounded-lg p-1 inline-block
-                              ${ filters[filterName]?.includes(option) ? (
-                                `bg-redfemActionPink border-redfemActionPink text-white
-                                hover:bg-redfemDarkPink`
-                              ) : (
-                                `bg-redfemHoverPink border-redfemVariantPink text-redfemDarkPink
-                                hover:bg-redfemVariantPink/30`
-                              )}
-                            `}
-                            htmlFor={`filter-${filterName}-${option}`}
-                          >
-                            {option}
-                          </label>
-                        </div>
-                      ))
-                    }
-                  </div>
+                  {["select", "boolean"].includes(filter.type) &&
+                    <div className="flex flex-row">
+                      {filter.options.map((option) => (
+                        <Tag
+                          key={option.value}
+                          isSelected={
+                            filters[filter.name]
+                              ? filters[filter.name].includes(option.value)
+                              : false
+                          }
+                          onClick={() => {
+                            const newFilters = { ...filters };
+                            if (!newFilters[filter.name]) {
+                              newFilters[filter.name] = [];
+                            }
+                            if (newFilters[filter.name].includes(option.value)) {
+                              console.log("Removendo filtro:", option.value);
+                              newFilters[filter.name] = newFilters[filter.name].filter(v => v !== option.value);
+                            }
+                            else {
+                              console.log("Adicionando filtro:", option.value);
+                              newFilters[filter.name] = [...(newFilters[filter.name] || []), option.value];
+                            }
+                            console.log("Novos filtros:", newFilters);
+                            setFilters(newFilters);
+                          }}
+                        >
+                          {option.label}
+                        </Tag>
+                      ))}
+                    </div>
+                  }
+                  {filter.type === "date" &&
+                    <div>
+                      <span className="mr-2">
+                        desde:
+                      </span>
+                      <input
+                        type="date"
+                        className="w-fit border-2 rounded-lg p-1 outline-redfemVariantPink"
+                        onChange={(e) => {
+                          const newFilters = { ...filters };
+                          if (!newFilters[filter.name]) {
+                            newFilters[filter.name] = { start: "", end: "" };
+                          }
+                          if (e.target.value) {
+                            newFilters[filter.name].start = e.target.value;
+                          } else {
+                            delete newFilters[filter.name].start;
+                          }
+                          setFilters(newFilters);
+                        }}
+                        value={filters[filter.name] ? filters[filter.name].start : ""}
+                      />
+                      <span className="mx-2">
+                        até:
+                      </span>
+                      <input
+                        type="date"
+                        className="border-2 rounded-lg p-1 outline-redfemVariantPink"
+                        onChange={(e) => {
+                          const newFilters = { ...filters };
+                          if (!newFilters[filter.name]) {
+                            newFilters[filter.name] = { start: null, end: null };
+                          }
+                          if (e.target.value) {
+                            newFilters[filter.name].end = e.target.value;
+                          } else {
+                            delete newFilters[filter.name].end;
+                          }
+                          setFilters(newFilters);
+                        }}
+                        value={filters[filter.name] ? filters[filter.name].end : ""}
+                      />
+                    </div>
+                  }
                 </div>
               ))}
             </div>

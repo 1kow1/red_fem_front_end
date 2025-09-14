@@ -7,6 +7,7 @@ import { getForms, getFormById } from "../services/formAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { filterConfigs } from "../config/filterConfig";
 
 export default function Formularios() {
   const [forms, setForms] = useState([]);
@@ -20,10 +21,7 @@ export default function Formularios() {
   const [editLoading, setEditLoading] = useState(false);
   const navigate = useNavigate();
 
-  const avaiableFilters = {
-    especialidade: ["Ginecologia", "Odontologia", "Dermatologia"],
-    liberado_para_uso: ["Sim", "Não"]
-  }
+  const avaiableFilters = filterConfigs['formularios'];
 
   // FETCH
   const fetchForms = async () => {

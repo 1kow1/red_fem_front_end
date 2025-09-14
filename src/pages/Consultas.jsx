@@ -11,6 +11,7 @@ import { deleteExec } from "../services/execAPI"; // Nova import
 import { adaptConsultaForView, adaptConsultaForApi } from "../adapters/consultaAdapter";
 import { formConfigs } from "../config/formConfig";
 import { toast } from "react-toastify";
+import { filterConfigs } from "../config/filterConfig";
 
 export default function Consultas() {
   const navigate = useNavigate();
@@ -30,10 +31,7 @@ export default function Consultas() {
   const [isConfirmRemoveOpen, setIsConfirmRemoveOpen] = useState(false);
   const [consultaParaRemover, setConsultaParaRemover] = useState(null);
 
-  const avaiableFilters = {
-    desde: ["Hoje", "Esta semana", "Este mês", "Este ano"],
-    status: ["Pendente", "Cancelada", "Concluída"]
-  }
+  const avaiableFilters = filterConfigs['consultas']
 
   // Função existente para buscar consultas...
   const fetchConsultas = async () => {
