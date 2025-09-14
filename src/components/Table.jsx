@@ -3,24 +3,34 @@ import { useState, useEffect, useMemo } from "react";
 import DetailsPopup from "./DetailsPopup.jsx";
 import { popupConfigs } from "../config/detailsConfig.js";
 
-export default function Table({ 
-  data, 
-  className, 
+export default function Table({
+  data,
+  className,
   dataType = "generic",
   disablePopup = false,
   statusConfig = null, // Nova prop para configuração de status
   onEditRow,
-  onToggleRow
+  onToggleRow,
+  onAssociarFormulario,
+  callbacks: externalCallbacks
 }) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedRowData, setSelectedRowData] = useState(null);
   const [popupConfig, setPopupConfig] = useState({});
 
   // callbacks que passaremos ao getConfig (useMemo evita recriação desnecessária)
-  const callbacks = useMemo(() => ({
-    onEdit: onEditRow,
-    onToggle: onToggleRow
-  }), [onEditRow, onToggleRow]);
+  const callbacks = useMemo(() => {
+    const allCallbacks = {
+      onEdit: onEditRow,
+      onToggle: onToggleRow,
+      onAssociarFormulario: onAssociarFormulario,
+      // Incluir callbacks externas se fornecidas
+      ...(externalCallbacks || {})
+    };
+
+    console.log("🔧 Callbacks finais no Table:", allCallbacks);
+    return allCallbacks;
+  }, [onEditRow, onToggleRow, onAssociarFormulario, externalCallbacks]);
 
   useEffect(() => {
     if (!selectedRowData) return;
@@ -149,6 +159,8 @@ export default function Table({
           onClose={handleClosePopup}
           data={selectedRowData}
           config={popupConfig}
+          onAssociarFormulario={onAssociarFormulario}
+          callbacks={callbacks}
         />
       )}
     </>

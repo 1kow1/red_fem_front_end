@@ -44,67 +44,140 @@ export default function FormularioPopUp({
   }, [initialData]);
 
   useEffect(() => {
-    if (!isOpen) return;
-    if (mode !== "edit" || !initialData) return;
+    if (!isOpen) {
+      reset({});
+      setAsyncDefaults({});
+      return;
+    }
 
-    (async () => {
-      const newDefaults = {};
-      await Promise.all(
-        fields.map(async (field) => {
-          if (field.type !== "async-select") return;
+    // Se for modo de criação, apenas limpa os campos
+    if (mode === "create") {
+      reset({});
+      return;
+    }
 
-          const idValue = initialData[field.name];
-          if (!idValue) return;
-
-          try {
-            if (field.apiKey === "pacientes") {
-              const p = await getPacienteById(idValue);
-              newDefaults[field.name] = {
-                value: idValue,
-                label: p.nome ?? p.name ?? String(idValue),
-              };
-            } else if (field.apiKey === "users") {
-              const u = await getUserById(idValue);
-              newDefaults[field.name] = {
-                value: idValue,
-                label: u.nome ?? u.name ?? String(idValue),
-              };
-            } else if (field.apiKey === "forms") {
-              // se tiver getFormById, use-o
-              // const f = await getFormById(idValue);
-              // newDefaults[field.name] = { value: idValue, label: f.titulo ?? String(idValue) };
-            }
-          } catch (err) {
-            console.warn("Erro ao carregar default async-select:", err);
-            newDefaults[field.name] = {
-              value: idValue,
-              label: String(idValue),
-            };
-          }
-        })
-      );
-
-      setAsyncDefaults(newDefaults);
-
-      // também setar os valores dos campos no form (apenas o id)
+    // Se for modo de edição e temos dados iniciais
+    if (mode === "edit" && initialData && Object.keys(initialData).length > 0) {
+      console.log("Preparando dados para o formulário no modo de edição");
+      
+      // Prepara os dados normalizados baseados nos campos configurados
+      const normalizedData = {};
+      
       fields.forEach((field) => {
-        if (field.type === "async-select") {
-          const idValue = initialData[field.name];
-          if (idValue) setValue(field.name, idValue);
+        const fieldName = field.name;
+        let value = initialData[fieldName];
+        
+        if (value === undefined || value === null) return;
+        
+        // Processa diferentes tipos de campo
+        if (field.type === "select") {
+          if (Array.isArray(field.options)) {
+            const match = field.options.find(
+              (opt) => opt.value === value || opt.label === value
+            );
+            normalizedData[fieldName] = match?.value ?? value;
+          } else {
+            normalizedData[fieldName] = value;
+          }
+        } else if (field.type === "checkbox") {
+          // Converte strings "Sim"/"Não" ou booleans
+          if (typeof value === "string") {
+            normalizedData[fieldName] = value.toLowerCase() === "sim" || value === "true";
+          } else {
+            normalizedData[fieldName] = Boolean(value);
+          }
+        } else {
+          normalizedData[fieldName] = value;
         }
       });
-    })();
-  }, [isOpen, mode, initialData, fields, setValue]);
+
+      console.log("Dados normalizados para reset:", normalizedData);
+      
+      // Reset do formulário com os dados normalizados
+      reset(normalizedData);
+      
+      // Se tem ID, também seta ele
+      if (idKey && initialData[idKey]) {
+        setValue(idKey, initialData[idKey]);
+      }
+
+      // Carrega dados dos selects assíncronos
+      loadAsyncDefaults();
+    }
+  }, [isOpen, mode, initialData, fields, reset, setValue, idKey]);
+
+  // Função separada para carregar os dados dos selects assíncronos
+  const loadAsyncDefaults = async () => {
+    if (!initialData || mode !== "edit") return;
+
+    const newDefaults = {};
+    
+    await Promise.all(
+      fields.map(async (field) => {
+        if (field.type !== "async-select") return;
+
+        const idValue = initialData[field.name];
+        if (!idValue) return;
+
+        try {
+          if (field.apiKey === "pacientes") {
+            const p = await getPacienteById(idValue);
+            newDefaults[field.name] = {
+              value: idValue,
+              label: p.nome ?? p.name ?? String(idValue),
+            };
+          } else if (field.apiKey === "users") {
+            const u = await getUserById(idValue);
+            newDefaults[field.name] = {
+              value: idValue,
+              label: u.nome ?? u.name ?? String(idValue),
+            };
+          } else if (field.apiKey === "forms") {
+            // se tiver getFormById, use-o
+            // const f = await getFormById(idValue);
+            // newDefaults[field.name] = { value: idValue, label: f.titulo ?? String(idValue) };
+          }
+        } catch (err) {
+          console.warn("Erro ao carregar default async-select:", err);
+          newDefaults[field.name] = {
+            value: idValue,
+            label: String(idValue),
+          };
+        }
+      })
+    );
+
+    setAsyncDefaults(newDefaults);
+
+    // também setar os valores dos campos no form (apenas o id)
+    fields.forEach((field) => {
+      if (field.type === "async-select") {
+        const idValue = initialData[field.name];
+        if (idValue) setValue(field.name, idValue);
+      }
+    });
+  };
 
   const handleFormSubmit = async (data) => {
     try {
+      console.log("Dados do formulário antes da limpeza:", data);
+      
       const cleaned = {};
       fields.forEach((f) => {
         const name = f.name;
-        if (data[name] !== undefined) cleaned[name] = data[name];
-        else if (initialData && initialData[name] !== undefined)
+        if (data[name] !== undefined) {
+          cleaned[name] = data[name];
+        } else if (initialData && initialData[name] !== undefined) {
           cleaned[name] = initialData[name];
+        }
       });
+
+      // Se estamos no modo de edição, incluir o ID
+      if (mode === "edit" && idKey && initialData[idKey]) {
+        cleaned[idKey] = initialData[idKey];
+      }
+
+      console.log("Dados limpos para envio:", cleaned);
 
       await onSubmit?.(cleaned);
 

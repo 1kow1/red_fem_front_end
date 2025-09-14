@@ -15,6 +15,8 @@ export default function DataFrame({
   onAddRow,     // chamado quando clicar em "Adicionar"
   onEditRow,    // repassado ao Table/Details
   onToggleRow,
+  onAssociarFormulario,
+  callbacks,   // callbacks adicionais
   searchQuery,
   setSearchQuery,
   fetchData
@@ -36,6 +38,7 @@ export default function DataFrame({
     });
     setFilteredData(filtered);
   }, [filters, data]);
+  console.log("📊 DataFrame recebeu callbacks:", callbacks);
 
   return (
     <>
@@ -118,6 +121,8 @@ export default function DataFrame({
           onEditRow={onEditRow}
           onToggleRow={onToggleRow}
           formFields={formFields}
+          onAssociarFormulario={onAssociarFormulario}
+          callbacks={callbacks}
         />
       </div>
     </>

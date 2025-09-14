@@ -96,6 +96,7 @@ export const formConfigs = {
       placeholder: "Selecione o sexo",
       options: [
         { value: "F", label: "Feminino" },
+        { value: "M", label: "Masculino" },
       ],
     },
     {
@@ -104,10 +105,14 @@ export const formConfigs = {
       type: "select",
       placeholder: "Selecione o estado civil",
       options: [
-        { value: "SOLTEIRA", label: "Solteira" },
         { value: "CASADA", label: "Casada" },
+        { value: "CASADO", label: "Casado" },
         { value: "DIVORCIADA", label: "Divorciada" },
+        { value: "DIVORCIAD0", label: "Divorciado" },
+        { value: "SOLTEIRA", label: "Solteira" }, 
+        { value: "SOLTEIRO", label: "Solteiro" }, 
         { value: "VIÚVA", label: "Viúva" },
+        { value: "VIÚVO", label: "Viúvo" },
       ],
     },
     {
@@ -193,4 +198,5 @@ export const formConfigs = {
       ],
     },
   ],
+  
 };

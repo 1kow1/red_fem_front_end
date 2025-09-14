@@ -60,39 +60,99 @@ export const popupConfigs = {
   },
 
   consultas: {
+    getConfig: (data, callbacks = {}) => {
+      // Transforma execucaoFormulario (objeto) em array SUPER SIMPLES
+      const execucaoFormularioArray = data._execucaoFormulario 
+        ? [
+            {
+              // Campos reordenados: Formulário, Data/Hora, Liberado
+              formulario: data._execucaoFormulario.formulario || "Não associado",
+              dataHora: data._execucaoFormulario.dataHora || "N/A",
+              liberado: data._execucaoFormulario.liberado || "Não",
+              id: data._execucaoFormulario.id || "N/A",
+              
+              // Dados originais ocultos para funcionalidade
+              _exec: data._execucaoFormulario._exec || data._execucaoFormulario
+            }
+          ]
+        : [];
+  
+      return {
+        title: "Consulta",  
+        fields: [
+          { label: "Paciente", key: "pacienteNome" },
+          { label: "Médico", key: "medicoNome" },
+          { label: "Tipo da Consulta", key: "tipoConsulta" },
+          { label: "Data e Hora", key: "dataHora" },
+          { label: "Status", key: "status" },
+          { label: "Ativo", key: "_ativo" },
+        ],
+        actions: [
+          {
+            label: "Deletar",
+            variant: "secondary",
+            onClick: callbacks.onToggle
+          },
+          {
+            label: "Editar",
+            variant: "primary",
+            onClick: callbacks.onEdit
+          },
+        ],
+        subTable: {
+          title: "Execução do Formulário",
+          data: execucaoFormularioArray,
+          dataType: "execucaoFormulario",
+          addButton: { 
+            label: "Associar Formulário",
+            onClick: callbacks.onAssociarFormulario // Nova callback
+          },
+          disablePopup: execucaoFormularioArray.length === 0 // Desabilita popup se não tem dados
+        }
+      };
+    }
+  },
+
+  // Configuração ULTRA SIMPLES para execucaoFormulario
+  execucaoFormulario: {
     getConfig: (data, callbacks = {}) => ({
-      title: "Consulta",  
+      title: "Execução do Formulário",
       fields: [
-        { label: "Paciente", key: "pacienteNome" },
-        { label: "Médico", key: "medicoNome" },
-        { label: "Tipo da Consulta", key: "tipoConsulta" },
+        { label: "Formulário", key: "formulario" },
         { label: "Data e Hora", key: "dataHora" },
-        { label: "Status", key: "status" },
-        { label: "Status da Execução", key: "_statusExecucao" },
-        { label: "Ativo", key: "_ativo" },
+        { label: "Liberado", key: "liberado" },
+        { label: "ID", key: "id" },
       ],
       actions: [
         {
-          label: "Deletar",
-          variant: "secondary",
-          onClick: callbacks.onToggle
+          label: "Abrir Formulário",
+          variant: "primary",
+          onClick: (execData) => {
+            console.log("Dados da execução clicada:", execData);
+            const execId = execData.id || execData._exec?.id;
+            console.log("ID extraído:", execId);
+
+            if (execId) {
+              if (callbacks.onAbrirExecucao) {
+                callbacks.onAbrirExecucao(execId, execData._exec || execData);
+              } else {
+                console.error("Callback onAbrirExecucao não encontrada");
+              }
+            } else {
+              console.error("ID da execução não encontrado:", execData);
+            }
+          }
         },
         {
-          label: "Editar",
-          variant: "primary",
+          label: "Ver Detalhes",
+          variant: "secondary",
           onClick: callbacks.onEdit
-        },
-      ],
-      subTable: data.execucaoFormulario ? {
-        title: "Formulários",
-        data: data.execucaoFormulario,
-        dataType: "formularios", // Novo: tipo de dados para o Table
-        addButton: { label: "Associar Formulário" }
-      } : null
+        }
+      ]
     })
   },
 
-  // Nova configuração para formulários (será usada pela subtabela)
+  // Configuração para formulários (será usada pela subtabela)
   formularios: {
     getConfig: (data, callbacks = {}) => ({
       title: data.titulo,

@@ -1,52 +1,111 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import rosaLogo from '../assets/logos/rosa-rfcc.png';
 import { ButtonPrimary, ButtonPrimaryDropdown, IconButton, ButtonSecondary } from "../components/Button";
 import Input from "../components/Input";
 import Card from "../components/Card";
-import { createExec, getExecById } from "../services/execAPI";
+import { createExec, getExecById, updateExec } from "../services/execAPI";
 import { getFormById } from "../services/formAPI";
 
 export default function ExecucaoFormulario() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { execId } = useParams(); // ID da execução da URL
 
   const [loading, setLoading] = useState(false);
   const [erros, setErros] = useState({});
 
   const [respostas, setRespostas] = useState([]);
   const [formulario, setFormulario] = useState({});
+  const [execucaoData, setExecucaoData] = useState(null);
 
-  const fetchFormulario = async () => {
+  const fetchExecucaoData = async () => {
+    if (!execId) {
+      toast.error("ID da execução não fornecido");
+      navigate('/consultas');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await getFormById("68c0c499c53f79425367bf24");
-      setFormulario(response);
-    }
-    catch (error) {
-      toast.error("Erro ao buscar formulário");
-    }
-    finally {
+      // Tentar obter especialidade dos dados do state como fallback
+      const stateData = location.state?.execData;
+      const especialidade = stateData?._exec?.usuarioDTO?.especialidade || stateData?.usuarioDTO?.especialidade;
+
+      console.log("🔍 Especialidade detectada:", especialidade);
+
+      // Buscar dados da execução pela API
+      const execResponse = await getExecById(execId, especialidade);
+      console.log("📄 Dados da execução carregados:", execResponse);
+      setExecucaoData(execResponse);
+
+      // Buscar dados do formulário usando formularioId ou formulario.id
+      const formularioId = execResponse.formularioId || execResponse.formulario?.id;
+      console.log("🔍 ID do formulário encontrado:", formularioId);
+
+      if (formularioId) {
+        try {
+          const formResponse = await getFormById(formularioId);
+          console.log("📋 Formulário carregado:", formResponse);
+          setFormulario(formResponse);
+        } catch (formError) {
+          console.error("Erro ao carregar formulário:", formError);
+          toast.error(`Formulário não encontrado (ID: ${formularioId})`);
+          // Não redirecionar, apenas mostrar mensagem
+        }
+      } else {
+        console.warn("⚠️ Execução sem formulário associado");
+        toast.warning("Esta execução não possui formulário associado");
+        // Não redirecionar, mostrar estado vazio
+      }
+
+      // Carregar respostas existentes se houver
+      if (execResponse.respostas && Array.isArray(execResponse.respostas)) {
+        setRespostas(execResponse.respostas);
+      }
+
+    } catch (error) {
+      console.error("Erro ao buscar dados da execução:", error);
+      toast.error("Erro ao carregar execução do formulário");
+
+      // Tentar usar dados do state como fallback
+      const stateData = location.state?.execData;
+      if (stateData) {
+        setExecucaoData(stateData);
+        if (stateData.formulario?.id) {
+          try {
+            const formResponse = await getFormById(stateData.formulario.id);
+            setFormulario(formResponse);
+          } catch (formError) {
+            console.error("Erro ao buscar formulário:", formError);
+          }
+        }
+      }
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchFormulario();
-  }, []);
+    fetchExecucaoData();
+  }, [execId]);
 
   // --- cancelar ---
   const onCancel = useCallback(() => {
-    const hasChanges = formulario.titulo || formulario.descricao || formulario.perguntas.length > 0;
+    const hasChanges = respostas.length > 0;
 
     if (hasChanges) {
       const confirmar = window.confirm('Tem certeza que deseja cancelar? Todas as alterações serão perdidas.');
       if (!confirmar) return;
     }
 
-    navigate('/consultas');
-  }, [formulario, navigate]);
+    // Voltar para o caminho anterior ou consultas por padrão
+    const returnPath = location.state?.returnPath || '/consultas';
+    navigate(returnPath);
+  }, [respostas, location.state, navigate]);
 
   const onChangeInput = (value, perguntaId) => {
     setRespostas((prev) => {
@@ -190,11 +249,20 @@ export default function ExecucaoFormulario() {
               <p
                 className="text-2xl mb-2"
               >
-                {formulario.titulo}
+                {formulario.titulo || "Formulário não associado"}
               </p>
               <p>
-                {formulario.descricao}
+                {formulario.descricao || "Esta execução não possui um formulário válido associado."}
               </p>
+
+              {!formulario.titulo && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
+                  <p className="text-yellow-800 text-sm">
+                    ⚠️ Esta execução foi criada sem um formulário associado.
+                    Não é possível responder perguntas neste estado.
+                  </p>
+                </div>
+              )}
             </div>
           </Card>
 

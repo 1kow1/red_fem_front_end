@@ -1,7 +1,14 @@
 import { X, Trash2, Edit, Plus } from "lucide-react";
 import Table from "./Table";
 
-export default function DetailsPopup({ isOpen, onClose, data, config = {} }) {
+export default function DetailsPopup({
+  isOpen,
+  onClose,
+  data,
+  config = {},
+  onAssociarFormulario,
+  callbacks,
+}) {
   if (!isOpen || !data) return null;
 
   const {
@@ -168,7 +175,20 @@ export default function DetailsPopup({ isOpen, onClose, data, config = {} }) {
                 </h3>
                 {subTable.addButton && (
                   <button
-                    onClick={() => onAddNew?.(data)}
+                    onClick={() => {
+                      console.log("🔥 Botão Associar clicado, dados:", data);
+
+                      // Usar a callback específica se estiver disponível
+                      if (subTable.addButton.onClick) {
+                        subTable.addButton.onClick(data);
+                      } else if (onAssociarFormulario) {
+                        onAssociarFormulario(data);
+                      } else {
+                        console.warn(
+                          "Nenhuma callback definida para associar formulário"
+                        );
+                      }
+                    }}
                     className="flex items-center gap-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg transition-colors"
                   >
                     <Plus size={16} />
@@ -185,6 +205,7 @@ export default function DetailsPopup({ isOpen, onClose, data, config = {} }) {
                   dataType={subTable.dataType || "generic"}
                   disablePopup={subTable.disablePopup || false}
                   statusConfig={subTable.statusConfig || null}
+                  callbacks={callbacks}
                 />
               ) : (
                 <div className="bg-white rounded-lg p-8 text-center text-gray-500">

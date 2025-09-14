@@ -30,3 +30,12 @@ export const getExecById = async (id, especialidade) => {
     throw new Error("Erro ao buscar execução de formulário: " + error.message);
   }
 };
+
+export const updateExec = async (id, data) => {
+  try {
+    const response = await api.put(`/exec/${id}`, data);
+    return response.data;
+  } catch (error) {
+    throw new Error("Erro ao atualizar execução de formulário: " + error.message);
+  }
+};

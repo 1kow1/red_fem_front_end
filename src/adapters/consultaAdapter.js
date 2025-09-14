@@ -1,4 +1,3 @@
-// adapters/consultaAdapter.js
 import { format, parseISO, parse, isValid } from "date-fns";
 import { capitalizeWords, parseBoolean } from "./utils.js";
 
@@ -24,11 +23,32 @@ export const adaptConsultaForView = (consulta = {}) => {
   const id = consulta.id ?? consulta._id ?? null;
   const dataHoraDate = parseMaybeDate(consulta.dataHora);
 
-  // Extrair nomes do paciente e médico
+  // Extrair nomes e IDs do paciente e médico
   const medicoObj = consulta.usuarioDTO ?? consulta.execucaoFormulario?.medico ?? null;
   const medicoNome = medicoObj?.nome ?? consulta.execucaoFormulario?.usuarioDTO?.nome ?? "N/A";
+  const medicoId = consulta.medicoId ?? medicoObj?.id ?? medicoObj?._id ?? null;
 
   const pacienteNome = consulta.pacienteNome ?? consulta.execucaoFormulario?.paciente?.nome ?? "N/A";
+
+  let execucaoFormulario = null;
+  if (consulta.execucaoFormulario) {
+    const exec = consulta.execucaoFormulario;
+    const execDataHora = parseMaybeDate(exec.dataHora);
+    
+    execucaoFormulario = {
+      // Apenas campos essenciais para a subtabela
+      id: exec.id || "N/A",
+      liberado: exec.isLiberado ? "Sim" : "Não",
+      dataHora: execDataHora ? format(execDataHora, "dd/MM/yyyy HH:mm") : "N/A",
+      medico: exec.usuarioDTO?.nome || medicoNome,
+      especialidade: exec.usuarioDTO?.especialidade || "N/A",
+      formulario: exec.formulario?.titulo || "Não associado",
+      respostas: exec.respostas?.length || 0,
+      
+      // Campos originais mantidos para funcionalidade (ocultos com underscore)
+      _exec: exec
+    };
+  }
 
   return {
     id,
@@ -38,36 +58,28 @@ export const adaptConsultaForView = (consulta = {}) => {
     dataHora: dataHoraDate ? format(dataHoraDate, "dd/MM/yyyy HH:mm") : "N/A",
     status: consulta.status ? capitalizeWords(consulta.status) : "N/A",
     
-    // Estes campos são mantidos para funcionalidade mas não são exibidos
+    // execucaoFormulario formatada para a subtabela (não aparece na tabela principal)
+    _execucaoFormulario: execucaoFormulario,
+    
+    // Campos mantidos para funcionalidade (com underscore para não exibir)
     _statusExecucao: "Pendente",
     _ativo: consulta.ativo ? "Sim" : "Não",
     _patientId: consulta.patientId,
-    _medicoId: consulta.medicoId,
-    _execucaoFormulario: consulta.execucaoFormulario,
+    _medicoId: medicoId,
   };
 };
 
 // adapt for API (normalizar payload p/ backend)
 export const adaptConsultaForApi = (consulta = {}) => {
-  console.log("🔄 Adapter: Dados recebidos:", consulta);
-  
   const id = consulta.id ?? consulta._id ?? null;
   
   let parsedDataHora = null;
   
-  // CORREÇÃO: Tratar dataConsulta como Date object
+  // Tratar dataConsulta como Date object
   if (consulta.dataConsulta && consulta.horario) {
-    console.log("📅 Combinando dataConsulta (Date) + horario (string):", {
-      dataConsulta: consulta.dataConsulta,
-      horario: consulta.horario,
-      tipoDataConsulta: typeof consulta.dataConsulta,
-      isDate: consulta.dataConsulta instanceof Date
-    });
-    
     try {
       let dataBase;
       
-      // Se dataConsulta é um objeto Date
       if (consulta.dataConsulta instanceof Date) {
         dataBase = new Date(consulta.dataConsulta);
       } else if (typeof consulta.dataConsulta === 'string') {
@@ -76,53 +88,31 @@ export const adaptConsultaForApi = (consulta = {}) => {
         throw new Error("Formato de data não reconhecido");
       }
       
-      // Extrair apenas a parte da data (sem horário)
       const ano = dataBase.getFullYear();
-      const mes = dataBase.getMonth(); // 0-11
+      const mes = dataBase.getMonth();
       const dia = dataBase.getDate();
       
-      console.log("📅 Data extraída:", { ano, mes: mes + 1, dia });
-      
-      // Separar hora e minuto
       const [hora, minuto] = consulta.horario.split(':');
       const horaNum = parseInt(hora, 10);
       const minutoNum = parseInt(minuto, 10);
       
-      console.log("⏰ Hora extraída:", { hora: horaNum, minuto: minutoNum });
-      
-      // Criar nova data combinada
       const dataHoraCombinada = new Date(ano, mes, dia, horaNum, minutoNum, 0);
-      
-      console.log("🔗 Data+Hora combinada:", dataHoraCombinada);
-      console.log("📍 ISO String:", dataHoraCombinada.toISOString());
       
       if (!isNaN(dataHoraCombinada.getTime())) {
         parsedDataHora = dataHoraCombinada;
-        console.log("✅ Sucesso na combinação:", parsedDataHora.toISOString());
-      } else {
-        console.error("❌ Data inválida após combinação");
-        parsedDataHora = null;
       }
       
     } catch (error) {
-      console.error("❌ Erro ao combinar data+hora:", error);
       parsedDataHora = null;
     }
   } else if (consulta.dataHora) {
     parsedDataHora = parseMaybeDate(consulta.dataHora);
-    console.log("📅 Usando dataHora existente:", parsedDataHora?.toISOString());
-  } else {
-    console.warn("⚠️ Nenhuma data encontrada");
-    parsedDataHora = null;
   }
   
-  // Se não conseguiu gerar dataHora, usar data atual como último recurso
   if (!parsedDataHora) {
-    console.warn("⚠️ Usando data atual como fallback");
     parsedDataHora = new Date();
   }
 
-  // Resto do código permanece igual
   const origemExec = consulta.execucaoFormulario ?? {};
 
   const execucaoFormulario = {
@@ -162,8 +152,6 @@ export const adaptConsultaForApi = (consulta = {}) => {
     status: typeof consulta.status === "string" ? consulta.status.toUpperCase() : consulta.status,
     execucaoFormulario: Object.keys(cleanedExec).length ? cleanedExec : undefined,
   };
-  
-  console.log("🧪 Adapter: Payload final gerado:", payloadFinal);
   
   return payloadFinal;
 };

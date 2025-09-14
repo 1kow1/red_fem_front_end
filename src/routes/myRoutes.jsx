@@ -61,7 +61,7 @@ function MyRoutes() {
       <Route path="/editform" element={<FormularioEditor />} />
       
       {/* Rota do execucao formulario  */}
-      <Route path="/formexec" element={<ExecucaoFormulario />} />
+      <Route path="/execform/:execId" element={<ExecucaoFormulario />} />
 
       {/* catch-all: redireciona para /login ou /consultas conforme auth */}
       <Route
