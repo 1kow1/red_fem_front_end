@@ -8,7 +8,6 @@ import { adaptPacienteForView, adaptPacienteForApi } from "../adapters/pacienteA
 import { getPacientes, createPaciente, editPaciente, togglePaciente } from "../services/pacienteAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
 import { usePagination } from "../hooks/usePagination";
-import { pacienteSchema } from "../validation/validationSchemas";
 import { toast } from "react-toastify";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import ModalRelatorio from "../components/ModalRelatorio";
@@ -170,7 +169,7 @@ export default function Pacientes() {
         data={pacientes}
         avaiableFilters={avaiableFilters}
         dataType="pacientes"
-        formFields={formConfigs.pacientes}
+        formFields={formConfigs.pacientes.fields}
         onAddRow={openCreateForm}
         onEditRow={openEditForm}
         onToggleRow={handleToggleActive}
@@ -199,10 +198,10 @@ export default function Pacientes() {
         onClose={() => setIsFormOpen(false)}
         title={formMode === "create" ? "Criar Paciente" : "Editar Paciente"}
         mode={formMode}
-        fields={formConfigs.pacientes}
+        fields={formConfigs.pacientes.fields}
+        validationSchema={formConfigs.pacientes.validationSchema}
         initialData={editInitialData}
         onSubmit={formMode === "create" ? handleCreatePaciente : handleEditPaciente}
-        validationSchema={pacienteSchema}
         columns={2}
       />
 

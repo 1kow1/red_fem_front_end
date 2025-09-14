@@ -7,7 +7,6 @@ import { adaptUserForView, adaptUserForApi } from "../adapters/userAdapter";
 import { getUsers, createUser, editUser, toggleUser } from "../services/userAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
 import { usePagination } from "../hooks/usePagination";
-import { userSchema } from "../validation/validationSchemas";
 import { toast } from "react-toastify";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
 
@@ -150,7 +149,7 @@ export default function Usuarios() {
         data={users}
         avaiableFilters={avaiableFilters}
         dataType="usuarios"
-        formFields={formConfigs.usuarios}
+        formFields={formConfigs.usuarios.fields}
         onAddRow={openCreateForm}
         onEditRow={openEditForm}
         onToggleRow={handleToggleActive}
@@ -173,10 +172,10 @@ export default function Usuarios() {
         onClose={() => setIsFormOpen(false)}
         title={formMode === "create" ? "Criar Usuário" : "Editar Usuário"}
         mode={formMode}
-        fields={formConfigs.usuarios}
+        fields={formConfigs.usuarios.fields}
+        validationSchema={formConfigs.usuarios.validationSchema}
         initialData={formMode === "create" ? null : editInitialData}
         onSubmit={formMode === "create" ? handleCreateUser : handleEditUser}
-        validationSchema={userSchema}
       />
 
       <ConfirmationPopUp

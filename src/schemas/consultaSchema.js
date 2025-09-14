@@ -188,12 +188,9 @@ export const TIPOS_CONSULTA = [
 ];
 
 export const STATUS_CONSULTA = [
-  { value: 'AGENDADA', label: 'Agendada' },
-  { value: 'CONFIRMADA', label: 'Confirmada' },
-  { value: 'EM_ANDAMENTO', label: 'Em Andamento' },
-  { value: 'FINALIZADA', label: 'Finalizada' },
+  { value: 'PENDENTE', label: 'Pendente' },
   { value: 'CANCELADA', label: 'Cancelada' },
-  { value: 'FALTOU', label: 'Faltou' },
+  { value: 'CONCLUIDA', label: 'Concluída' },
 ];
 
 // Função utilitária para validar consulta

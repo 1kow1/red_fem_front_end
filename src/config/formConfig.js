@@ -1,8 +1,11 @@
 import { consultaSchema } from '../schemas/consultaSchema';
+import { userSchema } from '../schemas/userSchema';
+import { pacienteSchema } from '../schemas/pacienteSchema';
 
 export const formConfigs = {
   // Formulário para USUÁRIOS
-  usuarios: [
+  usuarios: {
+    fields: [
     {
       name: "nome",
       label: "Nome",
@@ -52,10 +55,13 @@ export const formConfigs = {
       placeholder: "CRM/PR 123456",
       showIf: (formData) => ["MEDICO", "RESIDENTE"].includes(formData.cargo)
     },
-  ],
+    ],
+    validationSchema: userSchema
+  },
 
   // Formulário para PACIENTES
-  pacientes: [
+  pacientes: {
+    fields: [
     {
       name: "nome",
       label: "Nome Completo",
@@ -158,7 +164,9 @@ export const formConfigs = {
         { value: "TO", label: "Tocantins" }
       ],
     },
-  ],
+    ],
+    validationSchema: pacienteSchema
+  },
 
   // Formulário para CONSULTAS
   consultas: {
