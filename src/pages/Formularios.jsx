@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import DataFrame from "../components/DataFrame";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { adaptFormForView } from "../adapters/formAdapter";
 import { getForms, getFormById } from "../services/formAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
@@ -24,12 +24,18 @@ export default function Formularios() {
   const avaiableFilters = filterConfigs['formularios'];
 
   // FETCH
-  const fetchForms = async () => {
+  const fetchForms = useCallback(async (filters = {}) => {
     try {
       setLoading(true);
       setError(null);
 
-      const data = await getForms(page, size);
+      const filterWithPagination = {
+        ...filters,
+        page: filters.page ?? page,
+        size: filters.size ?? size
+      };
+
+      const data = await getForms(filterWithPagination);
       const mapped = (data.content || []).map(adaptFormForView);
       setForms(mapped);
       setTotalPages(data.totalPages ?? 0);
@@ -42,7 +48,7 @@ export default function Formularios() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, size]);
 
   const handleCreateForm = () => {
     navigate("/editForm");
@@ -84,7 +90,7 @@ export default function Formularios() {
   // fetch on page/size change
   useEffect(() => {
     fetchForms();
-  }, [page, size]);
+  }, [fetchForms]);
 
   // debounce search
   useEffect(() => {
@@ -93,7 +99,7 @@ export default function Formularios() {
       fetchForms();
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, fetchForms]);
 
   return (
     <div>
@@ -121,6 +127,7 @@ export default function Formularios() {
         fetchData={fetchForms}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        defaultFilters={{ ativo: [true] }}
       />
 
       <PaginationFooter

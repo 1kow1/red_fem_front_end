@@ -15,8 +15,33 @@ export const consultaSchema = yup.object().shape({
 
   dataConsulta: yup
     .date()
+    .transform((value, originalValue) => {
+      // Se já for uma data válida, retorna como está
+      if (value instanceof Date && !isNaN(value)) return value;
+
+      // Se for string no formato YYYY-MM-DD, converte para Date
+      if (typeof originalValue === 'string' && originalValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return new Date(originalValue + 'T00:00:00');
+      }
+
+      // Se for timestamp numérico, converte para Date
+      if (typeof originalValue === 'number' || (typeof originalValue === 'string' && !isNaN(originalValue))) {
+        const timestamp = Number(originalValue);
+        const date = new Date(timestamp);
+        return !isNaN(date.getTime()) ? date : new Date('');
+      }
+
+      // Para outros casos, tenta conversão padrão
+      return originalValue ? new Date(originalValue) : new Date('');
+    })
     .required('Data da consulta é obrigatória')
-    .typeError('Data inválida'),
+    .typeError('Data inválida')
+    .test('is-future-date', 'A data da consulta deve ser hoje ou uma data futura', function(value) {
+      if (!value || isNaN(value.getTime())) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return value >= today;
+    }),
 
   horario: yup
     .string()
@@ -93,8 +118,33 @@ export const consultaEditSchema = yup.object().shape({
 
   dataConsulta: yup
     .date()
+    .transform((value, originalValue) => {
+      // Se já for uma data válida, retorna como está
+      if (value instanceof Date && !isNaN(value)) return value;
+
+      // Se for string no formato YYYY-MM-DD, converte para Date
+      if (typeof originalValue === 'string' && originalValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return new Date(originalValue + 'T00:00:00');
+      }
+
+      // Se for timestamp numérico, converte para Date
+      if (typeof originalValue === 'number' || (typeof originalValue === 'string' && !isNaN(originalValue))) {
+        const timestamp = Number(originalValue);
+        const date = new Date(timestamp);
+        return !isNaN(date.getTime()) ? date : new Date('');
+      }
+
+      // Para outros casos, tenta conversão padrão
+      return originalValue ? new Date(originalValue) : new Date('');
+    })
     .required('Data da consulta é obrigatória')
-    .typeError('Data inválida'),
+    .typeError('Data inválida')
+    .test('is-future-date', 'A data da consulta deve ser hoje ou uma data futura', function(value) {
+      if (!value || isNaN(value.getTime())) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return value >= today;
+    }),
 
   horario: yup
     .string()

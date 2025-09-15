@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { formConfigs } from "../config/formConfig";
 import { adaptPacienteForView, adaptPacienteForApi } from "../adapters/pacienteAdapter";
@@ -44,12 +44,18 @@ export default function Pacientes() {
 
   const avaiableFilters = filterConfigs['pacientes']  
 
-  const fetchPacientes = async () => {
+  const fetchPacientes = useCallback(async (filters = {}) => {
     try {
       setLoading(true);
       setError(null);
 
-      const data = await getPacientes(page, size);
+      const filterWithPagination = {
+        ...filters,
+        page: filters.page ?? page,
+        size: filters.size ?? size
+      };
+
+      const data = await getPacientes(filterWithPagination);
       const mapped = data.content.map(adaptPacienteForView);
 
       setPacientes(mapped);
@@ -61,7 +67,7 @@ export default function Pacientes() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, size]);
 
   // CREATE
   const handleCreatePaciente = async (formData) => {
@@ -145,7 +151,7 @@ export default function Pacientes() {
 
   useEffect(() => {
     fetchPacientes();
-  }, [page, size]);
+  }, [fetchPacientes]);
 
   // debounce search
   useEffect(() => {
@@ -154,7 +160,7 @@ export default function Pacientes() {
       fetchPacientes();
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, fetchPacientes]);
 
   return (
     <div>
@@ -175,6 +181,7 @@ export default function Pacientes() {
         fetchData={fetchPacientes}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        defaultFilters={{ ativo: [true] }}
         callbacks={{
           onEdit: openEditForm,
           onToggle: handleToggleActive,

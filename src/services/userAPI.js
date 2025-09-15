@@ -10,10 +10,61 @@ export const cleanPayload = (data) => {
 };
 
 // ------------- GET -------------
-export const getUsers = async (buscaGenerica = "", page = 0, size = 10) => {
+export const getUsers = async (filters = {}) => {
   try {
-    const response = await api.get(`/users/buscar`, { 
-      params: { buscaGenerica, page, size } 
+    const {
+      nomes,
+      emails,
+      cargos,
+      especialidades,
+      telefones,
+      crms,
+      ativos,
+      buscaGenerica,
+      page = 0,
+      size = 10,
+      sort
+    } = filters;
+
+    const params = new URLSearchParams();
+    params.append('page', page);
+    params.append('size', size);
+
+    if (nomes?.length) {
+      nomes.forEach(nome => params.append('nomes', nome));
+    }
+    if (emails?.length) {
+      emails.forEach(email => params.append('emails', email));
+    }
+    if (cargos?.length) {
+      cargos.forEach(cargo => params.append('cargos', cargo));
+    }
+    if (especialidades?.length) {
+      especialidades.forEach(esp => params.append('especialidades', esp));
+    }
+    if (telefones?.length) {
+      telefones.forEach(tel => params.append('telefones', tel));
+    }
+    if (crms?.length) {
+      crms.forEach(crm => params.append('crms', crm));
+    }
+    if (ativos?.length) {
+      ativos.forEach(ativo => params.append('ativos', ativo.toString()));
+    }
+    if (buscaGenerica) params.append('buscaGenerica', buscaGenerica);
+    if (sort) params.append('sort', sort);
+
+    const response = await api.get(`/users/buscar?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    throw new Error("Failed to get users: " + error);
+  }
+};
+
+export const getUsersLegacy = async (buscaGenerica = "", page = 0, size = 10) => {
+  try {
+    const response = await api.get(`/users/buscar`, {
+      params: { buscaGenerica, page, size }
     });
     return response.data;
   } catch (error) {
@@ -88,6 +139,14 @@ export const resetPassword = async ({ token, senha }) => {
   }
 };
 
-
+// Admin change user password
+export const changeUserPassword = async (userId, newPassword) => {
+  try {
+    const response = await api.patch(`/users/${userId}/change-password`, { senha: newPassword });
+    return response.data;
+  } catch (error) {
+    throw new Error("Failed to change user password: " + error);
+  }
+};
 
 // ------------- FIM EDIÇÃO -------------

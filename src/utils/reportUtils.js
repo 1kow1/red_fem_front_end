@@ -70,6 +70,10 @@ export const generateCSVReport = (pacienteData, consultas = []) => {
 
       // Criar uma linha para cada pergunta
       Object.entries(respostasPorPergunta).forEach(([perguntaId, textos]) => {
+        // Buscar o enunciado da pergunta no formulário
+        const pergunta = execucao.formulario?.perguntas?.find(p => p.id === perguntaId);
+        const enunciadoPergunta = pergunta?.enunciado || `Pergunta ${perguntaId}`;
+
         rows.push([
           pacienteData.nome,
           consulta.dataHora ? format(new Date(consulta.dataHora), 'dd/MM/yyyy HH:mm') : 'N/A',
@@ -77,7 +81,7 @@ export const generateCSVReport = (pacienteData, consultas = []) => {
           consulta.tipoConsulta || 'N/A',
           consulta.status || 'N/A',
           formTitulo,
-          `Pergunta ${perguntaId}`, // Poderia ser melhorado com o texto da pergunta
+          enunciadoPergunta,
           textos.join('; ') // Múltiplas respostas separadas por ;
         ]);
       });
@@ -226,10 +230,14 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
             Object.entries(respostasPorPergunta).forEach(([perguntaId, textos]) => {
               checkPageBreak(15);
 
+              // Buscar o enunciado da pergunta no formulário
+              const pergunta = execucao.formulario?.perguntas?.find(p => p.id === perguntaId);
+              const enunciadoPergunta = pergunta?.enunciado || `Pergunta ${perguntaId}`;
+
               // Quebra texto longo
               const respostaTexto = textos.join('; ');
               const maxWidth = 150;
-              const splitText = doc.splitTextToSize(`  - Pergunta ${perguntaId}: ${respostaTexto}`, maxWidth);
+              const splitText = doc.splitTextToSize(`  - ${enunciadoPergunta}: ${respostaTexto}`, maxWidth);
 
               splitText.forEach(line => {
                 checkPageBreak();

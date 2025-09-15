@@ -88,6 +88,18 @@ export default function FormularioPopUp({
           } else {
             normalizedData[fieldName] = Boolean(value);
           }
+        } else if (field.type === "date") {
+          // Tratamento especial para campos de data na inicialização
+          if (value) {
+            const dateValue = new Date(value);
+            if (!isNaN(dateValue.getTime())) {
+              normalizedData[fieldName] = dateValue.toISOString().split('T')[0];
+            } else {
+              normalizedData[fieldName] = value;
+            }
+          } else {
+            normalizedData[fieldName] = value;
+          }
         } else {
           normalizedData[fieldName] = value;
         }
@@ -162,12 +174,23 @@ export default function FormularioPopUp({
 
   const handleFormSubmit = async (data) => {
     try {
-      
+
       const cleaned = {};
       fields.forEach((f) => {
         const name = f.name;
         if (data[name] !== undefined) {
-          cleaned[name] = data[name];
+          // Tratamento especial para campos de data
+          if (f.type === "date" && data[name]) {
+            // Garantir que data seja enviada como string YYYY-MM-DD
+            const dateValue = new Date(data[name]);
+            if (!isNaN(dateValue.getTime())) {
+              cleaned[name] = dateValue.toISOString().split('T')[0];
+            } else {
+              cleaned[name] = data[name];
+            }
+          } else {
+            cleaned[name] = data[name];
+          }
         } else if (initialData && initialData[name] !== undefined) {
           cleaned[name] = initialData[name];
         }
@@ -195,15 +218,26 @@ export default function FormularioPopUp({
   const loadOptions = async (inputValue, field) => {
     try {
       if (field.apiKey === "pacientes") {
-        const res = await getPacientes(0, 10, inputValue);
-        // adaptar dependendo do shape do seu backend: aqui assumimos res.content ou res.items...
+        const filters = {
+          page: 0,
+          size: 10,
+          buscaGenerica: inputValue || undefined,
+          ativo: [true]
+        };
+        const res = await getPacientes(filters);
         const items = res.content ?? res.items ?? res;
         return (items || []).map((p) => ({
           value: p._id ?? p.id ?? p.identifier,
           label: p.nome ?? p.fullName ?? p.name,
         }));
       } else if (field.apiKey === "users") {
-        const res = await getUsers(inputValue, 0, 10);
+        const filters = {
+          page: 0,
+          size: 10,
+          buscaGenerica: inputValue || undefined,
+          ativos: [true]
+        };
+        const res = await getUsers(filters);
         const items = res.content ?? res.items ?? res;
         return (items || []).map((u) => ({
           value: u._id ?? u.id ?? u.identifier,
@@ -311,6 +345,7 @@ export default function FormularioPopUp({
                   placeholder={field.placeholder}
                   pageSize={field.pageSize ?? 10}
                   hasError={!!errors[name]}
+                  additionalFilters={field.additionalFilters || {}}
                 />
               );
             }}
@@ -326,6 +361,10 @@ export default function FormularioPopUp({
     }
 
     if (field.type === "select") {
+      const currentOptions = typeof field.options === "function"
+        ? field.options(watch())
+        : field.options;
+
       return (
         <div key={name}>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -340,8 +379,8 @@ export default function FormularioPopUp({
             <option value="">
               {field.placeholder ?? "Selecione"}
             </option>
-            {Array.isArray(field.options) &&
-              field.options.map((option) => (
+            {Array.isArray(currentOptions) &&
+              currentOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -386,6 +425,7 @@ export default function FormularioPopUp({
         <input
           type={field.type || "text"}
           placeholder={field.placeholder}
+          min={field.min} // Para campos de data, define data mínima
           {...register(name)}
           className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
             errors[name] ? "border-red-500" : "border-gray-400"

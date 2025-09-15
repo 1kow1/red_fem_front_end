@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { formConfigs } from "../config/formConfig";
 import { filterConfigs } from "../config/filterConfig";
 import { adaptUserForView, adaptUserForApi } from "../adapters/userAdapter";
@@ -10,6 +10,7 @@ import { PaginationFooter } from "../components/PaginationFooter";
 import { usePagination } from "../hooks/usePagination";
 import { toast } from "react-toastify";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
+import ModalAlterarSenha from "../components/ModalAlterarSenha";
 
 export default function Usuarios() {
   const [users, setUsers] = useState([]);
@@ -34,15 +35,24 @@ export default function Usuarios() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState("create"); // create | edit
   const [editInitialData, setEditInitialData] = useState(null);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [userToChangePassword, setUserToChangePassword] = useState(null);
 
   const avaiableFilters = filterConfigs['usuarios']
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async (filters = {}) => {
     try {
       setLoading(true);
       setError(null);
 
-      const data = await getUsers(searchQuery, page, size);
+      const filterWithPagination = {
+        ...filters,
+        buscaGenerica: filters.buscaGenerica ?? searchQuery,
+        page: filters.page ?? page,
+        size: filters.size ?? size
+      };
+
+      const data = await getUsers(filterWithPagination);
       const mapped = data.content.map(adaptUserForView);
 
       setUsers(mapped);
@@ -53,7 +63,7 @@ export default function Usuarios() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, page, size]);
 
   // CREATE
   const handleCreateUser = async (formData) => {
@@ -122,9 +132,20 @@ export default function Usuarios() {
     setIsFormOpen(true);
   };
 
+  // alterar senha
+  const handleChangePassword = (row) => {
+    setUserToChangePassword(row);
+    setIsChangePasswordOpen(true);
+  };
+
+  const handleCloseChangePassword = () => {
+    setUserToChangePassword(null);
+    setIsChangePasswordOpen(false);
+  };
+
   useEffect(() => {
     fetchUsers();
-  }, [page, size]);
+  }, [fetchUsers]);
 
   // debounce search
   useEffect(() => {
@@ -133,7 +154,7 @@ export default function Usuarios() {
       fetchUsers();
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, fetchUsers]);
 
   return (
     <div>
@@ -151,9 +172,11 @@ export default function Usuarios() {
         onAddRow={openCreateForm}
         onEditRow={openEditForm}
         onToggleRow={handleToggleActive}
+        onChangePassword={handleChangePassword}
         fetchData={fetchUsers}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        defaultFilters={{ ativos: [true] }}
       />
 
       <PaginationFooter
@@ -181,6 +204,12 @@ export default function Usuarios() {
         message={`Tem certeza que deseja ${row.ativo ? "desativar" : "reativar"} o usuário ${row.nome}?`}
         onConfirm={handleConfirmToggle}
         onCancel={() => { setIsConfirmOpen(false); setRow({}); }}
+      />
+
+      <ModalAlterarSenha
+        isOpen={isChangePasswordOpen}
+        onClose={handleCloseChangePassword}
+        userData={userToChangePassword}
       />
     </div>
   );

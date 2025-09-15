@@ -115,6 +115,7 @@ export default function SearchAsyncSelect({
   isDisabled = false,
   noOptionsMessage = () => "Sem resultados",
   hasError = false, // prop para indicar erro de validação
+  additionalFilters = {}, // filtros adicionais para a busca
 }) {
   const [options, setOptions] = useState([]);
   const [query, setQuery] = useState("");
@@ -126,15 +127,27 @@ export default function SearchAsyncSelect({
     setLoading(true);
     try {
       if (apiKey === "pacientes") {
-        // getPacientes(page, size, busca)
-        const res = await getPacientes(p, pageSize, q);
+        const filters = {
+          page: p,
+          size: pageSize,
+          buscaGenerica: q || undefined,
+          ativo: [true],
+          ...additionalFilters
+        };
+        const res = await getPacientes(filters);
         const items = res.content ?? res.items ?? [];
         const mapped = items.map(x => ({ value: x.id ?? x._id, label: x.nome ?? x.name }));
         return { mapped, total: res.totalElements ?? mapped.length };
       }
       if (apiKey === "users") {
-        // getUsers(busca, page, size)
-        const res = await getUsers(q, p, pageSize);
+        const filters = {
+          page: p,
+          size: pageSize,
+          buscaGenerica: q || undefined,
+          ativos: [true],
+          ...additionalFilters
+        };
+        const res = await getUsers(filters);
         const items = res.content ?? res.items ?? [];
         const mapped = items.map(x => ({ value: x.id ?? x._id, label: x.nome ?? x.name }));
         return { mapped, total: res.totalElements ?? mapped.length };
@@ -147,7 +160,7 @@ export default function SearchAsyncSelect({
     } finally {
       setLoading(false);
     }
-  }, [apiKey, pageSize]);
+  }, [apiKey, pageSize, additionalFilters]);
 
   // debounce do query para não estourar requisições
   useEffect(() => {
@@ -172,7 +185,7 @@ export default function SearchAsyncSelect({
       })();
     }, 300); // 300ms debounce
     return () => clearTimeout(t);
-  }, [query, fetchPage]);
+  }, [query, fetchPage, JSON.stringify(additionalFilters)]);
 
   const loadMore = async () => {
     if (loading) return;

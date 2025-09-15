@@ -1,3 +1,11 @@
+import { CARGOS } from '../utils/permissions';
+
+// Utility function to capitalize first letter and lowercase the rest
+const capitalizeFirstLetter = (text) => {
+  if (!text || typeof text !== 'string') return text;
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+};
+
 export const popupConfigs = {
   
   pacientes: {
@@ -12,7 +20,7 @@ export const popupConfigs = {
             return {
               id: consulta.id,
               medico: consulta.usuarioDTO?.nome || "Não informado",
-              tipoConsulta: consulta.tipoConsulta || "N/A",
+              tipoConsulta: capitalizeFirstLetter(consulta.tipoConsulta) || "N/A",
               dataHora: consulta.dataHora
                 ? new Date(consulta.dataHora).toLocaleDateString("pt-BR") + " " +
                   new Date(consulta.dataHora).toLocaleTimeString("pt-BR", {
@@ -20,7 +28,7 @@ export const popupConfigs = {
                     minute: '2-digit'
                   })
                 : "N/A",
-              status: consulta.status || "N/A",
+              status: capitalizeFirstLetter(consulta.status) || "N/A",
               formulario: consulta.execucaoFormulario?.formulario?.titulo || "Não associado",
               liberado: consulta.execucaoFormulario?.isLiberado ? "Sim" : "Não",
               // Dados originais ocultos para funcionalidade (começam com _)
@@ -50,18 +58,13 @@ export const popupConfigs = {
         actions: [
           {
             label: data.ativo === "Sim" ? "Desativar" : "Reativar",
-            variant: "secondary", 
+            variant: "secondary",
             onClick: callbacks.onToggle
           },
           {
             label: "Editar",
             variant: "primary",
             onClick: callbacks.onEdit
-          },
-          {
-            label: "Gerar Relatório",
-            variant: "tertiary",
-            onClick: callbacks.onGerarRelatorio
           }
         ],
         subTable: {
@@ -75,8 +78,33 @@ export const popupConfigs = {
   },
 
   usuarios: {
-    getConfig: (data, callbacks = {}) => {
+    getConfig: (data, callbacks = {}, userCargo = null) => {
       const isActive = data.ativo === true || data.ativo === "Sim";
+      const isAdmin = userCargo === CARGOS.ADMINISTRADOR;
+
+      const actions = [
+        {
+          label: isActive ? "Desativar" : "Reativar",
+          variant: "secondary",
+          onClick: callbacks.onToggle
+        }
+      ];
+
+      // Só admin pode alterar senha
+      if (isAdmin) {
+        actions.push({
+          label: "Alterar Senha",
+          variant: "warning",
+          onClick: callbacks.onChangePassword
+        });
+      }
+
+      actions.push({
+        label: "Editar",
+        variant: "primary",
+        onClick: callbacks.onEdit
+      });
+
       return {
         title: data.nome,
         fields: [
@@ -87,18 +115,7 @@ export const popupConfigs = {
           { label: "CRM", key: "crm" },
           { label: "Ativo", key: "ativo" }
         ],
-        actions: [
-          {
-            label: isActive ? "Desativar" : "Reativar",
-            variant: "secondary",
-            onClick: callbacks.onToggle
-          },
-          {
-            label: "Editar",
-            variant: "primary",
-            onClick: callbacks.onEdit
-          }
-        ]
+        actions
       };
     }
   },

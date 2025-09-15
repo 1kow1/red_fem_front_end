@@ -24,7 +24,7 @@ export const userSchema = yup.object().shape({
   especialidade: yup.string()
     .nullable()
     .when("cargo", {
-      is: (cargo) => ["MEDICO", "RESIDENTE", "ACADEMICO"].includes(cargo),
+      is: (cargo) => ["MEDICO", "RESIDENTE"].includes(cargo),
       then: (schema) => schema
         .required("Especialidade é obrigatória")
         .oneOf(

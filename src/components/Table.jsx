@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import DetailsPopup from "./DetailsPopup.jsx";
 import { popupConfigs } from "../config/detailsConfig.js";
+import { useAuth } from '../contexts/auth/useAuth';
 
 export default function Table({
   data,
@@ -11,6 +12,7 @@ export default function Table({
   statusConfig = null, // Nova prop para configuração de status
   onEditRow,
   onToggleRow,
+  onChangePassword, // callback para alterar senha
   onAssociarFormulario,
   onRowClick, // Nova prop para callback customizada no clique da linha
   callbacks: externalCallbacks
@@ -24,13 +26,17 @@ export default function Table({
     const allCallbacks = {
       onEdit: onEditRow,
       onToggle: onToggleRow,
+      onChangePassword: onChangePassword,
       onAssociarFormulario: onAssociarFormulario,
       // Incluir callbacks externas se fornecidas
       ...(externalCallbacks || {})
     };
 
     return allCallbacks;
-  }, [onEditRow, onToggleRow, onAssociarFormulario, externalCallbacks]);
+  }, [onEditRow, onToggleRow, onChangePassword, onAssociarFormulario, externalCallbacks]);
+
+  const { user } = useAuth();
+  const userCargo = user?.cargo;
 
   useEffect(() => {
     if (!selectedRowData) return;
@@ -41,10 +47,8 @@ export default function Table({
 
       try {
         const configGenerator = popupConfigs[dataType];
-        console.log(callbacks)
-        console.log(configGenerator)
         if (configGenerator) {
-          const newConfig = configGenerator.getConfig(updated, callbacks);
+          const newConfig = configGenerator.getConfig(updated, callbacks, userCargo);
           setPopupConfig(newConfig);
         }
       } catch (err) {
@@ -111,8 +115,7 @@ export default function Table({
     }
 
     try {
-      console.log(callbacks)
-      const config = configGenerator.getConfig(row, callbacks);
+      const config = configGenerator.getConfig(row, callbacks, userCargo);
       setSelectedRowData(row);
       setPopupConfig(config);
       setIsPopupOpen(true);

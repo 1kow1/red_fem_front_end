@@ -1,6 +1,6 @@
 // src/pages/Consultas.jsx - Exemplo de como integrar o modal
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
@@ -34,23 +34,23 @@ export default function Consultas() {
   const avaiableFilters = filterConfigs['consultas']
 
   // Função existente para buscar consultas...
-  const fetchConsultas = async () => {
+  const fetchConsultas = useCallback(async (filters = {}) => {
     setLoading(true);
     try {
-      const data = await getConsultas();
+      const data = await getConsultas(filters);
       const consultasList = data.content || data.items || data || [];
-      
+
       // Adaptar dados para visualização
       const adaptedConsultas = consultasList.map(consulta => adaptConsultaForView(consulta));
       setConsultas(adaptedConsultas);
-      
+
     } catch (error) {
       console.error("Erro ao buscar consultas:", error);
       toast.error("Erro ao carregar consultas");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Callbacks existentes...
   const openCreateForm = () => {
@@ -164,7 +164,7 @@ export default function Consultas() {
 
   useEffect(() => {
     fetchConsultas();
-  }, []);
+  }, [fetchConsultas]);
 
   return (
     <div>
@@ -181,6 +181,8 @@ export default function Consultas() {
         onEditRow={openEditForm}
         onToggleRow={dataFrameCallbacks.onToggle}
         onAssociarFormulario={dataFrameCallbacks.onAssociarFormulario}
+        fetchData={fetchConsultas}
+        defaultFilters={{ ativo: [true] }}
         // Passar todas as callbacks necessárias
         callbacks={dataFrameCallbacks}
       />

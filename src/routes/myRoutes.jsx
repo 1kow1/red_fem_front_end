@@ -9,8 +9,15 @@ import Usuarios from "../pages/Usuarios";
 import Ajuda from "../pages/Ajuda";
 import FormularioEditor from "../pages/FormularioEditor";
 import ResetarSenha from "../pages/ResetarSenha";
-import { useAuth } from "../contexts/auth";
 import ExecucaoFormulario from "../pages/ExecucaoFormulario";
+
+// Páginas de erro
+import NotFound from "../pages/errors/NotFound";
+
+// Componentes de proteção
+import RoleProtectedRoute from "../components/RoleProtectedRoute";
+import { useAuth } from "../contexts/auth";
+import { PERMISSIONS } from "../utils/permissions";
 
 function ProtectedRoute({ children, redirectTo = "/login" }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -23,7 +30,7 @@ function ProtectedRoute({ children, redirectTo = "/login" }) {
 }
 
 function MyRoutes() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, defaultPage } = useAuth();
 
   // Se estiver carregando, evita decidir redirecionamento na rota /login
   if (isLoading || isAuthenticated === null) {
@@ -36,11 +43,15 @@ function MyRoutes() {
       <Route
         path="/login"
         element={
-          isAuthenticated ? <Navigate to="/consultas" replace /> : <Login />
+          isAuthenticated ? <Navigate to={defaultPage || "/consultas"} replace /> : <Login />
         }
       />
 
       <Route path="/resetarSenha" element={<ResetarSenha />} />
+
+      {/* Páginas de erro */}
+      <Route path="/not-found" element={<NotFound />} />
+      <Route path="/404" element={<NotFound />} />
 
       {/* Rotas protegidas */}
       <Route
@@ -52,24 +63,76 @@ function MyRoutes() {
         }
       >
         <Route index element={<Navigate to="consultas" replace />} />
-        <Route path="consultas" element={<Consultas />} />
-        <Route path="formularios" element={<Formularios />} />
-        <Route path="pacientes" element={<Pacientes />} />
-        <Route path="usuarios" element={<Usuarios />} />
+
+        {/* Consultas - Acessível por todos os cargos */}
+        <Route
+          path="consultas"
+          element={
+            <RoleProtectedRoute allowedRoles={PERMISSIONS.consultas}>
+              <Consultas />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* Formulários - Apenas MÉDICO e ADMINISTRADOR */}
+        <Route
+          path="formularios"
+          element={
+            <RoleProtectedRoute allowedRoles={PERMISSIONS.formularios}>
+              <Formularios />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* Pacientes - Apenas RECEPCIONISTA e ADMINISTRADOR */}
+        <Route
+          path="pacientes"
+          element={
+            <RoleProtectedRoute allowedRoles={PERMISSIONS.pacientes}>
+              <Pacientes />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* Usuários - Apenas RECEPCIONISTA e ADMINISTRADOR */}
+        <Route
+          path="usuarios"
+          element={
+            <RoleProtectedRoute allowedRoles={PERMISSIONS.usuarios}>
+              <Usuarios />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* Ajuda - Acessível por todos os usuários autenticados */}
         <Route path="ajuda" element={<Ajuda />} />
       </Route>
 
-      {/* Rota do editor  */}
-      <Route path="/editform" element={<FormularioEditor />} />
-      
-      {/* Rota do execucao formulario  */}
-      <Route path="/execform/:execId" element={<ExecucaoFormulario />} />
+      {/* Rota do editor - Protegida para MÉDICO e ADMINISTRADOR */}
+      <Route
+        path="/editform"
+        element={
+          <RoleProtectedRoute allowedRoles={PERMISSIONS.formularios}>
+            <FormularioEditor />
+          </RoleProtectedRoute>
+        }
+      />
 
-      {/* catch-all: redireciona para /login ou /consultas conforme auth */}
+      {/* Rota do execução formulário - Todos os cargos */}
+      <Route
+        path="/execform/:execId"
+        element={
+          <RoleProtectedRoute allowedRoles={PERMISSIONS.consultas}>
+            <ExecucaoFormulario />
+          </RoleProtectedRoute>
+        }
+      />
+
+      {/* catch-all: página 404 para usuários autenticados, login para não autenticados */}
       <Route
         path="*"
         element={
-          isAuthenticated ? <Navigate to="/consultas" replace /> : <Navigate to="/login" replace />
+          isAuthenticated ? <NotFound /> : <Navigate to="/login" replace />
         }
       />
     </Routes>

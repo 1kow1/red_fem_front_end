@@ -8,6 +8,7 @@ import { CalendarIcon, FormIcon, HelpIcon, PacientIcon, SettingsIcon, UserIcon }
 import { User, LogOut } from 'lucide-react'
 import { useAuth } from '../contexts/auth/useAuth'
 import { toast } from 'react-toastify'
+import { canUseComponent } from '../utils/permissions'
 
 function PageLink({ to, text, children }) {
 
@@ -71,9 +72,13 @@ export default function Sidebar() {
               <PageLink to={'/consultas'} text={'Consultas'}>
                 <CalendarIcon color={'black'} />
               </PageLink>
-              <PageLink to={'/formularios'} text={'Formulários'}>
-                <FormIcon color={'black'} />
-              </PageLink>
+
+              {canUseComponent(user?.cargo, 'sidebar', 'formularios') && (
+                <PageLink to={'/formularios'} text={'Formulários'}>
+                  <FormIcon color={'black'} />
+                </PageLink>
+              )}
+
               <PageLink to={'/pacientes'} text={'Pacientes'}>
                 <PacientIcon color={'black'} />
               </PageLink>
@@ -97,9 +102,11 @@ export default function Sidebar() {
               />
             </li>
 
-            <PageLink to={'/usuarios'} text={'Usuários'}>
-              <UserIcon color={'black'} />
-            </PageLink>
+            {canUseComponent(user?.cargo, 'sidebar', 'usuarios') && (
+              <PageLink to={'/usuarios'} text={'Usuários'}>
+                <UserIcon color={'black'} />
+              </PageLink>
+            )}
             <PageLink to={'/ajuda'} text={'Ajuda'}>
               <HelpIcon color={'black'} />
             </PageLink>

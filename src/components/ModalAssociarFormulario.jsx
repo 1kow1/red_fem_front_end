@@ -26,7 +26,7 @@ export default function ModalAssociarFormulario({
   const loadFormularios = async () => {
     setLoading(true);
     try {
-      const response = await getForms();
+      const response = await getForms({ liberadoParaUso: [true], ativo: [true] });
       const formsList = response.content || response.items || response || [];
       
       // Filtrar apenas formulários liberados para uso
@@ -128,34 +128,6 @@ export default function ModalAssociarFormulario({
 
         {/* Content */}
         <div className="space-y-4">
-          {/* Informações da consulta */}
-          <div className="bg-gray-50 p-3 rounded-md">
-            <p className="text-sm text-gray-600">Consulta:</p>
-            <p className="font-medium">{consultaData?.pacienteNome || "N/A"}</p>
-            <p className="text-sm text-gray-500">
-              Médico: {consultaData?.medicoNome || "N/A"}
-            </p>
-            <p className="text-sm text-gray-500">
-              Data: {consultaData?.dataHora || "N/A"}
-            </p>
-          </div>
-
-          {/* Status atual da associação */}
-          {consultaData?._execucaoFormulario && (
-            <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
-              <p className="text-sm text-blue-600 font-medium">Status Atual:</p>
-              <p className="text-sm text-blue-800">
-                Formulário já associado: <strong>{consultaData._execucaoFormulario.formulario || "N/A"}</strong>
-              </p>
-              <p className="text-sm text-blue-700">
-                Status: {consultaData._execucaoFormulario.liberado || "N/A"}
-              </p>
-              <p className="text-xs text-blue-600 mt-1">
-                Para associar um novo formulário, primeiro remova a associação atual.
-              </p>
-            </div>
-          )}
-
           {/* Seleção de formulário */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -184,7 +156,7 @@ export default function ModalAssociarFormulario({
                 ))}
               </select>
             )}
-            
+
             {formularios.length === 0 && !loading && (
               <p className="text-sm text-red-500 mt-2">
                 Nenhum formulário liberado encontrado

@@ -46,7 +46,7 @@ export const formConfigs = {
         { value: "ONCOLOGIA", label: "Oncologia"},
         { value: "ODONTOLOGIA", label: "Odontologia"}
       ],
-      showIf: (formData) => ["MEDICO", "RESIDENTE", "ACADEMICO"].includes(formData.cargo)
+      showIf: (formData) => ["MEDICO", "RESIDENTE"].includes(formData.cargo)
     },
     {
       name: "crm",
@@ -112,16 +112,33 @@ export const formConfigs = {
       label: "Estado Civil",
       type: "select",
       placeholder: "Selecione o estado civil",
-      options: [
-        { value: "CASADA", label: "Casada" },
-        { value: "CASADO", label: "Casado" },
-        { value: "DIVORCIADA", label: "Divorciada" },
-        { value: "DIVORCIADO", label: "Divorciado" },
-        { value: "SOLTEIRA", label: "Solteira" }, 
-        { value: "SOLTEIRO", label: "Solteiro" }, 
-        { value: "VIÚVA", label: "Viúva" },
-        { value: "VIÚVO", label: "Viúvo" },
-      ],
+      options: (formData) => {
+        if (formData.sexo === "F") {
+          return [
+            { value: "CASADA", label: "Casada" },
+            { value: "DIVORCIADA", label: "Divorciada" },
+            { value: "SOLTEIRA", label: "Solteira" },
+            { value: "VIÚVA", label: "Viúva" },
+          ];
+        } else if (formData.sexo === "M") {
+          return [
+            { value: "CASADO", label: "Casado" },
+            { value: "DIVORCIADO", label: "Divorciado" },
+            { value: "SOLTEIRO", label: "Solteiro" },
+            { value: "VIÚVO", label: "Viúvo" },
+          ];
+        }
+        return [
+          { value: "CASADA", label: "Casada" },
+          { value: "CASADO", label: "Casado" },
+          { value: "DIVORCIADA", label: "Divorciada" },
+          { value: "DIVORCIADO", label: "Divorciado" },
+          { value: "SOLTEIRA", label: "Solteira" },
+          { value: "SOLTEIRO", label: "Solteiro" },
+          { value: "VIÚVA", label: "Viúva" },
+          { value: "VIÚVO", label: "Viúvo" },
+        ];
+      },
     },
     {
       name: "cidade",
@@ -185,7 +202,8 @@ export const formConfigs = {
         type: "async-select",
         placeholder: "Digite para buscar médico",
         apiKey: "users", // chama getUsers
-        required: true
+        required: true,
+        additionalFilters: { cargos: ["MEDICO", "RESIDENTE"] }
       },
       {
         name: "dataConsulta",
@@ -211,8 +229,6 @@ export const formConfigs = {
         options: [
           { value: "CONSULTA", label: "Consulta" },
           { value: "RETORNO", label: "Retorno" },
-          { value: "URGENCIA", label: "Urgência" },
-          { value: "EXAME", label: "Exame" },
         ],
       },
     ],

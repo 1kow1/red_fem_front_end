@@ -3,7 +3,7 @@ import Table from "./Table"
 import Searchbar from "./Searchbar"
 import { ButtonPrimary } from "./Button"
 import { AddIcon } from "./Icons"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 function Tag({ children, isSelected, onClick }) {
   return <span
@@ -33,54 +33,104 @@ export default function DataFrame({
   onAddRow,     // chamado quando clicar em "Adicionar"
   onEditRow,    // repassado ao Table/Details
   onToggleRow,
+  onChangePassword, // callback para alterar senha
   onAssociarFormulario,
   callbacks,   // callbacks adicionais
   searchQuery,
   setSearchQuery,
-  fetchData
+  fetchData,
+  useBackendFilters = true, // nova prop para usar filtros do backend
+  defaultFilters = {} // nova prop para filtros padrão
 }) {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filteredData, setFilteredData] = useState(data);
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState(defaultFilters);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
+  // Função para aplicar filtros via backend
+  const applyBackendFilters = useCallback(() => {
+    if (!useBackendFilters || !fetchData) {
+      return;
+    }
+
+    // Converter filtros do frontend para o formato do backend
+    const backendFilters = {};
+
+    Object.keys(filters).forEach((key) => {
+      const filter = avaiableFilters.find(f => f.name === key);
+      if (!filter) return;
+
+      const filterValues = filters[key];
+
+      if (filter.type === "date" && filterValues) {
+        // Mapear nomes de data conforme documentação
+        if (key === "data") {
+          if (filterValues[0]) backendFilters.dataInicio = filterValues[0];
+          if (filterValues[1]) backendFilters.dataFim = filterValues[1];
+        } else {
+          if (filterValues[0]) backendFilters[`${key}Inicio`] = filterValues[0];
+          if (filterValues[1]) backendFilters[`${key}Fim`] = filterValues[1];
+        }
+      } else if (filterValues && filterValues.length > 0) {
+        // Usar o nome do campo diretamente conforme filterConfig
+        backendFilters[key] = filterValues;
+      }
+    });
+
+    // Adicionar busca genérica se existir
+    if (searchQuery) {
+      backendFilters.buscaGenerica = searchQuery;
+    }
+
+    console.log('=== DataFrame Debug ===');
+    console.log('dataType:', dataType);
+    console.log('filters (frontend):', filters);
+    console.log('searchQuery:', searchQuery);
+    console.log('backendFilters (enviando para API):', backendFilters);
+    console.log('fetchData function:', fetchData);
+    fetchData(backendFilters);
+  }, [useBackendFilters, fetchData, filters, searchQuery, avaiableFilters, dataType]);
+
+  // Effect para filtragem no frontend (quando useBackendFilters = false)
   useEffect(() => {
+    if (useBackendFilters) {
+      // Se usar filtros do backend, mostrar dados como estão
+      setFilteredData(data);
+      return;
+    }
+
+    // Código de filtragem frontend original
     let newFilteredData = data;
 
     Object.keys(filters).forEach((key) => {
-      const filterType = avaiableFilters.find(f => f.name === key).type
+      const filterType = avaiableFilters?.find(f => f.name === key)?.type;
       const filterValues = filters[key];
 
       if (filterType === "date") {
-        if (filterValues[0] || filterValues[1]) {
+        if (filterValues && (filterValues[0] || filterValues[1])) {
           newFilteredData = newFilteredData.filter(item => {
-            const date = item["dataHora"].split(" ")[0]
+            const date = item["dataHora"]?.split(" ")[0]
+            if (!date) return true;
+
             const itemDate = new Date(
               date.split("/")[2] + "-" +
               date.split("/")[1] + "-" +
               date.split("/")[0],
-            ) 
-            const startDate = new Date(filterValues[0]);
-            const endDate = new Date(filterValues[1]);
+            )
+            const startDate = filterValues[0] ? new Date(filterValues[0]) : null;
+            const endDate = filterValues[1] ? new Date(filterValues[1]) : null;
 
-            console.log(item.pacienteNome)
-            console.log(
-              "itemDate:", itemDate.getTime(),
-              "startDate:", startDate.getTime(),
-              "endDate:", endDate.getTime(),
-              "max:", Math.max(itemDate.getTime(), startDate.getTime(), endDate.getTime()),
-              "min:", Math.min(itemDate.getTime(), startDate.getTime(), endDate.getTime())
-            );
-
-            if (filterValues[0] && filterValues[1]) {
+            if (startDate && endDate) {
               return itemDate >= startDate && itemDate <= endDate;
             }
-            else if (filterValues[0]) {
+            else if (startDate) {
               return itemDate >= startDate;
-            } 
-            else if (filterValues[1]) {
+            }
+            else if (endDate) {
               return itemDate <= endDate;
             }
+            return true;
           });
         }
       }
@@ -89,7 +139,7 @@ export default function DataFrame({
           newFilteredData = newFilteredData.filter(item =>
             filterValues.includes(
               filterType === "select"
-                ? item[key].toUpperCase()
+                ? item[key]?.toUpperCase()
                 : item[key]
             )
           );
@@ -98,7 +148,38 @@ export default function DataFrame({
     });
 
     setFilteredData(newFilteredData);
-  }, [data, filters]);
+  }, [data, filters, useBackendFilters, avaiableFilters]);
+
+  // Effect para aplicar filtros padrão na inicialização
+  useEffect(() => {
+    if (!hasInitialized && useBackendFilters && fetchData && Object.keys(defaultFilters).length > 0) {
+      console.log('=== Applying Default Filters ===');
+      console.log('defaultFilters:', defaultFilters);
+      applyBackendFilters();
+      setHasInitialized(true);
+    }
+  }, [defaultFilters, useBackendFilters, fetchData, hasInitialized]);
+
+  // Effect para aplicar filtros do backend quando mudarem
+  useEffect(() => {
+    if (!useBackendFilters || !fetchData) return;
+    if (!hasInitialized) return; // Não aplicar até que a inicialização seja feita
+
+    const hasFilters = Object.keys(filters).length > 0;
+    const hasSearch = searchQuery && searchQuery.trim() !== '';
+
+    if (hasFilters || hasSearch) {
+      console.log('=== useEffect Triggered ===');
+      console.log('hasFilters:', hasFilters, 'filters:', filters);
+      console.log('hasSearch:', hasSearch, 'searchQuery:', searchQuery);
+
+      const timeoutId = setTimeout(() => {
+        applyBackendFilters();
+      }, 800); // Debounce de 800ms
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [JSON.stringify(filters), searchQuery, useBackendFilters, dataType, hasInitialized]);
 
   return (
     <>
@@ -211,6 +292,7 @@ export default function DataFrame({
           className="mt-4"
           onEditRow={onEditRow}
           onToggleRow={onToggleRow}
+          onChangePassword={onChangePassword}
           formFields={formFields}
           onAssociarFormulario={onAssociarFormulario}
           callbacks={callbacks}

@@ -3,10 +3,61 @@
 import api from "./axios";
 
 // ------------- GET -------------
-export const getConsultas = async (page = 0, size = 10) => {
+export const getConsultas = async (filters = {}) => {
   try {
-    const response = await api.get(`/consultas/listar`, { 
-      params: { page, size} 
+    const {
+      especialidades,
+      status,
+      tiposConsulta,
+      pacientesNomes,
+      medicoIds,
+      ativo,
+      dataInicio,
+      dataFim,
+      buscaGenerica,
+      page = 0,
+      size = 10,
+      sort
+    } = filters;
+
+    const params = new URLSearchParams();
+    params.append('page', page);
+    params.append('size', size);
+
+    if (especialidades?.length) {
+      especialidades.forEach(esp => params.append('especialidades', esp));
+    }
+    if (status?.length) {
+      status.forEach(st => params.append('status', st));
+    }
+    if (tiposConsulta?.length) {
+      tiposConsulta.forEach(tipo => params.append('tiposConsulta', tipo));
+    }
+    if (pacientesNomes?.length) {
+      pacientesNomes.forEach(nome => params.append('pacientesNomes', nome));
+    }
+    if (medicoIds?.length) {
+      medicoIds.forEach(id => params.append('medicoIds', id));
+    }
+    if (ativo?.length) {
+      ativo.forEach(at => params.append('ativo', at.toString()));
+    }
+    if (dataInicio) params.append('dataInicio', dataInicio);
+    if (dataFim) params.append('dataFim', dataFim);
+    if (buscaGenerica) params.append('buscaGenerica', buscaGenerica);
+    if (sort) params.append('sort', sort);
+
+    const response = await api.get(`/consultas/buscar?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    throw new Error("Failed to get consultas: " + error.message);
+  }
+};
+
+export const getConsultasLegacy = async (page = 0, size = 10) => {
+  try {
+    const response = await api.get(`/consultas/listar`, {
+      params: { page, size}
     });
     return response.data;
   } catch (error) {
