@@ -4,13 +4,15 @@ import { ButtonPrimary, ButtonSecondary } from "./Button";
 import { getForms } from "../services/formAPI";
 import { createExec } from "../services/execAPI"; // Usando sua API existente
 import { toast } from "react-toastify";
+import { useAuth } from "../contexts/auth";
 
-export default function ModalAssociarFormulario({ 
-  isOpen, 
-  onClose, 
+export default function ModalAssociarFormulario({
+  isOpen,
+  onClose,
   consultaData,
-  onSuccess 
+  onSuccess
 }) {
+  const { user, userCargo } = useAuth();
   const [formularios, setFormularios] = useState([]);
   const [selectedFormularioId, setSelectedFormularioId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,19 +23,24 @@ export default function ModalAssociarFormulario({
     if (isOpen) {
       loadFormularios();
     }
-  }, [isOpen]);
+  }, [isOpen, userCargo, user?.especialidade]);
 
   const loadFormularios = async () => {
     setLoading(true);
     try {
-      const response = await getForms({ liberadoParaUso: [true], ativo: [true] });
+      const response = await getForms({
+        liberadoParaUso: [true],
+        ativo: [true],
+        userCargo: userCargo,
+        userEspecialidade: user?.especialidade
+      });
       const formsList = response.content || response.items || response || [];
-      
+
       // Filtrar apenas formulários liberados para uso
-      const formulariosLiberados = formsList.filter(form => 
+      const formulariosLiberados = formsList.filter(form =>
         form.liberadoParaUso === true || form.liberadoParaUso === "true"
       );
-      
+
       setFormularios(formulariosLiberados);
     } catch (error) {
       toast.error("Erro ao carregar formulários disponíveis");

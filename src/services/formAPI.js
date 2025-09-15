@@ -23,7 +23,9 @@ export const getForms = async (filters = {}) => {
       buscaGenerica,
       page = 0,
       size = 10,
-      sort
+      sort,
+      userCargo,
+      userEspecialidade
     } = filters;
 
     const params = new URLSearchParams();
@@ -36,7 +38,11 @@ export const getForms = async (filters = {}) => {
     if (descricoes?.length) {
       descricoes.forEach(desc => params.append('descricoes', desc));
     }
-    if (especialidades?.length) {
+
+    // Access control: Doctors/Residents can only see forms of their specialty
+    if ((userCargo === 'MEDICO' || userCargo === 'RESIDENTE') && userEspecialidade) {
+      params.append('especialidades', userEspecialidade);
+    } else if (especialidades?.length) {
       especialidades.forEach(esp => params.append('especialidades', esp));
     }
     if (versoes?.length) {

@@ -8,8 +8,10 @@ import { PaginationFooter } from "../components/PaginationFooter";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { filterConfigs } from "../config/filterConfig";
+import { useAuth } from "../contexts/auth";
 
 export default function Formularios() {
+  const { user, userCargo } = useAuth();
   const [forms, setForms] = useState([]);
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(15);
@@ -32,7 +34,9 @@ export default function Formularios() {
       const filterWithPagination = {
         ...filters,
         page: filters.page ?? page,
-        size: filters.size ?? size
+        size: filters.size ?? size,
+        userCargo: userCargo,
+        userEspecialidade: user?.especialidade
       };
 
       const data = await getForms(filterWithPagination);
@@ -47,7 +51,7 @@ export default function Formularios() {
     } finally {
       setLoading(false);
     }
-  }, [page, size]);
+  }, [page, size, userCargo, user?.especialidade]);
 
   const handleCreateForm = () => {
     navigate("/editForm");

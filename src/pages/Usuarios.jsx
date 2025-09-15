@@ -68,18 +68,19 @@ export default function Usuarios() {
   // CREATE
   const handleCreateUser = async (formData) => {
     try {
-      // Com o await, teriamos que esperar de 5-10 segundos para o e-mail ser enviado
-      createUser(formData)
-        .then(() => fetchUsers())
-        .catch((err) => console.error("Erro ao criar usuário:", err));
-
+      await createUser(formData);
+      await fetchUsers();
       setIsFormOpen(false);
+      toast.success("Usuário criado com sucesso.");
     } catch (err) {
       const errors = {};
       err.inner.forEach((e) => {
         errors[e.path] = e.message;
       });
-      toast.error("Erros de validação ao criar usuário:", errors);
+      toast.error("Erros de validação ao criar paciente:", errors)
+
+      toast.error(err?.message || "Erro desconhecido ao criar usuário.");
+      console.error("handleCreateUser error:", err);
     }
   };
 

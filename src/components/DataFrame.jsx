@@ -5,22 +5,38 @@ import { ButtonPrimary } from "./Button"
 import { AddIcon } from "./Icons"
 import { useState, useEffect, useCallback } from "react"
 
-function Tag({ children, isSelected, onClick }) {
-  return <span
-    className={`mr-2 border-2 rounded-lg p-1 inline-block
-      ${isSelected ? (
-        `bg-redfemActionPink border-redfemActionPink text-white
-        hover:bg-redfemDarkPink`
-      ) : (
-        `bg-redfemHoverPink border-redfemVariantPink text-redfemDarkPink
-        hover:bg-redfemVariantPink/30`
+function Tag({ children, isSelected, onClick, onRemove, removable = false }) {
+  return (
+    <span
+      className={`mr-2 border-2 rounded-lg inline-flex items-center gap-1
+        ${isSelected ? (
+          `bg-redfemActionPink border-redfemActionPink text-white
+          hover:bg-redfemDarkPink`
+        ) : (
+          `bg-redfemHoverPink border-redfemVariantPink text-redfemDarkPink
+          hover:bg-redfemVariantPink/30`
+        )}
+        cursor-pointer
+      `}
+    >
+      <span className="px-2 py-1" onClick={onClick}>
+        {children}
+      </span>
+      {removable && onRemove && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className={`px-1 py-1 rounded-r-md hover:bg-black/20 text-sm font-bold
+            ${isSelected ? 'text-white' : 'text-redfemDarkPink'}
+          `}
+        >
+          ×
+        </button>
       )}
-      cursor-pointer
-    `}
-    onClick={onClick}
-  >
-    {children}
-  </span>
+    </span>
+  );
 }
 
 export default function DataFrame({
@@ -271,6 +287,77 @@ export default function DataFrame({
                   }
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Active filters display */}
+        {Object.keys(filters).length > 0 && (
+          <div className="mt-4 mb-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-gray-600 mr-2">Filtros ativos:</span>
+              {Object.entries(filters).map(([filterName, filterValues]) => {
+                const filter = avaiableFilters?.find(f => f.name === filterName);
+                if (!filter || !filterValues || (Array.isArray(filterValues) && filterValues.length === 0)) return null;
+
+                if (filter.type === "date") {
+                  const [startDate, endDate] = filterValues;
+                  if (!startDate && !endDate) return null;
+
+                  const dateLabel = startDate && endDate
+                    ? `${filter.label}: ${startDate} até ${endDate}`
+                    : startDate
+                      ? `${filter.label}: a partir de ${startDate}`
+                      : `${filter.label}: até ${endDate}`;
+
+                  return (
+                    <Tag
+                      key={filterName}
+                      isSelected={false}
+                      removable={true}
+                      onRemove={() => {
+                        const newFilters = { ...filters };
+                        delete newFilters[filterName];
+                        setFilters(newFilters);
+                      }}
+                    >
+                      {dateLabel}
+                    </Tag>
+                  );
+                } else {
+                  // For select/boolean filters
+                  return filterValues.map((value) => {
+                    const option = filter.options?.find(opt => opt.value === value);
+                    const label = option ? option.label : value;
+
+                    return (
+                      <Tag
+                        key={`${filterName}-${value}`}
+                        isSelected={false}
+                        removable={true}
+                        onRemove={() => {
+                          const newFilters = { ...filters };
+                          newFilters[filterName] = newFilters[filterName].filter(v => v !== value);
+                          if (newFilters[filterName].length === 0) {
+                            delete newFilters[filterName];
+                          }
+                          setFilters(newFilters);
+                        }}
+                      >
+                        {filter.label}: {label}
+                      </Tag>
+                    );
+                  });
+                }
+              })}
+              {Object.keys(filters).length > 0 && (
+                <button
+                  onClick={() => setFilters({})}
+                  className="text-sm text-redfemDarkPink hover:text-redfemPink underline ml-2"
+                >
+                  Limpar todos
+                </button>
+              )}
             </div>
           </div>
         )}

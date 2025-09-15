@@ -79,7 +79,7 @@ export const formConfigs = {
       name: "cpf",
       label: "CPF",
       type: "text",
-      placeholder: "000.000.000-00",
+      placeholder: "00000000000 (apenas números)",
       required: true,
     },
     {

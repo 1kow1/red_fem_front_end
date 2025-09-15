@@ -17,7 +17,9 @@ export const getConsultas = async (filters = {}) => {
       buscaGenerica,
       page = 0,
       size = 10,
-      sort
+      sort,
+      currentUserId,
+      userCargo
     } = filters;
 
     const params = new URLSearchParams();
@@ -36,7 +38,11 @@ export const getConsultas = async (filters = {}) => {
     if (pacientesNomes?.length) {
       pacientesNomes.forEach(nome => params.append('pacientesNomes', nome));
     }
-    if (medicoIds?.length) {
+
+    // Access control: Doctors can only see their own appointments
+    if (userCargo === 'MEDICO' && currentUserId) {
+      params.append('medicoIds', currentUserId);
+    } else if (medicoIds?.length) {
       medicoIds.forEach(id => params.append('medicoIds', id));
     }
     if (ativo?.length) {

@@ -89,7 +89,7 @@ export const popupConfigs = {
       if (isAdmin) {
         actions.push({
           label: "Alterar Senha",
-          variant: "warning",
+          variant: "secondary",
           onClick: callbacks.onChangePassword
         });
       }

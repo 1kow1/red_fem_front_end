@@ -12,9 +12,11 @@ import { adaptConsultaForView, adaptConsultaForApi } from "../adapters/consultaA
 import { formConfigs } from "../config/formConfig";
 import { toast } from "react-toastify";
 import { filterConfigs } from "../config/filterConfig";
+import { useAuth } from "../contexts/auth";
 
 export default function Consultas() {
   const navigate = useNavigate();
+  const { user, userCargo } = useAuth();
 
   // States existentes...
   const [consultas, setConsultas] = useState([]);
@@ -37,7 +39,17 @@ export default function Consultas() {
   const fetchConsultas = useCallback(async (filters = {}) => {
     setLoading(true);
     try {
-      const data = await getConsultas(filters);
+      // Add user context for access control
+      const filtersWithUserContext = {
+        ...filters,
+        currentUserId: user?.id,
+        userCargo: userCargo
+      };
+
+      // Debug log para verificar filtros
+      console.log('Filtros sendo enviados:', filtersWithUserContext);
+
+      const data = await getConsultas(filtersWithUserContext);
       const consultasList = data.content || data.items || data || [];
 
       // Adaptar dados para visualização
@@ -49,7 +61,7 @@ export default function Consultas() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.id, userCargo]);
 
   // Callbacks existentes...
   const openCreateForm = () => {

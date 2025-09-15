@@ -1,16 +1,21 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ButtonPrimary } from '../../components/Button';
+import { useAuth } from '../../contexts/auth';
+import { getDefaultPage } from '../../utils/permissions';
 
 export default function NotFound() {
   const navigate = useNavigate();
+  const { userCargo } = useAuth();
 
   const handleGoHome = () => {
-    navigate('/consultas');
+    const safePage = getDefaultPage(userCargo);
+    navigate(safePage);
   };
 
-  const handleGoBack = () => {
-    navigate(-1);
+  const handleGoSafe = () => {
+    const safePage = getDefaultPage(userCargo);
+    navigate(safePage);
   };
 
   return (
@@ -39,14 +44,14 @@ export default function NotFound() {
             onClick={handleGoHome}
             className="w-full justify-center"
           >
-            Ir para Consultas
+            Ir para Página Inicial
           </ButtonPrimary>
 
           <button
-            onClick={handleGoBack}
+            onClick={handleGoSafe}
             className="w-full px-4 py-2 text-redfemActionPink border border-redfemActionPink rounded-md hover:bg-redfemLightPink transition-colors"
           >
-            Voltar à página anterior
+            Navegar com Segurança
           </button>
         </div>
 

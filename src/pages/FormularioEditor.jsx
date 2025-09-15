@@ -120,6 +120,14 @@ export default function FormularioEditor() {
   // --- Inicializa formulário em modo edição ---
   useEffect(() => {
     if (formDataToEdit) {
+      // Validação de segurança dos dados recebidos
+      if (!formDataToEdit.id) {
+        console.error('❌ Formulário para edição sem ID:', formDataToEdit);
+        toast.error('Erro: formulário inválido para edição.');
+        navigate('/formularios');
+        return;
+      }
+
       const perguntasOriginais = (formDataToEdit.perguntas || []).map(p => {
         return {
           id: p.id ?? `orig-${Date.now()}-${Math.random()}`,
@@ -146,11 +154,19 @@ export default function FormularioEditor() {
         especialidade: formDataToEdit.especialidade,
         liberadoParaUso: formDataToEdit.liberadoParaUso,
         editavel: formDataToEdit.editavel,
+        id: formDataToEdit.id, // Manter ID original
         idFormularioVersaoAntiga: formDataToEdit.id,
         perguntas: perguntasOriginais
       });
+
+      console.log('📝 Formulário carregado para edição:', {
+        id: formDataToEdit.id,
+        titulo: formDataToEdit.titulo,
+        liberado: formDataToEdit.liberadoParaUso,
+        perguntas: perguntasOriginais.length
+      });
     }
-  }, [formDataToEdit]);
+  }, [formDataToEdit, navigate]);
 
   // --- campos simples ---
   const setTitulo = useCallback((value) => {
@@ -398,8 +414,99 @@ export default function FormularioEditor() {
     });
   }, [formulario.perguntas]);
 
+  // --- verificar mudanças ---
+  const hasFormChanges = useCallback(() => {
+    if (!isEditMode || !formDataToEdit) {
+      return true; // Se não é modo edição, sempre criar novo
+    }
+
+    // Se o formulário original estava liberado, sempre criar nova versão
+    if (formDataToEdit.liberadoParaUso) {
+      return true;
+    }
+
+    // Validações de segurança
+    if (!formulario || typeof formulario !== 'object') {
+      console.warn('Formulário atual inválido:', formulario);
+      return true;
+    }
+
+    // Comparar campos básicos (com tratamento de null/undefined)
+    const currentTitulo = formulario.titulo || '';
+    const originalTitulo = formDataToEdit.titulo || '';
+    const currentDescricao = formulario.descricao || '';
+    const originalDescricao = formDataToEdit.descricao || '';
+    const currentEspecialidade = formulario.especialidade || '';
+    const originalEspecialidade = formDataToEdit.especialidade || '';
+
+    if (currentTitulo !== originalTitulo ||
+        currentDescricao !== originalDescricao ||
+        currentEspecialidade !== originalEspecialidade) {
+      return true;
+    }
+
+    // Comparar perguntas
+    const currentPerguntas = formulario.perguntas || [];
+    const originalPerguntas = formDataToEdit.perguntas || [];
+
+    if (currentPerguntas.length !== originalPerguntas.length) {
+      return true;
+    }
+
+    // Comparar cada pergunta em detalhes
+    for (let i = 0; i < currentPerguntas.length; i++) {
+      const current = currentPerguntas[i];
+      const original = originalPerguntas[i];
+
+      if (!original || !current) {
+        return true;
+      }
+
+      // Comparar campos da pergunta - usar estrutura correta
+      const currentEnunciado = current.enunciado || '';
+      const originalEnunciado = original.enunciado || '';
+      const currentTipo = current.tipo || '';
+      const originalTipo = original.tipo || '';
+
+      if (currentEnunciado !== originalEnunciado ||
+          currentTipo !== originalTipo ||
+          Boolean(current.obrigatoria) !== Boolean(original.obrigatoria) ||
+          current.posicao !== original.posicao) {
+        return true;
+      }
+
+      // Comparar alternativas (estrutura correta)
+      const currentAlternativas = Array.isArray(current.alternativas) ? current.alternativas : [];
+      const originalAlternativas = Array.isArray(original.alternativas) ? original.alternativas : [];
+
+      if (currentAlternativas.length !== originalAlternativas.length) {
+        return true;
+      }
+
+      // Comparar cada alternativa
+      for (let j = 0; j < currentAlternativas.length; j++) {
+        const currentAlternativa = currentAlternativas[j];
+        const originalAlternativa = originalAlternativas[j];
+
+        if (!currentAlternativa || !originalAlternativa ||
+            (currentAlternativa.texto || '') !== (originalAlternativa.texto || '') ||
+            currentAlternativa.posicao !== originalAlternativa.posicao) {
+          return true;
+        }
+      }
+    }
+
+    return false; // Nenhuma mudança detectada
+  }, [formulario, formDataToEdit, isEditMode]);
+
   // --- salvar ---
   const onSave = useCallback(async () => {
+    // Prevenir múltiplas execuções simultâneas
+    if (loading) {
+      console.log('Operação já em andamento, ignorando...');
+      return;
+    }
+
     setErros({});
     setErrosGeral([]);
 
@@ -408,46 +515,60 @@ export default function FormularioEditor() {
       return;
     }
 
-    const newPerguntas = setPerguntasPosicao();
-
-    const formularioFinal = {
-      ...formulario,
-      perguntas: newPerguntas,
-      versao: formulario.versao,
-      liberadoParaUso: isEditMode ? formulario.liberadoParaUso : false,
-      editavel: true,
-      especialidade: formulario.especialidade || 'GINECOLOGIA',
-    };
-
-    if (isEditMode && formulario.id) {
-      formularioFinal.idFormularioVersaoAntiga = formulario.id;
+    // Verificar se há mudanças antes de salvar (apenas para edição)
+    if (isEditMode) {
+      const hasChanges = hasFormChanges();
+      if (!hasChanges) {
+        toast.info('Nenhuma alteração foi detectada no formulário.');
+        return;
+      }
     }
 
-    await handleSaveForm(formularioFinal);
-  }, [formulario, isEditMode, checkFormulario, setPerguntasPosicao]);
-
-  const handleSaveForm = async (formularioFinal) => {
     try {
       setLoading(true);
 
+      const newPerguntas = setPerguntasPosicao();
+
+      const formularioFinal = {
+        ...formulario,
+        perguntas: newPerguntas,
+        versao: formulario.versao,
+        liberadoParaUso: false, // Sempre salvar como rascunho
+        editavel: true,
+        especialidade: formulario.especialidade || user?.especialidade || 'GINECOLOGIA',
+      };
+
+      // Se é edição, adicionar referência ao formulário original
+      if (isEditMode) {
+        formularioFinal.idFormularioVersaoAntiga = formDataToEdit?.id;
+      }
+
+      console.log('💾 Salvando formulário:', {
+        isEditMode,
+        originalId: formDataToEdit?.id,
+        titulo: formularioFinal.titulo
+      });
 
       await createForm(formularioFinal);
-      toast.success(isEditMode ? 'Formulário atualizado com sucesso!' : 'Formulário criado com sucesso!');
 
-      // Após salvar, você pode atualizar snapshot: se quiser continuar editando, atualize originalPerguntasRef
-      // Exemplo: rebuild snapshot a partir do payload salvo (assumindo que backend retornou dados)
-      // Aqui apenas navegamos
+      // Mensagem de sucesso
+      const successMessage = isEditMode
+        ? 'Nova versão do formulário criada com sucesso!'
+        : 'Formulário criado com sucesso!';
+
+      toast.success(successMessage);
       navigate('/formularios');
 
     } catch (error) {
       const message = error?.response?.data?.message ||
         error?.message ||
-        `Erro ao ${isEditMode ? 'atualizar' : 'criar'} formulário`;
+        `Erro ao ${isEditMode ? 'criar nova versão do' : 'criar'} formulário`;
       toast.error(message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [formulario, isEditMode, checkFormulario, setPerguntasPosicao, hasFormChanges, formDataToEdit?.id, user?.especialidade, navigate]);
+
 
   // --- cancelar ---
   const onCancel = useCallback(() => {
@@ -489,8 +610,15 @@ export default function FormularioEditor() {
     }
   }, [formulario.id, formulario.idFormularioVersaoAntiga]);
 
+
   // --- salvar e liberar ---
   const onSaveAndRelease = useCallback(async () => {
+    // Prevenir múltiplas execuções simultâneas
+    if (loading) {
+      console.log('Operação já em andamento, ignorando...');
+      return;
+    }
+
     setErros({});
     setErrosGeral([]);
 
@@ -499,57 +627,59 @@ export default function FormularioEditor() {
       return;
     }
 
-    const newPerguntas = setPerguntasPosicao();
-
-    const formularioFinal = {
-      ...formulario,
-      perguntas: newPerguntas,
-      versao: formulario.versao,
-      liberadoParaUso: false, // Will be set to true after release
-      editavel: true,
-      especialidade: formulario.especialidade || 'GINECOLOGIA',
-    };
-
-    if (isEditMode && formulario.id) {
-      formularioFinal.idFormularioVersaoAntiga = formulario.id;
+    // Verificar se há mudanças antes de salvar e liberar (apenas para edição)
+    if (isEditMode) {
+      const hasChanges = hasFormChanges();
+      if (!hasChanges) {
+        toast.info('Nenhuma alteração foi detectada no formulário.');
+        return;
+      }
     }
 
     try {
       setLoading(true);
 
-      // First save the form
-      const savedForm = await createForm(formularioFinal);
+      const newPerguntas = setPerguntasPosicao();
 
-      // Get the form ID from the response or use existing ID
-      const formId = savedForm?.id || formulario.id || formulario.idFormularioVersaoAntiga;
+      const formularioFinal = {
+        ...formulario,
+        perguntas: newPerguntas,
+        versao: formulario.versao,
+        liberadoParaUso: true, // Salvar já liberado para uso
+        editavel: true,
+        especialidade: formulario.especialidade || user?.especialidade || 'GINECOLOGIA',
+      };
 
-      if (!formId) {
-        toast.error('Erro ao obter ID do formulário para liberação.');
-        return;
+      // Se é edição, adicionar referência ao formulário original
+      if (isEditMode) {
+        formularioFinal.idFormularioVersaoAntiga = formDataToEdit?.id;
       }
 
-      // Then release it
-      await releaseFormForUse(formId);
+      console.log('🚀 Salvando e liberando formulário:', {
+        isEditMode,
+        originalId: formDataToEdit?.id,
+        titulo: formularioFinal.titulo
+      });
 
-      toast.success(isEditMode ? 'Formulário atualizado e liberado com sucesso!' : 'Formulário criado e liberado com sucesso!');
+      await createForm(formularioFinal);
 
-      // Update local state
-      setFormulario(prev => ({
-        ...prev,
-        liberadoParaUso: true
-      }));
+      // Mensagem de sucesso
+      const successMessage = isEditMode
+        ? 'Nova versão do formulário criada e liberada com sucesso!'
+        : 'Formulário criado e liberado com sucesso!';
 
+      toast.success(successMessage);
       navigate('/formularios');
 
     } catch (error) {
       const message = error?.response?.data?.message ||
         error?.message ||
-        `Erro ao ${isEditMode ? 'atualizar' : 'criar'} e liberar formulário`;
+        `Erro ao ${isEditMode ? 'criar nova versão e liberar' : 'criar e liberar'} formulário`;
       toast.error(message);
     } finally {
       setLoading(false);
     }
-  }, [formulario, isEditMode, checkFormulario, setPerguntasPosicao, navigate]);
+  }, [formulario, isEditMode, checkFormulario, setPerguntasPosicao, hasFormChanges, formDataToEdit?.id, user?.especialidade, navigate]);
 
   const getTipoLabel = (tipoValue) => {
     const tipo = tiposPergunta.find(t => t.value === tipoValue);
@@ -661,7 +791,7 @@ export default function FormularioEditor() {
             onSaveAndRelease={onSaveAndRelease}
             disabled={loading}
             loading={loading}
-            isReleased={formulario.liberadoParaUso}
+            isReleased={false} // Sempre permitir edição - formulários liberados podem gerar novas versões
             releasePermissionKey="formularios"
           />
         </div>

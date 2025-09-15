@@ -13,6 +13,7 @@ export const ERROR_MESSAGES = {
   'Crm cannot be null': 'CRM é obrigatório para médicos',
   'Specialty does not exist': 'Especialidade inválida',
   'Cargo does not exist': 'Tipo de usuário inválido',
+  'User account is disabled': 'Usuário Desativado',
 
   // Pacientes
   'Patient not found': 'Paciente não encontrado',

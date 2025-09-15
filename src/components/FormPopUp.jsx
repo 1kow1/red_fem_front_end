@@ -171,6 +171,11 @@ export default function FormularioPopUp({
 
   const handleFormSubmit = async (data) => {
     try {
+      // Check validation before submitting
+      if (validationSchema && !isValid) {
+        // Don't submit, just let react-hook-form show the errors
+        return;
+      }
 
       const cleaned = {};
       fields.forEach((f) => {
@@ -249,8 +254,8 @@ export default function FormularioPopUp({
   if (!isOpen) return null;
 
   const getModalWidth = () => {
-    if (columns === 2) return "max-w-4xl";
-    return "max-w-md";
+    if (columns === 2) return "max-w-3xl";
+    return "max-w-sm";
   };
 
   return (
@@ -290,7 +295,7 @@ export default function FormularioPopUp({
             </ButtonSecondary>
             <ButtonPrimary
               type="submit"
-              disabled={isSubmitting || (validationSchema && (!isValid || !isDirty))}
+              disabled={isSubmitting}
             >
               {isSubmitting ? "Salvando..." : submitText}
             </ButtonPrimary>

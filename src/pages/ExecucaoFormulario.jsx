@@ -217,11 +217,10 @@ export default function ExecucaoFormulario() {
       toast.error('Dados da execução não carregados. Tente recarregar a página.');
       return;
     }
-    // Para salvar (sem liberar), permitir salvamento parcial
-    // Não precisamos que todos os campos obrigatórios estejam preenchidos
-    // Apenas validamos se há algum progresso
-    if (!hasFormProgress()) {
-      toast.error('Adicione pelo menos uma resposta antes de salvar.');
+    // Validation: All mandatory fields must be filled before saving
+    const checkResult = checkFormulario();
+    if (!checkResult) {
+      toast.error('Todos os campos obrigatórios devem ser preenchidos antes de salvar.');
       return;
     }
     // Construir dados com formulário completo e dados dinâmicos da execução
@@ -444,7 +443,7 @@ export default function ExecucaoFormulario() {
           <SaveReleaseDropdown
             onSave={onSave}
             onSaveAndRelease={onSaveAndRelease}
-            disabled={loading}
+            disabled={loading || !isFormularioCompleto()}
             loading={loading}
             isReleased={isLiberado}
           />

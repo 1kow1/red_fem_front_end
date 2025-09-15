@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
-import { hasPermission } from '../utils/permissions';
+import { hasPermission, getDefaultPage } from '../utils/permissions';
 
 /**
  * Componente para proteger rotas baseado no cargo do usuário
@@ -14,8 +14,8 @@ import { hasPermission } from '../utils/permissions';
 export default function RoleProtectedRoute({
   children,
   allowedRoles,
-  redirectTo = '/not-found',
-  fallbackPage = '/consultas'
+  redirectTo = null,
+  fallbackPage = null
 }) {
   const { isAuthenticated, isLoading, userCargo, user } = useAuth();
 
@@ -45,10 +45,12 @@ export default function RoleProtectedRoute({
       timestamp: new Date().toISOString()
     });
 
-    // Redirecionar para NotFound conforme solicitado
-    return <Navigate to={redirectTo} replace />;
+    // Determinar página para redirecionamento
+    // Primeiro tenta usar redirectTo personalizado, depois fallback, depois 404
+    const targetPage = redirectTo || fallbackPage || '/404';
 
-    return <Navigate to={fallbackPage} replace />;
+    // Redirecionar quando não tem permissão
+    return <Navigate to={targetPage} replace />;
   }
 
   // Usuário tem permissão, renderizar conteúdo
