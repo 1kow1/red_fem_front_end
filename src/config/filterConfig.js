@@ -101,15 +101,6 @@ export const filterConfigs = {
             name: "data",
             label: "Data da Consulta",
             type: "date"
-        },
-        {
-            name: "ativo",
-            label: "Ativo",
-            type: "boolean",
-            options: [
-                { value: true, label: "Ativo" },
-                { value: false, label: "Inativo" }
-            ]
         }
     ],
 

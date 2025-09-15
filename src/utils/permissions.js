@@ -9,7 +9,7 @@ export const CARGOS = {
 
 // Configuração de permissões por página
 export const PERMISSIONS = {
-  usuarios: [CARGOS.ADMINISTRADOR], // Apenas admin pode acessar usuários
+  usuarios: [CARGOS.RECEPCIONISTA, CARGOS.ADMINISTRADOR], // Recepcionista e admin podem acessar usuários
   pacientes: [CARGOS.RECEPCIONISTA, CARGOS.MEDICO, CARGOS.RESIDENTE, CARGOS.ACADEMICO, CARGOS.ADMINISTRADOR],
   formularios: [CARGOS.MEDICO, CARGOS.ADMINISTRADOR], // Acadêmico e Recepcionista não podem
   consultas: [
@@ -118,7 +118,7 @@ export const getCargoLabel = (cargo) => {
 export const COMPONENT_PERMISSIONS = {
   // Sidebar - Botões de navegação
   sidebar: {
-    usuarios: [CARGOS.ADMINISTRADOR], // Apenas admin pode ver botão usuários
+    usuarios: [CARGOS.RECEPCIONISTA, CARGOS.ADMINISTRADOR], // Recepcionista e admin podem ver botão usuários
     formularios: [CARGOS.MEDICO, CARGOS.ADMINISTRADOR], // Recepcionista não pode ver
     pacientes: [CARGOS.RECEPCIONISTA, CARGOS.MEDICO, CARGOS.RESIDENTE, CARGOS.ACADEMICO, CARGOS.ADMINISTRADOR],
     consultas: [CARGOS.RECEPCIONISTA, CARGOS.MEDICO, CARGOS.RESIDENTE, CARGOS.ACADEMICO, CARGOS.ADMINISTRADOR]
@@ -133,6 +133,11 @@ export const COMPONENT_PERMISSIONS = {
   execucaoFormulario: {
     salvarELiberar: [CARGOS.MEDICO, CARGOS.RESIDENTE, CARGOS.ADMINISTRADOR], // Acadêmico não pode liberar
     salvar: [CARGOS.MEDICO, CARGOS.RESIDENTE, CARGOS.ACADEMICO, CARGOS.ADMINISTRADOR] // Todos podem salvar
+  },
+
+  // Formularios - Botões de liberação
+  formularios: {
+    liberarParaUso: [CARGOS.MEDICO, CARGOS.RESIDENTE, CARGOS.ADMINISTRADOR] // Apenas médicos e residentes podem liberar formulários para uso
   }
 };
 

@@ -49,7 +49,7 @@ export default function DropdownMenu({ trigger, options = [], className = "" }) 
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-50 overflow-hidden">
+        <div className="absolute left-0 bottom-full mb-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-[9999] overflow-hidden">
           {options.map((option, index) => (
             <button
               key={index}

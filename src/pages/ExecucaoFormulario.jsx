@@ -10,6 +10,9 @@ import Input from "../components/Input";
 import Card from "../components/Card";
 import { createExec, getExecById, updateExec, releaseExec } from "../services/execAPI";
 import { getFormById } from "../services/formAPI";
+import ModalRelatorio from "../components/ModalRelatorio";
+import ConfirmationPopUp from "../components/ConfirmationPopUp";
+import { generateCSVReport, generatePDFReport } from "../utils/reportUtils";
 export default function ExecucaoFormulario() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,6 +23,13 @@ export default function ExecucaoFormulario() {
   const [formulario, setFormulario] = useState({});
   const [execucaoData, setExecucaoData] = useState(null);
   const [isLiberado, setIsLiberado] = useState(false);
+
+  // Estados para o modal de relatório
+  const [isRelatorioModalOpen, setIsRelatorioModalOpen] = useState(false);
+  const [pacienteData, setPacienteData] = useState(null);
+
+  // Estados para o modal de confirmação de cancelamento
+  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
   const fetchExecucaoData = async () => {
     if (!execId) {
       toast.error("ID da execução não fornecido");
@@ -57,6 +67,18 @@ export default function ExecucaoFormulario() {
       if (execResponse.respostas && Array.isArray(execResponse.respostas)) {
         setRespostas(execResponse.respostas);
       }
+
+      // Extrair dados do paciente para relatórios
+      if (execResponse.consultaDTO || execResponse.consulta) {
+        const consulta = execResponse.consultaDTO || execResponse.consulta;
+        const paciente = consulta.pacienteDTO || consulta.paciente;
+        if (paciente) {
+          setPacienteData({
+            ...paciente,
+            consultas: [consulta] // Consulta atual
+          });
+        }
+      }
     } catch (error) {
       console.error("Erro ao buscar dados da execução:", error);
       toast.error("Erro ao carregar execução do formulário");
@@ -84,13 +106,20 @@ export default function ExecucaoFormulario() {
   const onCancel = useCallback(() => {
     const hasChanges = respostas.length > 0;
     if (hasChanges) {
-      const confirmar = window.confirm('Tem certeza que deseja cancelar? Todas as alterações serão perdidas.');
-      if (!confirmar) return;
+      setIsConfirmCancelOpen(true);
+    } else {
+      // Se não há alterações, navegar diretamente
+      const returnPath = location.state?.returnPath || '/consultas';
+      navigate(returnPath);
     }
-    // Voltar para o caminho anterior ou consultas por padrão
+  }, [respostas, location.state, navigate]);
+
+  // Função para confirmar o cancelamento
+  const handleConfirmCancel = useCallback(() => {
     const returnPath = location.state?.returnPath || '/consultas';
     navigate(returnPath);
-  }, [respostas, location.state, navigate]);
+    setIsConfirmCancelOpen(false);
+  }, [location.state, navigate]);
   const onChangeInput = (value, perguntaId) => {
     setRespostas((prev) => {
       const novasRespostas = [
@@ -345,6 +374,37 @@ export default function ExecucaoFormulario() {
       setLoading(false);
     }
   }, [formulario, execucaoData, respostas, execId, navigate, location.state, checkFormulario]);
+
+  // Função para gerar relatório CSV
+  const handleGerarCSV = useCallback(async () => {
+    if (!pacienteData) {
+      toast.error('Dados do paciente não disponíveis para gerar relatório');
+      return;
+    }
+
+    try {
+      await generateCSVReport(pacienteData, pacienteData.consultas || []);
+      toast.success('Relatório CSV gerado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao gerar relatório CSV');
+    }
+  }, [pacienteData]);
+
+  // Função para gerar relatório PDF
+  const handleGerarPDF = useCallback(async () => {
+    if (!pacienteData) {
+      toast.error('Dados do paciente não disponíveis para gerar relatório');
+      return;
+    }
+
+    try {
+      await generatePDFReport(pacienteData, pacienteData.consultas || []);
+      toast.success('Relatório PDF gerado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao gerar relatório PDF');
+    }
+  }, [pacienteData]);
+
   // --- UI render ---
   return (
     <div>
@@ -355,13 +415,31 @@ export default function ExecucaoFormulario() {
       >
         <div className="flex flex-row gap-2">
           <img src={rosaLogo} alt="Logo Rosa RFCC" className="h-8 mr-4 self-center" />
+
+          {/* Botão de relatório - só aparece quando formulário está liberado */}
+          {isLiberado && pacienteData && (
+            <ButtonPrimaryDropdown
+              options={[
+                {
+                  label: 'Exportar CSV',
+                  onClick: handleGerarCSV
+                },
+                {
+                  label: 'Exportar PDF',
+                  onClick: handleGerarPDF
+                }
+              ]}
+            >
+              Gerar Relatório
+            </ButtonPrimaryDropdown>
+          )}
         </div>
         <div className="flex flex-row gap-2">
           <ButtonSecondary
             onClick={onCancel}
             disabled={loading}
           >
-            Cancelar
+            Voltar
           </ButtonSecondary>
           <SaveReleaseDropdown
             onSave={onSave}
@@ -540,6 +618,14 @@ export default function ExecucaoFormulario() {
           </div>
         </div>
       </div>
+
+      {/* Modal de confirmação para cancelar/descartar alterações */}
+      <ConfirmationPopUp
+        isOpen={isConfirmCancelOpen}
+        message="Tem certeza que deseja sair? Todas as alterações não salvas serão perdidas."
+        onConfirm={handleConfirmCancel}
+        onCancel={() => setIsConfirmCancelOpen(false)}
+      />
     </div>
   )
 }

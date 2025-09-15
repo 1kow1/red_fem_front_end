@@ -10,13 +10,10 @@ export const popupConfigs = {
   
   pacientes: {
     getConfig: (data, callbacks = {}) => {
-      console.log("🔍 Dados do paciente recebidos:", data);
-      console.log("🔍 Consultas do paciente:", data.consultas);
 
       // Transformar consultas do paciente em array para exibição na subtabela
       const consultasArray = data.consultas && Array.isArray(data.consultas)
         ? data.consultas.map(consulta => {
-            console.log("🔍 Processando consulta:", consulta);
             return {
               id: consulta.id,
               medico: consulta.usuarioDTO?.nome || "Não informado",
@@ -38,8 +35,6 @@ export const popupConfigs = {
           })
         : [];
 
-      console.log("📋 Array de consultas processado:", consultasArray);
-      console.log("📊 Quantidade de consultas:", consultasArray.length);
 
       return {
         title: `Paciente ${data.nome}`,
@@ -159,7 +154,7 @@ export const popupConfigs = {
           {
             label: "Deletar",
             variant: "secondary",
-            onClick: callbacks.onToggle
+            onClick: callbacks.onDelete
           },
           {
             label: "Editar",
@@ -203,18 +198,12 @@ export const popupConfigs = {
           label: "Abrir Formulário",
           variant: "primary",
           onClick: (execData) => {
-            console.log("Dados da execução clicada:", execData);
             const execId = execData.id || execData._exec?.id;
-            console.log("ID extraído:", execId);
 
             if (execId) {
               if (callbacks.onAbrirExecucao) {
                 callbacks.onAbrirExecucao(execId, execData._exec || execData);
-              } else {
-                console.error("Callback onAbrirExecucao não encontrada");
               }
-            } else {
-              console.error("ID da execução não encontrado:", execData);
             }
           }
         },
@@ -229,28 +218,43 @@ export const popupConfigs = {
 
   // Configuração para formulários (será usada pela subtabela)
   formularios: {
-    getConfig: (data, callbacks = {}) => ({
-      title: data.titulo,
-      fields: [
-        { label: "Título", key: "titulo" },
-        { label: "Descrição", key: "descricao"},
-        { label: "Especialidade", key: "especialidade" },
-        { label: "Versão", key: "versao"},
-        { label: "Liberado?", key: "liberadoParaUso"}
-      ],
-      actions: [
+    getConfig: (data, callbacks = {}) => {
+      const isFormularioLiberado = data.liberadoParaUso === true || data.liberadoParaUso === "Sim";
+
+      const actions = [
         {
           label: "Desativar",
           variant: "secondary",
-          onClick: (data) => console.log("Liberar Formulário:", data)
+          onClick: callbacks.onDesativar
         },
         {
           label: "Editar",
           variant: "primary",
           onClick: callbacks.onEdit
         }
-      ]
-    })
+      ];
+
+      // Adicionar botão de liberação apenas se não estiver liberado e callback existir
+      if (!isFormularioLiberado && callbacks.onLiberarFormulario) {
+        actions.unshift({
+          label: "Liberar para Uso",
+          variant: "warning",
+          onClick: callbacks.onLiberarFormulario
+        });
+      }
+
+      return {
+        title: data.titulo,
+        fields: [
+          { label: "Título", key: "titulo" },
+          { label: "Descrição", key: "descricao"},
+          { label: "Especialidade", key: "especialidade" },
+          { label: "Versão", key: "versao"},
+          { label: "Liberado?", key: "liberadoParaUso"}
+        ],
+        actions
+      };
+    }
   },
 
   // Configuração GENÉRICA (fallback)

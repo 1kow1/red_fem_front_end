@@ -109,8 +109,6 @@ export const createPaciente = async (data) => {
 // ------------- PUT -------------
 export const editPaciente = async (id, pacienteData) => {
   try {
-    console.log("id: ",id)
-    console.log("data: ",pacienteData)
     const response = await api.put(`/pacientes/${id}`, pacienteData);
     return response.data;
   } catch (error) {

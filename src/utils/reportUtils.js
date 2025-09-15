@@ -6,9 +6,23 @@ import { format } from 'date-fns';
  */
 export const generateCSVReport = (pacienteData, consultas = []) => {
   try {
-    console.log('📊 Gerando relatório CSV para:', pacienteData.nome);
+    // Coletar todas as perguntas únicas de todos os formulários usando o enunciado das respostas
+    const todasPerguntas = new Map();
 
-    // Cabeçalho do CSV
+    consultas.forEach(consulta => {
+      const execucao = consulta.execucaoFormulario;
+      if (execucao?.respostas && Array.isArray(execucao.respostas)) {
+        execucao.respostas.forEach(resposta => {
+          const perguntaId = String(resposta.perguntaId);
+          if (!todasPerguntas.has(perguntaId)) {
+            // Usar o enunciado que vem na resposta
+            todasPerguntas.set(perguntaId, resposta.enunciado || `Pergunta ${perguntaId}`);
+          }
+        });
+      }
+    });
+
+    // Criar cabeçalhos: dados básicos + perguntas como colunas
     const headers = [
       'Paciente',
       'Data Consulta',
@@ -16,8 +30,7 @@ export const generateCSVReport = (pacienteData, consultas = []) => {
       'Tipo Consulta',
       'Status',
       'Formulário',
-      'Pergunta',
-      'Resposta'
+      ...Array.from(todasPerguntas.values())
     ];
 
     const rows = [];
@@ -27,64 +40,56 @@ export const generateCSVReport = (pacienteData, consultas = []) => {
     consultas.forEach(consulta => {
       const execucao = consulta.execucaoFormulario;
 
-      if (!execucao || !execucao.respostas) {
+      if (!execucao) {
         // Linha para consulta sem execução
-        rows.push([
+        const row = [
           pacienteData.nome,
           consulta.dataHora ? format(new Date(consulta.dataHora), 'dd/MM/yyyy HH:mm') : 'N/A',
           consulta.usuarioDTO?.nome || 'N/A',
           consulta.tipoConsulta || 'N/A',
           consulta.status || 'N/A',
           'Sem formulário associado',
-          'N/A',
-          'N/A'
-        ]);
+          ...Array.from(todasPerguntas.keys()).map(() => 'N/A')
+        ];
+        rows.push(row);
         return;
       }
 
       const formTitulo = execucao.formulario?.titulo || 'Formulário não identificado';
 
-      // Se não tem respostas, adicionar linha indicando isso
-      if (!execucao.respostas || execucao.respostas.length === 0) {
-        rows.push([
-          pacienteData.nome,
-          consulta.dataHora ? format(new Date(consulta.dataHora), 'dd/MM/yyyy HH:mm') : 'N/A',
-          consulta.usuarioDTO?.nome || 'N/A',
-          consulta.tipoConsulta || 'N/A',
-          consulta.status || 'N/A',
-          formTitulo,
-          'Sem respostas',
-          'N/A'
-        ]);
-        return;
+      // Criar mapa de respostas por pergunta ID
+      const respostasPorPergunta = {};
+      if (execucao.respostas && Array.isArray(execucao.respostas)) {
+        execucao.respostas.forEach(resposta => {
+          const perguntaId = String(resposta.perguntaId);
+          if (!respostasPorPergunta[perguntaId]) {
+            respostasPorPergunta[perguntaId] = [];
+          }
+          respostasPorPergunta[perguntaId].push(resposta.texto);
+        });
       }
 
-      // Agrupar respostas por pergunta
-      const respostasPorPergunta = {};
-      execucao.respostas.forEach(resposta => {
-        if (!respostasPorPergunta[resposta.perguntaId]) {
-          respostasPorPergunta[resposta.perguntaId] = [];
+      // Criar linha com dados básicos + respostas nas colunas correspondentes
+      const row = [
+        pacienteData.nome,
+        consulta.dataHora ? format(new Date(consulta.dataHora), 'dd/MM/yyyy HH:mm') : 'N/A',
+        consulta.usuarioDTO?.nome || 'N/A',
+        consulta.tipoConsulta || 'N/A',
+        consulta.status || 'N/A',
+        formTitulo
+      ];
+
+      // Adicionar respostas para cada pergunta na ordem dos headers
+      Array.from(todasPerguntas.keys()).forEach(perguntaId => {
+        const respostas = respostasPorPergunta[perguntaId];
+        if (respostas && respostas.length > 0) {
+          row.push(respostas.join('; '));
+        } else {
+          row.push('N/A');
         }
-        respostasPorPergunta[resposta.perguntaId].push(resposta.texto);
       });
 
-      // Criar uma linha para cada pergunta
-      Object.entries(respostasPorPergunta).forEach(([perguntaId, textos]) => {
-        // Buscar o enunciado da pergunta no formulário
-        const pergunta = execucao.formulario?.perguntas?.find(p => p.id === perguntaId);
-        const enunciadoPergunta = pergunta?.enunciado || `Pergunta ${perguntaId}`;
-
-        rows.push([
-          pacienteData.nome,
-          consulta.dataHora ? format(new Date(consulta.dataHora), 'dd/MM/yyyy HH:mm') : 'N/A',
-          consulta.usuarioDTO?.nome || 'N/A',
-          consulta.tipoConsulta || 'N/A',
-          consulta.status || 'N/A',
-          formTitulo,
-          enunciadoPergunta,
-          textos.join('; ') // Múltiplas respostas separadas por ;
-        ]);
-      });
+      rows.push(row);
     });
 
     // Converter para string CSV
@@ -106,7 +111,6 @@ export const generateCSVReport = (pacienteData, consultas = []) => {
     link.click();
     document.body.removeChild(link);
 
-    console.log('✅ Relatório CSV gerado com sucesso');
     return true;
 
   } catch (error) {
@@ -123,7 +127,6 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
     // Importação dinâmica do jsPDF
     const { jsPDF } = await import('jspdf');
 
-    console.log('📄 Gerando relatório PDF para:', pacienteData.nome);
 
     const doc = new jsPDF();
     let yPosition = 20;
@@ -218,24 +221,27 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
             doc.text('• Respostas:', 30, yPosition);
             yPosition += lineHeight;
 
-            // Agrupar respostas por pergunta
+            // Agrupar respostas por pergunta, mantendo o enunciado
             const respostasPorPergunta = {};
             execucao.respostas.forEach(resposta => {
-              if (!respostasPorPergunta[resposta.perguntaId]) {
-                respostasPorPergunta[resposta.perguntaId] = [];
+              const perguntaId = String(resposta.perguntaId);
+              if (!respostasPorPergunta[perguntaId]) {
+                respostasPorPergunta[perguntaId] = {
+                  enunciado: resposta.enunciado || `Pergunta ${perguntaId}`,
+                  textos: []
+                };
               }
-              respostasPorPergunta[resposta.perguntaId].push(resposta.texto);
+              respostasPorPergunta[perguntaId].textos.push(resposta.texto);
             });
 
-            Object.entries(respostasPorPergunta).forEach(([perguntaId, textos]) => {
+            Object.entries(respostasPorPergunta).forEach(([perguntaId, dadosPergunta]) => {
               checkPageBreak(15);
 
-              // Buscar o enunciado da pergunta no formulário
-              const pergunta = execucao.formulario?.perguntas?.find(p => p.id === perguntaId);
-              const enunciadoPergunta = pergunta?.enunciado || `Pergunta ${perguntaId}`;
+              // Usar o enunciado que vem na resposta
+              const enunciadoPergunta = dadosPergunta.enunciado;
 
               // Quebra texto longo
-              const respostaTexto = textos.join('; ');
+              const respostaTexto = dadosPergunta.textos.join('; ');
               const maxWidth = 150;
               const splitText = doc.splitTextToSize(`  - ${enunciadoPergunta}: ${respostaTexto}`, maxWidth);
 
@@ -256,7 +262,6 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
     const fileName = `relatorio_${pacienteData.nome.replace(/\s+/g, '_')}_${format(new Date(), 'ddMMyyyy')}.pdf`;
     doc.save(fileName);
 
-    console.log('✅ Relatório PDF gerado com sucesso');
     return true;
 
   } catch (error) {

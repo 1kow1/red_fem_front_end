@@ -13,7 +13,6 @@ export default function ModalRelatorio({ isOpen, onClose, pacienteData, consulta
     try {
       setLoading(true);
 
-      console.log('📊 Gerando relatório:', { format: selectedFormat, paciente: pacienteData.nome, consultas: consultas.length });
 
       if (selectedFormat === 'csv') {
         await generateCSVReport(pacienteData, consultas);
@@ -25,7 +24,6 @@ export default function ModalRelatorio({ isOpen, onClose, pacienteData, consulta
 
       onClose();
     } catch (error) {
-      console.error('Erro ao gerar relatório:', error);
       toast.error('Erro ao gerar relatório: ' + error.message);
     } finally {
       setLoading(false);

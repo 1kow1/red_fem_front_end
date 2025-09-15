@@ -93,3 +93,12 @@ export const deleteForm = async (id) => {
     throw new Error("Erro ao excluir formulário: " + error.message);
   }
 };
+
+export const releaseFormForUse = async (id, liberadoParaUso = true) => {
+  try {
+    const response = await api.patch(`/form/${id}/liberado-para-uso?liberadoParaUso=${liberadoParaUso}`);
+    return response.data;
+  } catch (error) {
+    throw new Error("Erro ao liberar formulário: " + error.message);
+  }
+};

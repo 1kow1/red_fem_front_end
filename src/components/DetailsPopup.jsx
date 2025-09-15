@@ -219,7 +219,6 @@ export default function DetailsPopup({
                       <button
                         key={index}
                         onClick={() => {
-                          console.log("🔥 Action button clicado, dados:", data);
                           if (actionButton.onClick) {
                             actionButton.onClick(data);
                           }
@@ -250,7 +249,6 @@ export default function DetailsPopup({
                     // Para consultas: redirecionar diretamente para execução
                     subTable.dataType === "consultas" && callbacks.onAbrirExecucao
                       ? (row) => {
-                          console.log("🚀 Clique direto na consulta:", row);
                           // Extrair ID da execução e dados
                           const execId = row._execucaoFormulario?.id || row.id;
                           const execData = row._execucaoFormulario || row;
@@ -261,7 +259,6 @@ export default function DetailsPopup({
                       : // Para execuções: redirecionar diretamente para execução
                       subTable.dataType === "execucaoFormulario" && callbacks.onAbrirExecucao
                       ? (row) => {
-                          console.log("🚀 Clique direto na execução:", row);
                           const execId = row.id || row._exec?.id;
                           const execData = row._exec || row;
                           if (execId && callbacks.onAbrirExecucao) {

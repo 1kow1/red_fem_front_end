@@ -76,7 +76,7 @@ export default function Pacientes() {
 
       createPaciente(payload)
         .then(() => fetchPacientes())
-        .catch((err) => console.error("Erro ao criar paciente:", err));
+        .catch((err) => {});
 
       setIsFormOpen(false);
     } catch (err) {
@@ -144,7 +144,6 @@ export default function Pacientes() {
 
   // função para gerar relatório
   const handleGerarRelatorio = (pacienteData) => {
-    console.log("🔧 Gerando relatório para paciente:", pacienteData);
     setPacienteRelatorio(pacienteData);
     setIsRelatorioModalOpen(true);
   };

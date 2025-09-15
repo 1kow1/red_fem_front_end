@@ -36,7 +36,6 @@ export default function ModalAssociarFormulario({
       
       setFormularios(formulariosLiberados);
     } catch (error) {
-      console.error("Erro ao carregar formulários:", error);
       toast.error("Erro ao carregar formulários disponíveis");
     } finally {
       setLoading(false);
@@ -56,15 +55,12 @@ export default function ModalAssociarFormulario({
 
     setSubmitting(true);
     try {
-      console.log(consultaData)
       // Extrair ID do médico de diferentes possíveis localizações
       const medicoId = consultaData._medicoId ||
                        consultaData.medicoId ||
                        consultaData.usuarioDTO?.id ||
                        consultaData.usuarioDTO?._id;
 
-      console.log("Dados da consulta recebidos:", consultaData);
-      console.log("ID do médico extraído:", medicoId);
 
       if (!medicoId) {
         toast.error("ID do médico não encontrado nos dados da consulta");
@@ -81,7 +77,6 @@ export default function ModalAssociarFormulario({
         respostas: []
       };
 
-      console.log("Associando formulário à consulta:", payload);
 
       await createExec(payload); // Usando sua função existente
       
@@ -95,7 +90,6 @@ export default function ModalAssociarFormulario({
       onClose();
       
     } catch (error) {
-      console.error("Erro ao associar formulário:", error);
       const message = error?.response?.data?.message || 
                      error?.message || 
                      "Erro ao associar formulário";

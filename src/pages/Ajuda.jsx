@@ -213,11 +213,66 @@ export default function Ajuda() {
             <li><strong>Única:</strong> Selecione apenas uma opção</li>
           </ul>
 
+          <h4 className="text-md font-semibold mb-3">Liberação Automática</h4>
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+            <p className="font-medium text-yellow-800 mb-2">⚠️ Importante:</p>
+            <p className="text-yellow-700">
+              Formulários salvos e não liberados até <strong>meia-noite do mesmo dia</strong>
+              são automaticamente liberados pelo sistema. Após a liberação, o formulário
+              torna-se somente leitura e não pode mais ser editado.
+            </p>
+          </div>
+
           <h4 className="text-md font-semibold mb-3">Navegação</h4>
           <ul className="list-disc list-inside space-y-1">
-            <li>Use "Cancelar" para sair sem salvar</li>
-            <li>"Salvar" grava todas as respostas</li>
+            <li>Use "Voltar" para retornar às consultas</li>
+            <li>"Salvar" grava todas as respostas parciais</li>
+            <li>"Salvar e Liberar" finaliza o formulário permanentemente</li>
             <li>Você pode sair e voltar várias vezes antes de liberar</li>
+            <li>Formulários liberados mostram botão de "Gerar Relatório"</li>
+          </ul>
+        </div>
+      )
+    },
+    {
+      id: 'filtros',
+      title: 'Sistema de Filtros',
+      icon: BarChart3,
+      keywords: ['filtros', 'busca', 'ativo', 'padrão', 'pesquisar', 'default'],
+      content: (
+        <div>
+          <h4 className="text-md font-semibold mb-3">Filtros Padrão</h4>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+            <p className="font-medium text-blue-800 mb-2">ℹ️ Comportamento Padrão:</p>
+            <p className="text-blue-700">
+              <strong>Todas as páginas filtram automaticamente por registros "Ativos"</strong> por padrão.
+              Isso significa que usuários, pacientes, formulários e consultas inativos/desativados
+              não aparecem nas listas iniciais.
+            </p>
+          </div>
+
+          <h4 className="text-md font-semibold mb-3">Como Usar os Filtros</h4>
+          <ol className="list-decimal list-inside space-y-2 mb-4">
+            <li>Clique no botão "Filtros" no topo das páginas</li>
+            <li>Ajuste os filtros conforme necessário</li>
+            <li>Para ver registros inativos, altere o filtro "Ativo" para "Inativo"</li>
+            <li>Use a busca textual para encontrar registros específicos</li>
+          </ol>
+
+          <h4 className="text-md font-semibold mb-3">Tipos de Filtros Disponíveis</h4>
+          <ul className="list-disc list-inside space-y-2">
+            <li><strong>Status de Ativação:</strong> Ativo/Inativo</li>
+            <li><strong>Especialidades Médicas:</strong> Ginecologia, Obstetrícia, etc.</li>
+            <li><strong>Datas:</strong> Filtros por período de consultas</li>
+            <li><strong>Status de Liberação:</strong> Para formulários e execuções</li>
+            <li><strong>Busca Textual:</strong> Procura em todos os campos relevantes</li>
+          </ul>
+
+          <h4 className="text-md font-semibold mb-3">Dicas de Busca</h4>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Use nomes parciais para encontrar pacientes</li>
+            <li>Combine múltiplos filtros para busca mais específica</li>
+            <li>Limpe os filtros para ver todos os registros</li>
           </ul>
         </div>
       )
@@ -305,6 +360,122 @@ export default function Ajuda() {
             <li>Histórico médico para outros profissionais</li>
             <li>Backup de dados importantes</li>
             <li>Relatórios para convênios</li>
+          </ul>
+        </div>
+      )
+    },
+    {
+      id: 'permissoes',
+      title: 'Guia por Cargo/Função',
+      icon: Users,
+      keywords: ['cargo', 'função', 'permissões', 'administrador', 'médico', 'residente', 'acadêmico', 'recepcionista', 'acesso'],
+      content: (
+        <div>
+          <h4 className="text-md font-semibold mb-3">Administrador</h4>
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
+            <p className="font-medium text-red-800 mb-2">👑 Acesso Total ao Sistema</p>
+            <div className="text-red-700">
+              <p className="mb-2"><strong>Pode fazer:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Gerenciar todos os usuários do sistema</li>
+                <li>Criar, editar e liberar formulários</li>
+                <li>Acessar todas as consultas e pacientes</li>
+                <li>Gerar relatórios completos</li>
+                <li>Alterar senhas de outros usuários</li>
+                <li>Ativar/desativar contas</li>
+              </ul>
+            </div>
+          </div>
+
+          <h4 className="text-md font-semibold mb-3">Médico</h4>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+            <p className="font-medium text-blue-800 mb-2">👨‍⚕️ Foco na Prática Clínica</p>
+            <div className="text-blue-700">
+              <p className="mb-2"><strong>Pode fazer:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Criar e editar formulários da sua especialidade</li>
+                <li>Liberar formulários para uso em consultas</li>
+                <li>Gerenciar pacientes e consultas</li>
+                <li>Associar formulários às consultas</li>
+                <li>Salvar e liberar execuções de formulários</li>
+                <li>Gerar relatórios de pacientes</li>
+              </ul>
+              <p className="mt-2"><strong>Não pode:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Gerenciar outros usuários</li>
+                <li>Alterar senhas de terceiros</li>
+              </ul>
+            </div>
+          </div>
+
+          <h4 className="text-md font-semibold mb-3">Residente</h4>
+          <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-4">
+            <p className="font-medium text-green-800 mb-2">👩‍🎓 Aprendizado com Responsabilidade</p>
+            <div className="text-green-700">
+              <p className="mb-2"><strong>Pode fazer:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Liberar formulários para uso (com supervisão)</li>
+                <li>Gerenciar pacientes e consultas</li>
+                <li>Associar formulários às consultas</li>
+                <li>Salvar e liberar execuções de formulários</li>
+                <li>Gerar relatórios de pacientes</li>
+              </ul>
+              <p className="mt-2"><strong>Não pode:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Criar ou editar formulários</li>
+                <li>Gerenciar usuários</li>
+              </ul>
+            </div>
+          </div>
+
+          <h4 className="text-md font-semibold mb-3">Acadêmico</h4>
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+            <p className="font-medium text-yellow-800 mb-2">📚 Foco no Aprendizado</p>
+            <div className="text-yellow-700">
+              <p className="mb-2"><strong>Pode fazer:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Visualizar pacientes e consultas</li>
+                <li>Associar formulários às consultas</li>
+                <li>Salvar formulários (mas não liberar)</li>
+                <li>Gerar relatórios para estudo</li>
+              </ul>
+              <p className="mt-2"><strong>Não pode:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Liberar execuções de formulários</li>
+                <li>Criar ou editar formulários</li>
+                <li>Gerenciar usuários</li>
+              </ul>
+            </div>
+          </div>
+
+          <h4 className="text-md font-semibold mb-3">Recepcionista</h4>
+          <div className="bg-purple-50 border-l-4 border-purple-400 p-4 mb-4">
+            <p className="font-medium text-purple-800 mb-2">📋 Suporte Administrativo</p>
+            <div className="text-purple-700">
+              <p className="mb-2"><strong>Pode fazer:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Cadastrar e editar pacientes</li>
+                <li>Agendar e gerenciar consultas</li>
+                <li>Visualizar informações de usuários</li>
+                <li>Gerar relatórios de pacientes</li>
+                <li>Usar filtros e buscas do sistema</li>
+              </ul>
+              <p className="mt-2"><strong>Não pode:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Associar formulários às consultas</li>
+                <li>Executar formulários</li>
+                <li>Criar ou editar formulários</li>
+                <li>Gerenciar outros usuários</li>
+              </ul>
+            </div>
+          </div>
+
+          <h4 className="text-md font-semibold mb-3">Dicas Importantes</h4>
+          <ul className="list-disc list-inside space-y-2">
+            <li>As permissões são definidas automaticamente pelo sistema</li>
+            <li>Cada cargo tem acesso apenas às funcionalidades necessárias</li>
+            <li>Em caso de dúvidas sobre acesso, consulte o administrador</li>
+            <li>Algumas funcionalidades podem não aparecer se você não tiver permissão</li>
           </ul>
         </div>
       )

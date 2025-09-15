@@ -52,7 +52,6 @@ export default function Table({
           setPopupConfig(newConfig);
         }
       } catch (err) {
-        console.error("Erro ao regenerar popupConfig:", err);
       }
     } else {
       handleClosePopup();
@@ -107,10 +106,7 @@ export default function Table({
     if (disablePopup) return;
 
     const configGenerator = popupConfigs[dataType];
-    console.log("Table: handleRowClick", row);
     if (!configGenerator) {
-      console.error(`Configuração não encontrada para tipo: ${dataType}`);
-      console.log("Tipos disponíveis:", Object.keys(popupConfigs));
       return;
     }
 
@@ -120,7 +116,6 @@ export default function Table({
       setPopupConfig(config);
       setIsPopupOpen(true);
     } catch (error) {
-      console.error("Erro ao gerar configuração:", error);
     }
   }
 

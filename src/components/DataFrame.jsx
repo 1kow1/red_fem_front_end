@@ -83,12 +83,6 @@ export default function DataFrame({
       backendFilters.buscaGenerica = searchQuery;
     }
 
-    console.log('=== DataFrame Debug ===');
-    console.log('dataType:', dataType);
-    console.log('filters (frontend):', filters);
-    console.log('searchQuery:', searchQuery);
-    console.log('backendFilters (enviando para API):', backendFilters);
-    console.log('fetchData function:', fetchData);
     fetchData(backendFilters);
   }, [useBackendFilters, fetchData, filters, searchQuery, avaiableFilters, dataType]);
 
@@ -153,8 +147,6 @@ export default function DataFrame({
   // Effect para aplicar filtros padrão na inicialização
   useEffect(() => {
     if (!hasInitialized && useBackendFilters && fetchData && Object.keys(defaultFilters).length > 0) {
-      console.log('=== Applying Default Filters ===');
-      console.log('defaultFilters:', defaultFilters);
       applyBackendFilters();
       setHasInitialized(true);
     }
@@ -169,9 +161,6 @@ export default function DataFrame({
     const hasSearch = searchQuery && searchQuery.trim() !== '';
 
     if (hasFilters || hasSearch) {
-      console.log('=== useEffect Triggered ===');
-      console.log('hasFilters:', hasFilters, 'filters:', filters);
-      console.log('hasSearch:', hasSearch, 'searchQuery:', searchQuery);
 
       const timeoutId = setTimeout(() => {
         applyBackendFilters();

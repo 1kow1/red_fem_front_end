@@ -8,7 +8,8 @@ export default function SaveReleaseDropdown({
   onSaveAndRelease,
   disabled = false,
   loading = false,
-  isReleased = false
+  isReleased = false,
+  releasePermissionKey = 'execucaoFormulario' // Default for form execution, can be overridden for forms
 }) {
   const { user } = useAuth();
   const userCargo = user?.cargo;
@@ -83,7 +84,7 @@ export default function SaveReleaseDropdown({
               </div>
             </button>
 
-            {canUseComponent(userCargo, 'execucaoFormulario', 'salvarELiberar') && (
+            {canUseComponent(userCargo, releasePermissionKey, releasePermissionKey === 'formularios' ? 'liberarParaUso' : 'salvarELiberar') && (
               <button
                 onClick={handleSaveAndRelease}
                 className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-start gap-3"

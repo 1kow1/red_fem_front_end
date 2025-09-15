@@ -41,7 +41,6 @@ export default function Formularios() {
       setTotalPages(data.totalPages ?? 0);
       setTotalRecords(data.totalElements);
     } catch (err) {
-      console.error("Erro ao buscar formulários:", err);
       const msg = err?.message || JSON.stringify(err);
       setError("Erro ao buscar formulários: " + msg);
       toast.error("Erro ao buscar formulários");
@@ -58,7 +57,6 @@ export default function Formularios() {
     try {
       setEditLoading(true);
 
-      console.log("Buscando dados completos do formulário:", row.id);
       const fullFormData = await getFormById(row.id);
 
       const formDataForEdit = {
@@ -73,11 +71,9 @@ export default function Formularios() {
         }))
       };
 
-      console.log("Dados preparados para edição:", formDataForEdit);
       navigate("/editForm", { state: { formData: formDataForEdit } });
 
     } catch (err) {
-      console.error("Erro ao buscar dados completos do formulário:", err);
       const message = err?.response?.data?.message ||
         err?.message ||
         "Erro ao carregar formulário para edição";

@@ -6,7 +6,7 @@ import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
 import ModalAssociarFormulario from "../components/ModalAssociarFormulario"; // Novo import
 import ConfirmationPopUp from "../components/ConfirmationPopUp"; // Novo import
-import { getConsultas, createConsulta, editConsulta } from "../services/consultaAPI";
+import { getConsultas, createConsulta, editConsulta, deleteConsulta } from "../services/consultaAPI";
 import { deleteExec } from "../services/execAPI"; // Nova import
 import { adaptConsultaForView, adaptConsultaForApi } from "../adapters/consultaAdapter";
 import { formConfigs } from "../config/formConfig";
@@ -45,7 +45,6 @@ export default function Consultas() {
       setConsultas(adaptedConsultas);
 
     } catch (error) {
-      console.error("Erro ao buscar consultas:", error);
       toast.error("Erro ao carregar consultas");
     } finally {
       setLoading(false);
@@ -60,8 +59,18 @@ export default function Consultas() {
   };
 
   const openEditForm = (row) => {
+    // Preparar dados para edição convertendo campos ocultos
+    const editData = {
+      ...row,
+      pacienteId: row._patientId,
+      medicoId: row._medicoId,
+      dataConsulta: row._dataConsulta,
+      horario: row._horario,
+      ativo: row._ativo
+    };
+
     setFormMode("edit");
-    setEditInitialData(row);
+    setEditInitialData(editData);
     setIsFormOpen(true);
   };
 
@@ -74,7 +83,6 @@ export default function Consultas() {
       fetchConsultas();
       setIsFormOpen(false);
     } catch (error) {
-      console.error("Erro ao criar consulta:", error);
       toast.error("Erro ao criar consulta");
     }
   };
@@ -88,14 +96,12 @@ export default function Consultas() {
       fetchConsultas();
       setIsFormOpen(false);
     } catch (error) {
-      console.error("Erro ao editar consulta:", error);
       toast.error("Erro ao editar consulta");
     }
   };
 
   // Nova callback para associar formulário
   const handleAssociarFormulario = (consultaData) => {
-    console.log("Associar formulário para consulta:", consultaData);
     setConsultaParaAssociar(consultaData);
     setIsModalAssociarOpen(true);
   };
@@ -110,7 +116,6 @@ export default function Consultas() {
 
   // Nova callback para remover associação
   const handleRemoverAssociacao = (consultaData) => {
-    console.log("Remover associação para consulta:", consultaData);
     setConsultaParaRemover(consultaData);
     setIsConfirmRemoveOpen(true);
   };
@@ -133,7 +138,6 @@ export default function Consultas() {
       fetchConsultas();
 
     } catch (error) {
-      console.error("Erro ao remover associação:", error);
       toast.error("Erro ao remover associação");
     } finally {
       setIsConfirmRemoveOpen(false);
@@ -143,7 +147,6 @@ export default function Consultas() {
 
   // Nova função para navegar para execução do formulário
   const handleAbrirExecucao = (execId, execData) => {
-    console.log("Navegando para execução:", execId, execData);
     // Navegar para a página de execução com o ID como parâmetro
     navigate(`/execform/${execId}`, {
       state: {
@@ -153,10 +156,31 @@ export default function Consultas() {
     });
   };
 
+  // Nova função para deletar consulta
+  const handleDeleteConsulta = async (consultaData) => {
+    try {
+      const id = consultaData.id;
+      if (!id) {
+        toast.error("ID da consulta não encontrado");
+        return;
+      }
+
+      await deleteConsulta(id);
+      toast.success("Consulta deletada com sucesso!");
+
+      // Recarregar consultas para atualizar a interface
+      fetchConsultas();
+
+    } catch (error) {
+      toast.error("Erro ao deletar consulta");
+    }
+  };
+
   // Atualizar o DataFrame para incluir a nova callback
   const dataFrameCallbacks = {
     onEdit: openEditForm,
     onToggle: (row) => console.log("Toggle consulta:", row),
+    onDelete: handleDeleteConsulta, // Nova callback para deletar
     onAssociarFormulario: handleAssociarFormulario, // Nova callback
     onRemoverAssociacao: handleRemoverAssociacao, // Nova callback
     onAbrirExecucao: handleAbrirExecucao // Callback para abrir execução
@@ -182,7 +206,7 @@ export default function Consultas() {
         onToggleRow={dataFrameCallbacks.onToggle}
         onAssociarFormulario={dataFrameCallbacks.onAssociarFormulario}
         fetchData={fetchConsultas}
-        defaultFilters={{ ativo: [true] }}
+        defaultFilters={{ status: ["PENDENTE", "CONCLUIDA"] }}
         // Passar todas as callbacks necessárias
         callbacks={dataFrameCallbacks}
       />

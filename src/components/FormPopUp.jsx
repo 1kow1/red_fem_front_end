@@ -59,7 +59,6 @@ export default function FormularioPopUp({
 
     // Se for modo de edição e temos dados iniciais
     if (mode === "edit" && initialData && Object.keys(initialData).length > 0) {
-      console.log("Preparando dados para o formulário no modo de edição");
       
       // Prepara os dados normalizados baseados nos campos configurados
       const normalizedData = {};
@@ -105,7 +104,6 @@ export default function FormularioPopUp({
         }
       });
 
-      console.log("Dados normalizados para reset:", normalizedData);
       
       // Reset do formulário com os dados normalizados
       reset(normalizedData);
@@ -152,7 +150,6 @@ export default function FormularioPopUp({
             // newDefaults[field.name] = { value: idValue, label: f.titulo ?? String(idValue) };
           }
         } catch (err) {
-          console.warn("Erro ao carregar default async-select:", err);
           newDefaults[field.name] = {
             value: idValue,
             label: String(idValue),
@@ -201,7 +198,6 @@ export default function FormularioPopUp({
         cleaned[idKey] = initialData[idKey];
       }
 
-      console.log("Dados limpos para envio:", cleaned);
 
       await onSubmit?.(cleaned);
 
@@ -246,7 +242,6 @@ export default function FormularioPopUp({
       }
       return [];
     } catch (err) {
-      console.error("Erro em loadOptions:", err);
       return [];
     }
   };
@@ -314,6 +309,7 @@ export default function FormularioPopUp({
         <div key={name}>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {field.label}
+            {field.required && <span className="text-red-500 ml-1">*</span>}
           </label>
 
           <Controller
@@ -369,10 +365,11 @@ export default function FormularioPopUp({
         <div key={name}>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {field.label}
+            {field.required && <span className="text-red-500 ml-1">*</span>}
           </label>
           <select
             {...register(name)}
-            className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
+            className={`w-80 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
               errors[name] ? "border-red-500" : "border-gray-400"
             }`}
           >
@@ -407,6 +404,7 @@ export default function FormularioPopUp({
           />
           <label className="text-sm font-medium text-gray-700">
             {field.label}
+            {field.required && <span className="text-red-500 ml-1">*</span>}
           </label>
           {errors[name] && (
             <p className="text-red-500 text-sm">
@@ -417,17 +415,21 @@ export default function FormularioPopUp({
       );
     }
 
+    // Usar largura padrão menor para todos os inputs
+    const inputWidthClass = 'w-80';
+
     return (
       <div key={name}>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           {field.label}
+          {field.required && <span className="text-red-500 ml-1">*</span>}
         </label>
         <input
           type={field.type || "text"}
           placeholder={field.placeholder}
           min={field.min} // Para campos de data, define data mínima
           {...register(name)}
-          className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
+          className={`${inputWidthClass} px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 ${
             errors[name] ? "border-red-500" : "border-gray-400"
           }`}
         />

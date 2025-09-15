@@ -11,24 +11,28 @@ export const formConfigs = {
       label: "Nome",
       type: "text",
       placeholder: "Insira o Nome",
+      required: true,
     },
     {
       name: "email",
       label: "E-mail",
       type: "email",
       placeholder: "email@email.com",
+      required: true,
     },
     {
       name: "telefone",
       label: "Telefone",
       type: "tel",
       placeholder: "42999999999",
+      required: true,
     },
     {
       name: "cargo",
       label: "Cargo",
       type: "select",
       placeholder: "Selecione o cargo",
+      required: true,
       options: [
         { value: "RECEPCIONISTA", label: "Recepcionista" },
         { value: "MEDICO", label: "Médico" },
@@ -41,6 +45,7 @@ export const formConfigs = {
       label: "Especialidade",
       type: "select",
       placeholder: "Selecione a especialidade",
+      required: true,
       options: [
         { value: "GINECOLOGIA", label: "Ginecologia"},
         { value: "ONCOLOGIA", label: "Oncologia"},
@@ -53,6 +58,7 @@ export const formConfigs = {
       label: "CRM",
       type: "text",
       placeholder: "CRM/PR 123456",
+      required: true,
       showIf: (formData) => ["MEDICO", "RESIDENTE"].includes(formData.cargo)
     },
     ],
@@ -67,29 +73,34 @@ export const formConfigs = {
       label: "Nome Completo",
       type: "text",
       placeholder: "Digite o nome completo",
+      required: true,
     },
     {
       name: "cpf",
       label: "CPF",
       type: "text",
       placeholder: "000.000.000-00",
+      required: true,
     },
     {
       name: "dataDeNascimento",
       label: "Data de Nascimento",
       type: "date",
+      required: true,
     },
     {
       name: "telefone",
       label: "Telefone",
       type: "tel",
       placeholder: "42999999999",
+      required: true,
     },
     {
       name: "email",
       label: "E-mail",
       type: "email",
       placeholder: "paciente@email.com",
+      required: true,
     },
     {
       name: "profissao",
@@ -102,6 +113,7 @@ export const formConfigs = {
       label: "Sexo",
       type: "select",
       placeholder: "Selecione o sexo",
+      required: true,
       options: [
         { value: "F", label: "Feminino" },
         { value: "M", label: "Masculino" },
@@ -112,6 +124,7 @@ export const formConfigs = {
       label: "Estado Civil",
       type: "select",
       placeholder: "Selecione o estado civil",
+      required: true,
       options: (formData) => {
         if (formData.sexo === "F") {
           return [
@@ -145,12 +158,14 @@ export const formConfigs = {
       label: "Cidade",
       type: "text",
       placeholder: "Nome da cidade",
+      required: true,
     },
     {
       name: "uf",
       label: "Estado",
       type: "select",
       placeholder: "Selecione o estado",
+      required: true,
       options: [
         { value: "AC", label: "Acre" },
         { value: "AL", label: "Alagoas" },

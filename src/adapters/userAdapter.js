@@ -33,9 +33,11 @@ export const adaptUserForView = (user = {}) => {
     crm: user.crm ?? "",
     telefone: user.telefone ?? "",
     ativo: user.ativo ? "Sim" : "Não",
-    // Hidden fields for form editing (not displayed in table)
+    // Hidden fields for form editing (not displayed in table) - preserve original values for forms
     _dataCriacao: dataCriacaoDate ? format(dataCriacaoDate, "dd/MM/yyyy HH:mm") : "-",
     _dataAtualizacao: dataAtualizacaoDate ? format(dataAtualizacaoDate, "dd/MM/yyyy HH:mm") : "-",
+    _cargo: user.cargo ?? "", // Original cargo value for form editing
+    _especialidade: user.especialidade ?? "", // Original especialidade value for form editing
   };
 };
 
@@ -44,15 +46,19 @@ export const adaptUserForApi = (user = {}) => {
 
   const parsedCriacao = parseMaybeDate(user.dataCriacao);
 
+  // For cargo and especialidade, prefer the hidden field values (original) over the transformed ones
+  const cargo = user._cargo ?? user.cargo;
+  const especialidade = user._especialidade ?? user.especialidade;
+
   return {
     id,
     nome: user.nome,
     email: user.email,
-    cargo: typeof user.cargo === "string" ? user.cargo.toUpperCase() : user.cargo,
+    cargo: typeof cargo === "string" ? cargo.toUpperCase() : cargo,
     especialidade:
-      typeof user.especialidade === "string"
-        ? user.especialidade.toUpperCase()
-        : user.especialidade,
+      typeof especialidade === "string"
+        ? especialidade.toUpperCase()
+        : especialidade,
     telefone: user.telefone ? String(user.telefone).replace(/\D/g, "") : null,
     crm: user.crm,
     ativo: parseBoolean(user.ativo),

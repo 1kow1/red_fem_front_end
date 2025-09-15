@@ -5,15 +5,20 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import rosaLogo from '../assets/logos/rosa-rfcc.png';
 import { ButtonPrimary, ButtonPrimaryDropdown, IconButton, ButtonSecondary } from "../components/Button";
+import SaveReleaseDropdown from "../components/SaveReleaseDropdown";
 import { XIcon, MoveUpIcon, MoveDownIcon, AddIcon, DeleteIcon } from "../components/Icons";
+import { Undo2, Redo2 } from "lucide-react";
 import Input from "../components/Input";
-import { createForm } from "../services/formAPI";
+import { createForm, releaseFormForUse } from "../services/formAPI";
 import Card from "../components/Card";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
+import { useAuth } from '../contexts/auth/useAuth';
+import { canUseComponent } from '../utils/permissions';
 
 export default function FormularioEditor() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const formDataToEdit = location.state?.formData;
   const isEditMode = Boolean(formDataToEdit);
@@ -33,6 +38,11 @@ export default function FormularioEditor() {
 
   // Snapshot das perguntas originais (id -> normalized JSON)
   const originalPerguntasRef = useRef({});
+
+  // Estados para Undo/Redo
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const isUndoRedoOperation = useRef(false);
 
   const tiposPergunta = [
     { value: 'TEXTUAL', label: 'Texto' },
@@ -58,6 +68,54 @@ export default function FormularioEditor() {
     const atual = normalizePerguntaForCompare(pergunta);
     return atual !== orig;
   }
+
+  // --- Funções de Undo/Redo ---
+  const saveStateToHistory = useCallback((newFormulario) => {
+    if (isUndoRedoOperation.current) return; // Não salvar durante undo/redo
+
+    setHistory(prev => {
+      const newHistory = prev.slice(0, historyIndex + 1);
+      newHistory.push(JSON.parse(JSON.stringify(newFormulario)));
+
+      // Limitar o histórico a 50 estados
+      if (newHistory.length > 50) {
+        newHistory.shift();
+        return newHistory;
+      }
+      return newHistory;
+    });
+
+    setHistoryIndex(prev => Math.min(prev + 1, 49));
+  }, [historyIndex]);
+
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
+
+  const handleUndo = useCallback(() => {
+    if (!canUndo) return;
+
+    isUndoRedoOperation.current = true;
+    const previousState = history[historyIndex - 1];
+    setFormulario(previousState);
+    setHistoryIndex(prev => prev - 1);
+
+    setTimeout(() => {
+      isUndoRedoOperation.current = false;
+    }, 100);
+  }, [canUndo, history, historyIndex]);
+
+  const handleRedo = useCallback(() => {
+    if (!canRedo) return;
+
+    isUndoRedoOperation.current = true;
+    const nextState = history[historyIndex + 1];
+    setFormulario(nextState);
+    setHistoryIndex(prev => prev + 1);
+
+    setTimeout(() => {
+      isUndoRedoOperation.current = false;
+    }, 100);
+  }, [canRedo, history, historyIndex]);
 
   // --- Inicializa formulário em modo edição ---
   useEffect(() => {
@@ -96,21 +154,26 @@ export default function FormularioEditor() {
 
   // --- campos simples ---
   const setTitulo = useCallback((value) => {
-    setFormulario(prev => ({
-      ...prev,
+    const newFormulario = {
+      ...formulario,
       titulo: value
-    }));
+    };
+    setFormulario(newFormulario);
+    saveStateToHistory(newFormulario);
+
     if (value.trim() && errosGeral.some(erro => erro.includes('Título'))) {
       setErrosGeral(prev => prev.filter(erro => !erro.includes('Título')));
     }
-  }, [errosGeral]);
+  }, [formulario, errosGeral, saveStateToHistory]);
 
   const setDescricao = useCallback((value) => {
-    setFormulario(prev => ({
-      ...prev,
+    const newFormulario = {
+      ...formulario,
       descricao: value
-    }));
-  }, []);
+    };
+    setFormulario(newFormulario);
+    saveStateToHistory(newFormulario);
+  }, [formulario, saveStateToHistory]);
 
   // --- adicionar pergunta (nova) ---
   const onAddPergunta = useCallback(() => {
@@ -122,15 +185,18 @@ export default function FormularioEditor() {
       isNova: true
     };
 
-    setFormulario(prev => ({
-      ...prev,
-      perguntas: [...prev.perguntas, novaPergunta]
-    }));
+    const newFormulario = {
+      ...formulario,
+      perguntas: [...formulario.perguntas, novaPergunta]
+    };
+
+    setFormulario(newFormulario);
+    saveStateToHistory(newFormulario);
 
     if (errosGeral.some(erro => erro.includes('pelo menos uma pergunta'))) {
       setErrosGeral(prev => prev.filter(erro => !erro.includes('pelo menos uma pergunta')));
     }
-  }, [errosGeral]);
+  }, [formulario, errosGeral, saveStateToHistory]);
 
   // --- deletar pergunta ---
   const onDeletePergunta = useCallback((perguntaId) => {
@@ -139,10 +205,13 @@ export default function FormularioEditor() {
   }, []);
 
   const handleConfirmDelete = useCallback(() => {
-    setFormulario(prev => ({
-      ...prev,
-      perguntas: prev.perguntas.filter(pergunta => pergunta.id !== perguntaIdToDelete)
-    }));
+    const newFormulario = {
+      ...formulario,
+      perguntas: formulario.perguntas.filter(pergunta => pergunta.id !== perguntaIdToDelete)
+    };
+
+    setFormulario(newFormulario);
+    saveStateToHistory(newFormulario);
 
     setErros(prevErros => {
       const novosErros = { ...prevErros };
@@ -159,7 +228,7 @@ export default function FormularioEditor() {
 
     setIsConfirmOpenPergunta(false);
     setPerguntaIdToDelete(null);
-  }, [perguntaIdToDelete]);
+  }, [formulario, perguntaIdToDelete, saveStateToHistory]);
 
   // --- mudanças em uma pergunta ---
   const onChangePergunta = useCallback((perguntaId, campo, valor) => {
@@ -361,12 +430,6 @@ export default function FormularioEditor() {
     try {
       setLoading(true);
 
-      console.log('Dados enviados:', {
-        isEditMode,
-        formularioId: formulario.id,
-        idFormularioVersaoAntiga: formularioFinal.idFormularioVersaoAntiga,
-        formularioCompleto: formularioFinal
-      });
 
       await createForm(formularioFinal);
       toast.success(isEditMode ? 'Formulário atualizado com sucesso!' : 'Formulário criado com sucesso!');
@@ -377,7 +440,6 @@ export default function FormularioEditor() {
       navigate('/formularios');
 
     } catch (error) {
-      console.error('Erro ao salvar formulário:', error);
       const message = error?.response?.data?.message ||
         error?.message ||
         `Erro ao ${isEditMode ? 'atualizar' : 'criar'} formulário`;
@@ -401,10 +463,128 @@ export default function FormularioEditor() {
     navigate('/formularios');
   }, [formulario, navigate]);
 
+  // --- liberar formulário para uso ---
+  const onReleaseForm = useCallback(async () => {
+    if (!formulario.id && !formulario.idFormularioVersaoAntiga) {
+      toast.error('É necessário salvar o formulário antes de liberá-lo para uso.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const formId = formulario.id || formulario.idFormularioVersaoAntiga;
+      await releaseFormForUse(formId);
+      toast.success('Formulário liberado para uso com sucesso!');
+
+      // Atualizar o estado local do formulário
+      setFormulario(prev => ({
+        ...prev,
+        liberadoParaUso: true
+      }));
+    } catch (error) {
+      const message = error?.response?.data?.message || error?.message || 'Erro ao liberar formulário para uso';
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [formulario.id, formulario.idFormularioVersaoAntiga]);
+
+  // --- salvar e liberar ---
+  const onSaveAndRelease = useCallback(async () => {
+    setErros({});
+    setErrosGeral([]);
+
+    if (!checkFormulario()) {
+      toast.error('Corrija os erros antes de salvar e liberar.');
+      return;
+    }
+
+    const newPerguntas = setPerguntasPosicao();
+
+    const formularioFinal = {
+      ...formulario,
+      perguntas: newPerguntas,
+      versao: formulario.versao,
+      liberadoParaUso: false, // Will be set to true after release
+      editavel: true,
+      especialidade: formulario.especialidade || 'GINECOLOGIA',
+    };
+
+    if (isEditMode && formulario.id) {
+      formularioFinal.idFormularioVersaoAntiga = formulario.id;
+    }
+
+    try {
+      setLoading(true);
+
+      // First save the form
+      const savedForm = await createForm(formularioFinal);
+
+      // Get the form ID from the response or use existing ID
+      const formId = savedForm?.id || formulario.id || formulario.idFormularioVersaoAntiga;
+
+      if (!formId) {
+        toast.error('Erro ao obter ID do formulário para liberação.');
+        return;
+      }
+
+      // Then release it
+      await releaseFormForUse(formId);
+
+      toast.success(isEditMode ? 'Formulário atualizado e liberado com sucesso!' : 'Formulário criado e liberado com sucesso!');
+
+      // Update local state
+      setFormulario(prev => ({
+        ...prev,
+        liberadoParaUso: true
+      }));
+
+      navigate('/formularios');
+
+    } catch (error) {
+      const message = error?.response?.data?.message ||
+        error?.message ||
+        `Erro ao ${isEditMode ? 'atualizar' : 'criar'} e liberar formulário`;
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [formulario, isEditMode, checkFormulario, setPerguntasPosicao, navigate]);
+
   const getTipoLabel = (tipoValue) => {
     const tipo = tiposPergunta.find(t => t.value === tipoValue);
     return tipo ? tipo.label : tipoValue;
   };
+
+  // --- Inicializar histórico quando formulário mudar ---
+  useEffect(() => {
+    if (formulario.titulo || formulario.descricao || formulario.perguntas.length > 0) {
+      if (history.length === 0) {
+        // Inicializar histórico com estado atual
+        const initialState = JSON.parse(JSON.stringify(formulario));
+        setHistory([initialState]);
+        setHistoryIndex(0);
+      }
+    }
+  }, [formulario, history.length]);
+
+  // Adicionar atalhos de teclado
+  useEffect(() => {
+    const handleKeydown = (event) => {
+      if (event.ctrlKey || event.metaKey) {
+        if (event.key === 'z' && !event.shiftKey) {
+          event.preventDefault();
+          handleUndo();
+        } else if ((event.key === 'y') || (event.key === 'z' && event.shiftKey)) {
+          event.preventDefault();
+          handleRedo();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeydown);
+    return () => document.removeEventListener('keydown', handleKeydown);
+  }, [handleUndo, handleRedo]);
 
   // --- UI render ---
   return (
@@ -430,7 +610,32 @@ export default function FormularioEditor() {
       >
         <div className="flex flex-row gap-2">
           <img src={rosaLogo} alt="Logo Rosa RFCC" className="h-8 mr-4 self-center" />
-          <ButtonPrimaryDropdown>Exportar Dados</ButtonPrimaryDropdown>
+
+          {/* Botões de Undo/Redo */}
+          <div className="flex flex-row gap-1">
+            <IconButton
+              onClick={handleUndo}
+              disabled={!canUndo || loading}
+              aria-label="Desfazer (Ctrl+Z)"
+              title="Desfazer (Ctrl+Z)"
+            >
+              <Undo2
+                size={18}
+                className={`${!canUndo || loading ? 'text-gray-300' : 'text-redfemActionPink hover:text-redfemDarkPink'}`}
+              />
+            </IconButton>
+            <IconButton
+              onClick={handleRedo}
+              disabled={!canRedo || loading}
+              aria-label="Refazer (Ctrl+Y)"
+              title="Refazer (Ctrl+Y)"
+            >
+              <Redo2
+                size={18}
+                className={`${!canRedo || loading ? 'text-gray-300' : 'text-redfemActionPink hover:text-redfemDarkPink'}`}
+              />
+            </IconButton>
+          </div>
         </div>
         <div className="flex flex-row gap-2">
           <ButtonSecondary
@@ -439,12 +644,14 @@ export default function FormularioEditor() {
           >
             Descartar
           </ButtonSecondary>
-          <ButtonPrimary
-            onClick={onSave}
+          <SaveReleaseDropdown
+            onSave={onSave}
+            onSaveAndRelease={onSaveAndRelease}
             disabled={loading}
-          >
-            {loading ? 'Salvando...' : (isEditMode ? 'Atualizar' : 'Salvar')}
-          </ButtonPrimary>
+            loading={loading}
+            isReleased={formulario.liberadoParaUso}
+            releasePermissionKey="formularios"
+          />
         </div>
       </div>
 

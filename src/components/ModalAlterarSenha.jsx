@@ -67,7 +67,6 @@ export default function ModalAlterarSenha({ isOpen, onClose, userData }) {
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
           <div className="flex items-center gap-3">
-            <Key className="text-redfemActionPink" size={24} />
             <h2 className="text-xl font-semibold text-gray-800">
               Alterar Senha
             </h2>
@@ -83,12 +82,6 @@ export default function ModalAlterarSenha({ isOpen, onClose, userData }) {
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-6">
-          {/* User Info */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">Alterando senha para:</p>
-            <p className="font-semibold text-gray-800">{userData.nome}</p>
-            <p className="text-sm text-gray-500">{userData.email}</p>
-          </div>
 
           {/* New Password */}
           <div className="mb-4">
