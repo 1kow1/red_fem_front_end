@@ -165,11 +165,48 @@ export default function Ajuda() {
 
           <h4 className="text-md font-semibold mb-3">Liberar para Uso</h4>
           <p className="mb-2">Formulários devem ser liberados para serem associados a consultas:</p>
-          <ol className="list-decimal list-inside space-y-2">
+          <ol className="list-decimal list-inside space-y-2 mb-4">
             <li>Teste o formulário completamente</li>
-            <li>Clique em "Liberar para Uso"</li>
+            <li>Clique em "Salvar e Liberar" no menu dropdown</li>
             <li>Confirme a liberação</li>
           </ol>
+
+          <h4 className="text-md font-semibold mb-3">Desfazer e Refazer (Undo/Redo)</h4>
+          <p className="mb-2">Durante a criação e edição de formulários, você pode desfazer ou refazer alterações:</p>
+
+          <div className="mb-4">
+            <p className="font-medium mb-2">Botões na Interface:</p>
+            <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
+              <li><strong>Desfazer:</strong> Localizado ao lado do logo, reverte a última ação</li>
+              <li><strong>Refazer:</strong> Localizado ao lado do botão desfazer, reaplica ação desfeita</li>
+              <li>Botões ficam desabilitados quando não há ações disponíveis</li>
+            </ul>
+          </div>
+
+          <div className="mb-4">
+            <p className="font-medium mb-2">Atalhos de Teclado:</p>
+            <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
+              <li><strong>Ctrl+Z</strong> (ou Cmd+Z no Mac): Desfazer última ação</li>
+              <li><strong>Ctrl+Y</strong> (ou Cmd+Y no Mac): Refazer ação desfeita</li>
+              <li><strong>Ctrl+Shift+Z</strong> (ou Cmd+Shift+Z no Mac): Refazer (alternativo)</li>
+            </ul>
+          </div>
+
+          <div className="mb-4">
+            <p className="font-medium mb-2">Ações Rastreadas:</p>
+            <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
+              <li>Alterações no título e descrição do formulário</li>
+              <li>Adição e remoção de perguntas</li>
+              <li>Modificação de perguntas e alternativas</li>
+              <li>Reordenação de perguntas</li>
+            </ul>
+          </div>
+
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+            <p className="text-blue-800 text-sm">
+              <strong>💡 Dica:</strong> O sistema armazena até 50 ações no histórico. Use os atalhos de teclado para maior agilidade na edição.
+            </p>
+          </div>
         </div>
       )
     },

@@ -612,29 +612,41 @@ export default function FormularioEditor() {
           <img src={rosaLogo} alt="Logo Rosa RFCC" className="h-8 mr-4 self-center" />
 
           {/* Botões de Undo/Redo */}
-          <div className="flex flex-row gap-1">
-            <IconButton
+          <div className="flex flex-row gap-2 ml-4">
+            <button
               onClick={handleUndo}
               disabled={!canUndo || loading}
-              aria-label="Desfazer (Ctrl+Z)"
-              title="Desfazer (Ctrl+Z)"
+              aria-label="Desfazer - Ctrl+Z ou Cmd+Z"
+              title="Desfazer - Ctrl+Z ou Cmd+Z"
+              className={`
+                flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200
+                border border-gray-300 bg-white shadow-sm
+                ${!canUndo || loading
+                  ? 'cursor-not-allowed opacity-50 text-gray-400'
+                  : 'hover:bg-redfemHoverPink hover:border-redfemActionPink text-redfemActionPink hover:shadow-md'
+                }
+              `}
             >
-              <Undo2
-                size={18}
-                className={`${!canUndo || loading ? 'text-gray-300' : 'text-redfemActionPink hover:text-redfemDarkPink'}`}
-              />
-            </IconButton>
-            <IconButton
+              <Undo2 size={16} />
+              <span className="text-sm font-medium hidden sm:inline">Desfazer</span>
+            </button>
+            <button
               onClick={handleRedo}
               disabled={!canRedo || loading}
-              aria-label="Refazer (Ctrl+Y)"
-              title="Refazer (Ctrl+Y)"
+              aria-label="Refazer - Ctrl+Y, Cmd+Y ou Ctrl+Shift+Z"
+              title="Refazer - Ctrl+Y, Cmd+Y ou Ctrl+Shift+Z"
+              className={`
+                flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200
+                border border-gray-300 bg-white shadow-sm
+                ${!canRedo || loading
+                  ? 'cursor-not-allowed opacity-50 text-gray-400'
+                  : 'hover:bg-redfemHoverPink hover:border-redfemActionPink text-redfemActionPink hover:shadow-md'
+                }
+              `}
             >
-              <Redo2
-                size={18}
-                className={`${!canRedo || loading ? 'text-gray-300' : 'text-redfemActionPink hover:text-redfemDarkPink'}`}
-              />
-            </IconButton>
+              <Redo2 size={16} />
+              <span className="text-sm font-medium hidden sm:inline">Refazer</span>
+            </button>
           </div>
         </div>
         <div className="flex flex-row gap-2">
