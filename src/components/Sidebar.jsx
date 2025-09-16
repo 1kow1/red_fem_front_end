@@ -69,9 +69,11 @@ export default function Sidebar() {
 
           <div>
             <ul className="flex flex-col gap-1">
-              <PageLink to={'/consultas'} text={'Consultas'}>
-                <CalendarIcon color={'black'} />
-              </PageLink>
+              {canUseComponent(user?.cargo, 'sidebar', 'consultas') && (
+                <PageLink to={'/consultas'} text={'Consultas'}>
+                  <CalendarIcon color={'black'} />
+                </PageLink>
+              )}
 
               {canUseComponent(user?.cargo, 'sidebar', 'formularios') && (
                 <PageLink to={'/formularios'} text={'Formulários'}>
@@ -79,9 +81,11 @@ export default function Sidebar() {
                 </PageLink>
               )}
 
-              <PageLink to={'/pacientes'} text={'Pacientes'}>
-                <PacientIcon color={'black'} />
-              </PageLink>
+              {canUseComponent(user?.cargo, 'sidebar', 'pacientes') && (
+                <PageLink to={'/pacientes'} text={'Pacientes'}>
+                  <PacientIcon color={'black'} />
+                </PageLink>
+              )}
             </ul>
           </div>
         </div>

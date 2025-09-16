@@ -39,10 +39,7 @@ export const getConsultas = async (filters = {}) => {
       pacientesNomes.forEach(nome => params.append('pacientesNomes', nome));
     }
 
-    // Access control: Doctors can only see their own appointments
-    if (userCargo === 'MEDICO' && currentUserId) {
-      params.append('medicoIds', currentUserId);
-    } else if (medicoIds?.length) {
+    if (medicoIds?.length) {
       medicoIds.forEach(id => params.append('medicoIds', id));
     }
     if (ativo?.length) {

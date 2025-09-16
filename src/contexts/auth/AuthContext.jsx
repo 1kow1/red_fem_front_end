@@ -19,6 +19,7 @@ export function AuthProvider({ children }) {
       if (status >= 200 && status < 300) {
         const userData = data && (data.user || data.usuario || data) ? (data.user || data.usuario || data) : { email };
 
+
         // Validar cargo se existir
         if (userData.cargo && !isValidCargo(userData.cargo)) {
           console.warn('Cargo inválido recebido do backend:', userData.cargo);
@@ -71,6 +72,7 @@ export function AuthProvider({ children }) {
         if (res?.status >= 200 && res?.status < 300) {
           // if server sends back user info use it, otherwise keep user null
           const serverUser = res.data && (res.data.user || res.data.usuario || res.data) ? (res.data.user || res.data.usuario || res.data) : null;
+
 
           // Validar cargo se existir
           if (serverUser?.cargo && !isValidCargo(serverUser.cargo)) {
