@@ -113,11 +113,16 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
   // Função para verificar se houve mudanças no perfil
   const hasProfileChanges = () => {
     if (!userData) return false;
-    return (
-      formData.nome !== (userData.nome || '') ||
-      formData.email !== (userData.email || '') ||
-      formData.telefone !== (userData.telefone || '')
-    );
+
+    const changes = {
+      nome: formData.nome !== (userData.nome || ''),
+      email: formData.email !== (userData.email || ''),
+      telefone: formData.telefone !== (userData.telefone || '')
+    };
+
+    const hasChanges = changes.nome || changes.email || changes.telefone;
+
+    return hasChanges;
   };
 
   const handleSubmit = async (e) => {
@@ -131,7 +136,6 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
 
       // Verificar se há mudanças no perfil e só fazer PUT se necessário
       const needsProfileUpdate = hasProfileChanges();
-
       if (needsProfileUpdate) {
         const profileResponse = await updateCurrentUserProfile(formData);
 
@@ -200,8 +204,6 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
       showSuccess(successMessage);
       onClose();
     } catch (error) {
-      console.error('Submit error:', error);
-
       // Tentar extrair mensagem mais específica do erro
       let errorMessage = 'Erro ao atualizar perfil';
 

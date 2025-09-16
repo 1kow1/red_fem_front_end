@@ -99,7 +99,7 @@ export default function Consultas() {
       const adaptedData = adaptConsultaForApi(data);
       await createConsulta(adaptedData);
       toast.success("Consulta criada com sucesso!");
-      fetchConsultas();
+      fetchConsultas({ status: ["PENDENTE"] }); // Aplicar filtros padrão
       setIsFormOpen(false);
     } catch (error) {
       toast.error("Erro ao criar consulta");
@@ -112,7 +112,7 @@ export default function Consultas() {
       const adaptedData = adaptConsultaForApi(data);
       await editConsulta(id, adaptedData);
       toast.success("Consulta atualizada com sucesso!");
-      fetchConsultas();
+      fetchConsultas({ status: ["PENDENTE"] }); // Aplicar filtros padrão
       setIsFormOpen(false);
     } catch (error) {
       toast.error("Erro ao editar consulta");
@@ -142,7 +142,7 @@ export default function Consultas() {
       const acao = row._ativoRaw ? 'cancelada' : 'reativada';
       toast.success(`Consulta ${acao} com sucesso!`);
 
-      fetchConsultas();
+      fetchConsultas({ status: ["PENDENTE"] }); // Aplicar filtros padrão
 
     } catch (error) {
       toast.error("Erro ao alterar status da consulta: " + error.message);
@@ -158,7 +158,7 @@ export default function Consultas() {
   // Callback quando associação é bem-sucedida
   const handleAssociacaoSuccess = () => {
     // Recarregar consultas para mostrar a nova execução
-    fetchConsultas();
+    fetchConsultas({ status: ["PENDENTE"] }); // Aplicar filtros padrão
     setIsModalAssociarOpen(false);
     setConsultaParaAssociar(null);
   };
@@ -184,7 +184,7 @@ export default function Consultas() {
       toast.success("Associação removida com sucesso!");
 
       // Recarregar consultas para atualizar a interface
-      fetchConsultas();
+      fetchConsultas({ status: ["PENDENTE"] }); // Aplicar filtros padrão
 
     } catch (error) {
       toast.error("Erro ao remover associação");

@@ -70,7 +70,7 @@ export default function Usuarios() {
   const handleCreateUser = async (formData) => {
     try {
       await createUser(formData);
-      await fetchUsers();
+      await fetchUsers({ ativos: [true] }); // Aplicar filtros padrão
       setIsFormOpen(false);
       toast.success("Usuário criado com sucesso.");
     } catch (err) {
@@ -98,7 +98,7 @@ export default function Usuarios() {
     });
 
     await editUser(payload.id, payload);
-    await fetchUsers();
+    await fetchUsers({ ativos: [true] }); // Aplicar filtros padrão
     toast.success("Usuário Atualizado!");
     setIsFormOpen(false);
     setEditInitialData(null);
@@ -113,7 +113,7 @@ export default function Usuarios() {
   const handleConfirmToggle = async () => {
     try {
       await toggleUser(row.id);
-      await fetchUsers();
+      await fetchUsers({ ativos: [true] }); // Aplicar filtros padrão
       toast.success("Usuário atualizado com sucesso!");
     }
     catch (err) {

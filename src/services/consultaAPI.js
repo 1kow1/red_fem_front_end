@@ -94,7 +94,18 @@ export const toggleConsulta = async (id) => {
     const response = await api.patch(`/consultas/${id}`);
     return response.data;
   } catch (error) {
-    throw new Error("Failed to toggle consulta: " + error);
+    // Extrair mensagem mais específica do erro
+    let errorMessage = 'Erro ao alterar status da consulta';
+
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error;
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    throw new Error(errorMessage);
   }
 };
 

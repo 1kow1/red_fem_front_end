@@ -75,7 +75,7 @@ export default function Pacientes() {
     try {
       const payload = adaptPacienteForApi(formData);
       await createPaciente(payload);
-      await fetchPacientes();
+      await fetchPacientes({ ativo: [true] }); // Aplicar filtros padrão
       setIsFormOpen(false);
       toast.success("Paciente criado com sucesso.");
     } catch (err) {
@@ -100,7 +100,7 @@ export default function Pacientes() {
     const payload = adaptPacienteForApi({ ...(editInitialData || {}), ...formData });
 
     await editPaciente(payload.id, payload);
-    await fetchPacientes();
+    await fetchPacientes({ ativo: [true] }); // Aplicar filtros padrão
     setIsFormOpen(false);
     setEditInitialData(null);
     toast.success("Paciente Atualizado!")
@@ -115,7 +115,7 @@ export default function Pacientes() {
   const handleConfirmToggle = async () => {
     try {
       await togglePaciente(row.id);
-      await fetchPacientes();
+      await fetchPacientes({ ativo: [true] }); // Aplicar filtros padrão
       toast.success("Paciente Atualizado!")
     } catch (err) {
       toast.error("Erro ao alternar status ativo:", err)

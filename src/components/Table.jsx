@@ -61,7 +61,7 @@ export default function Table({
   }, [data]);
 
   if (!data || data.length === 0) {
-    return <div className="text-center py-8 text-muted-foreground">No data available</div>
+    return <div className="text-center py-8 text-muted-foreground">Nenhum dado disponível</div>
   }
 
   const headers = Object.keys(data[0])

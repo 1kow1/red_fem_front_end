@@ -62,17 +62,18 @@ export default function DataFrame({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filteredData, setFilteredData] = useState(data);
   const [filters, setFilters] = useState(defaultFilters);
-  const [hasInitialized, setHasInitialized] = useState(false);
-  const [shouldApplyDefaultFilters, setShouldApplyDefaultFilters] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
 
   // Função para aplicar filtros via backend
-  const applyBackendFilters = useCallback(async () => {
+  const applyBackendFilters = useCallback(async (showLoading = false) => {
     if (!useBackendFilters || !fetchData) {
       return;
     }
 
-    setIsFilterLoading(true);
+    if (showLoading) {
+      setIsFilterLoading(true);
+    }
 
     // Converter filtros do frontend para o formato do backend
     const backendFilters = {};
@@ -106,7 +107,9 @@ export default function DataFrame({
     try {
       await fetchData(backendFilters);
     } finally {
-      setIsFilterLoading(false);
+      if (showLoading) {
+        setIsFilterLoading(false);
+      }
     }
   }, [useBackendFilters, fetchData, filters, searchQuery, avaiableFilters]);
 
@@ -168,53 +171,52 @@ export default function DataFrame({
     setFilteredData(newFilteredData);
   }, [data, filters, useBackendFilters, avaiableFilters]);
 
-  // Effect para detectar quando defaultFilters deve ser aplicado
-  useEffect(() => {
-    if (!hasInitialized && Object.keys(defaultFilters).length > 0) {
-      setShouldApplyDefaultFilters(true);
-      setHasInitialized(true);
-    } else if (!hasInitialized) {
-      setHasInitialized(true);
-    }
-  }, [defaultFilters, hasInitialized]);
-
-  // Effect para aplicar filtros padrão quando necessário
-  useEffect(() => {
-    if (shouldApplyDefaultFilters && useBackendFilters && fetchData) {
-      setFilters(defaultFilters);
-      const timer = setTimeout(() => {
-        applyBackendFilters();
-        setShouldApplyDefaultFilters(false);
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-  }, [shouldApplyDefaultFilters, useBackendFilters, fetchData, defaultFilters, applyBackendFilters]);
-
-  // Effect para aplicar filtros do backend quando mudarem
+  // Effect consolidado para gerenciar filtros
   useEffect(() => {
     if (!useBackendFilters || !fetchData) return;
-    if (!hasInitialized) return; // Não aplicar até que a inicialização seja feita
 
     const hasFilters = Object.keys(filters).length > 0;
     const hasSearch = searchQuery && searchQuery.trim() !== '';
 
+    // Para carregamento inicial com filtros padrão
+    if (isInitialLoad && hasFilters) {
+      // Aplicar filtros padrão imediatamente sem debounce ou loading
+      applyBackendFilters(false); // Sem loading para inicial
+      setIsInitialLoad(false);
+      return;
+    }
+
+    // Para carregamento inicial sem filtros
+    if (isInitialLoad && !hasFilters) {
+      setIsInitialLoad(false);
+      return;
+    }
+
+    // Para mudanças subsequentes do usuário
     if (hasFilters || hasSearch) {
-      // Mostrar loading imediatamente quando começar a digitar/filtrar
+      // Mostrar loading imediatamente para ações do usuário
       setIsFilterLoading(true);
 
       const timeoutId = setTimeout(() => {
-        applyBackendFilters();
-      }, 600); // Debounce reduzido para 600ms para melhor UX com loading
+        applyBackendFilters(true); // Com loading para mudanças do usuário
+      }, 600);
 
       return () => {
         clearTimeout(timeoutId);
-        // Se o timeout for cancelado (usuário ainda digitando), manter loading
       };
     } else {
-      // Se não há filtros, remover loading
-      setIsFilterLoading(false);
+      // Se não há filtros, fazer nova busca sem filtros
+      setIsFilterLoading(true);
+
+      const timeoutId = setTimeout(() => {
+        applyBackendFilters(true);
+      }, 600);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
-  }, [JSON.stringify(filters), searchQuery, useBackendFilters, dataType, hasInitialized]);
+  }, [JSON.stringify(filters), searchQuery, useBackendFilters, isInitialLoad, applyBackendFilters, fetchData]);
 
   return (
     <>
@@ -224,7 +226,7 @@ export default function DataFrame({
             placeholder={`${title.toLowerCase()}...`}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
-            fetchData={fetchData}
+            fetchData={() => applyBackendFilters(true)}
             onClickFilter={() => setIsFilterOpen(!isFilterOpen)}
           />
           <ButtonPrimary onClick={() => onAddRow?.()}>
