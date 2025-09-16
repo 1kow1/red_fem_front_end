@@ -102,7 +102,8 @@ export const createPaciente = async (data) => {
     const response = await api.post("/pacientes", cleanPayload(data));
     return response.data;
   } catch (error) {
-    throw new Error("Failed to create paciente: " + error);
+    // Preservar o erro original para que o tratamento no componente funcione
+    throw error;
   }
 };
 

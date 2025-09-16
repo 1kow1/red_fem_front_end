@@ -106,10 +106,12 @@ export default function Pacientes() {
       }
 
       // Verificar se é erro de CPF duplicado
-      if (errorMessage.toLowerCase().includes('cpf') &&
+      if ((errorMessage.toLowerCase().includes('cpf') &&
           (errorMessage.toLowerCase().includes('já existe') ||
            errorMessage.toLowerCase().includes('duplicado') ||
-           errorMessage.toLowerCase().includes('unique'))) {
+           errorMessage.toLowerCase().includes('unique') ||
+           errorMessage.toLowerCase().includes('already exists'))) ||
+          errorMessage.toLowerCase() === 'cpf already exists') {
         toast.error("Este CPF já está cadastrado no sistema. Utilize um CPF diferente.");
         return;
       }
