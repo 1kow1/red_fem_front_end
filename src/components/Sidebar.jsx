@@ -41,7 +41,6 @@ export default function Sidebar() {
       toast.success('Logout realizado com sucesso!');
       navigate('/login');
     } catch (error) {
-      console.error('Erro no logout:', error);
       toast.error('Erro ao fazer logout');
     }
   };

@@ -155,7 +155,6 @@ export default function SearchAsyncSelect({
       // implementar "forms" se depois precisar...
       return { mapped: [], total: 0 };
     } catch (error) {
-      console.error("Erro ao buscar dados:", error);
       return { mapped: [], total: 0 };
     } finally {
       setLoading(false);

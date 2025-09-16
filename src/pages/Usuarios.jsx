@@ -11,6 +11,7 @@ import { usePagination } from "../hooks/usePagination";
 import { toast } from "react-toastify";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import ModalAlterarSenha from "../components/ModalAlterarSenha";
+import { handleApiError } from "../utils/errorHandler";
 
 export default function Usuarios() {
   const [users, setUsers] = useState([]);
@@ -73,8 +74,6 @@ export default function Usuarios() {
       setIsFormOpen(false);
       toast.success("Usuário criado com sucesso.");
     } catch (err) {
-      console.error("handleCreateUser error:", err);
-
       // Se é erro de validação do Yup (client-side)
       if (err.inner && Array.isArray(err.inner)) {
         const errors = {};
@@ -85,31 +84,9 @@ export default function Usuarios() {
         return;
       }
 
-      // Se é erro do backend (HTTP)
-      const errorMessage = err?.response?.data?.message ||
-                          err?.response?.data?.error ||
-                          err?.message ||
-                          "Erro desconhecido ao criar usuário.";
-
-      // Verificar se é erro de email duplicado
-      if (errorMessage.toLowerCase().includes('email') &&
-          (errorMessage.toLowerCase().includes('já existe') ||
-           errorMessage.toLowerCase().includes('duplicado') ||
-           errorMessage.toLowerCase().includes('unique'))) {
-        toast.error("Este email já está cadastrado no sistema. Utilize um email diferente.");
-        return;
-      }
-
-      // Verificar se é erro de CRM duplicado
-      if (errorMessage.toLowerCase().includes('crm') &&
-          (errorMessage.toLowerCase().includes('já existe') ||
-           errorMessage.toLowerCase().includes('duplicado') ||
-           errorMessage.toLowerCase().includes('unique'))) {
-        toast.error("Este CRM já está cadastrado no sistema. Utilize um CRM diferente.");
-        return;
-      }
-
-      toast.error(errorMessage);
+      // Usar o handler centralizado para erros da API
+      const errorResult = handleApiError(err);
+      toast.error(errorResult.message);
     }
   };
 

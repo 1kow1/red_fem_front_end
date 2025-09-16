@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import ModalRelatorio from "../components/ModalRelatorio";
 import { filterConfigs } from "../config/filterConfig";
+import { handleApiError } from "../utils/errorHandler";
 
 export default function Pacientes() {
   const navigate = useNavigate();
@@ -78,8 +79,6 @@ export default function Pacientes() {
       setIsFormOpen(false);
       toast.success("Paciente criado com sucesso.");
     } catch (err) {
-      console.error("handleCreatePaciente error:", err);
-
       // Se é erro de validação do Yup (client-side)
       if (err.inner && Array.isArray(err.inner)) {
         const errors = {};
@@ -90,33 +89,9 @@ export default function Pacientes() {
         return;
       }
 
-      // Se é erro do backend (HTTP)
-      const errorMessage = err?.response?.data?.message ||
-                          err?.response?.data?.error ||
-                          err?.message ||
-                          "Erro desconhecido ao criar paciente.";
-
-      // Verificar se é erro de email duplicado
-      if (errorMessage.toLowerCase().includes('email') &&
-          (errorMessage.toLowerCase().includes('já existe') ||
-           errorMessage.toLowerCase().includes('duplicado') ||
-           errorMessage.toLowerCase().includes('unique'))) {
-        toast.error("Este email já está cadastrado no sistema. Utilize um email diferente.");
-        return;
-      }
-
-      // Verificar se é erro de CPF duplicado
-      if ((errorMessage.toLowerCase().includes('cpf') &&
-          (errorMessage.toLowerCase().includes('já existe') ||
-           errorMessage.toLowerCase().includes('duplicado') ||
-           errorMessage.toLowerCase().includes('unique') ||
-           errorMessage.toLowerCase().includes('already exists'))) ||
-          errorMessage.toLowerCase() === 'cpf already exists') {
-        toast.error("Este CPF já está cadastrado no sistema. Utilize um CPF diferente.");
-        return;
-      }
-
-      toast.error(errorMessage);
+      // Usar o handler centralizado para erros da API
+      const errorResult = handleApiError(err);
+      toast.error(errorResult.message);
     }
   };
 

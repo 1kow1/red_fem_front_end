@@ -6,8 +6,10 @@ export const ERROR_MESSAGES = {
   'Token has expired or already been used': 'Este link já foi utilizado',
 
   // Usuários
-  'Email already exists': 'Este email já está sendo usado',
-  'CRM already exist.': 'Este CRM já está cadastrado',
+  'Email already exists': 'Este email já está cadastrado no sistema. Utilize um email diferente.',
+  'E-mail already exist.': 'Este email já está cadastrado no sistema. Utilize um email diferente.',
+  'Crm already exists': 'Este CRM já está cadastrado no sistema. Utilize um CRM diferente.',
+  'CRM already exist.': 'Este CRM já está cadastrado no sistema. Utilize um CRM diferente.',
   'User not found': 'Usuário não encontrado',
   'Especialidade cannot be null': 'Especialidade é obrigatória para médicos',
   'Crm cannot be null': 'CRM é obrigatório para médicos',
@@ -17,7 +19,8 @@ export const ERROR_MESSAGES = {
 
   // Pacientes
   'Patient not found': 'Paciente não encontrado',
-  'Patient already exists': 'Paciente já cadastrado',
+  'Patient already exists': 'Este paciente já está cadastrado no sistema.',
+  'Cpf already exists': 'Este CPF já está cadastrado no sistema. Utilize um CPF diferente.',
 
   // Formulários
   'Form not found': 'Formulário não encontrado',

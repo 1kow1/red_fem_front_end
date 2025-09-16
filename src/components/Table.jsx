@@ -51,7 +51,8 @@ export default function Table({
           const newConfig = configGenerator.getConfig(updated, callbacks, userCargo);
           setPopupConfig(newConfig);
         }
-      } catch (err) {
+      } catch {
+        // Erro na configuração será ignorado
       }
     } else {
       handleClosePopup();
@@ -115,7 +116,8 @@ export default function Table({
       setSelectedRowData(row);
       setPopupConfig(config);
       setIsPopupOpen(true);
-    } catch (error) {
+    } catch {
+      // Erro na configuração será ignorado
     }
   }
 

@@ -5,18 +5,26 @@ import logoClinica from '../assets/logos/rosa-rfcc.png';
 import logoKow from '../assets/logos/logoKow.jpg';
 import { ButtonPrimary } from '../components/Button';
 import { useErrorHandler } from '../hooks/useErrorHandler';
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
+import { usePasswordValidation } from '../hooks/usePasswordValidation';
+import { useErrorHandler as useBackendErrorHandler } from '../utils/errorHandling';
 
 export default function ResetarSenha() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { showError, showSuccess } = useErrorHandler();
+  const { applyFormErrors, extractValidationErrors } = useBackendErrorHandler();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [tokenValid, setTokenValid] = useState(null);
   const [validating, setValidating] = useState(true);
+  const [backendErrors, setBackendErrors] = useState({});
   const token = searchParams.get("token");
+
+  // Validação de senha
+  const { validation, isPasswordValid } = usePasswordValidation(password);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -45,19 +53,24 @@ export default function ResetarSenha() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Limpar erros anteriores
+    setMessage(null);
+    setBackendErrors({});
+
+    // Validação de confirmação de senha
     if (password !== confirmPassword) {
       setMessage("As senhas não coincidem!");
       return;
     }
 
-    if (password.length < 6) {
-      setMessage("A senha deve ter pelo menos 6 caracteres!");
+    // Validação de complexidade da senha
+    if (!isPasswordValid(password)) {
+      setMessage("A senha não atende aos requisitos de complexidade!");
       return;
     }
 
     try {
       setLoading(true);
-      setMessage(null);
       await resetPassword({ token, senha: password });
       showSuccess("Senha alterada com sucesso! Agora você pode fazer login.");
 
@@ -67,7 +80,18 @@ export default function ResetarSenha() {
       }, 2000);
 
     } catch (err) {
-      showError(err);
+      // Tentar extrair erros de validação do backend
+      const validationErrors = extractValidationErrors(err);
+
+      if (Object.keys(validationErrors).length > 0) {
+        setBackendErrors(validationErrors);
+        // Se há erro específico de senha, mostrar
+        if (validationErrors.senha) {
+          setMessage(validationErrors.senha);
+        }
+      } else {
+        showError(err);
+      }
     } finally {
       setLoading(false);
     }
@@ -109,9 +133,20 @@ export default function ResetarSenha() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400"
+                className={`w-full px-3 py-2 border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 ${
+                  backendErrors.senha ? 'border-red-500' : 'border-gray-200'
+                }`}
                 required
-                minLength={6}
+              />
+              {backendErrors.senha && (
+                <div className="text-red-500 text-sm mt-1">
+                  {backendErrors.senha}
+                </div>
+              )}
+              <PasswordStrengthIndicator
+                password={password}
+                showValidation={true}
+                className="mt-2"
               />
             </div>
 

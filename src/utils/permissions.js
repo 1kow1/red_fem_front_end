@@ -55,7 +55,6 @@ export const canAccessPage = (userCargo, page) => {
   const allowedRoles = PERMISSIONS[page];
 
   if (!allowedRoles) {
-    console.warn(`Permissões não definidas para a página: ${page}`);
     return false;
   }
 
@@ -161,13 +160,11 @@ export const canUseComponent = (userCargo, component, action) => {
 
   const componentPerms = COMPONENT_PERMISSIONS[component];
   if (!componentPerms) {
-    console.warn(`Permissões não definidas para o componente: ${component}`);
     return false;
   }
 
   const allowedRoles = componentPerms[action];
   if (!allowedRoles) {
-    console.warn(`Permissões não definidas para a ação: ${component}.${action}`);
     return false;
   }
 

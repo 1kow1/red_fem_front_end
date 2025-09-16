@@ -22,7 +22,6 @@ export function AuthProvider({ children }) {
 
         // Validar cargo se existir
         if (userData.cargo && !isValidCargo(userData.cargo)) {
-          console.warn('Cargo inválido recebido do backend:', userData.cargo);
         }
 
         setUser(userData);
@@ -51,8 +50,8 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await logoutUser();
-    } catch (err) {
-      console.warn("Logout failed", err);
+    } catch {
+      // Erro no logout será ignorado
     } finally {
       setUser(null);
       setIsAuthenticated(false);
@@ -76,7 +75,6 @@ export function AuthProvider({ children }) {
 
           // Validar cargo se existir
           if (serverUser?.cargo && !isValidCargo(serverUser.cargo)) {
-            console.warn('Cargo inválido recebido do backend:', serverUser.cargo);
           }
 
           setUser(serverUser);
@@ -87,7 +85,6 @@ export function AuthProvider({ children }) {
         }
       } catch (err) {
         if (!mounted) return;
-        console.warn("pingProtected error:", err);
         setUser(null);
         setIsAuthenticated(false);
       } finally {

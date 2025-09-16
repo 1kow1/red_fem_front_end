@@ -37,13 +37,7 @@ export default function RoleProtectedRoute({
   const hasRequiredPermission = hasPermission(userCargo, allowedRoles);
 
   if (!hasRequiredPermission) {
-    // Log da tentativa de acesso não autorizado
-    console.warn('Tentativa de acesso não autorizado:', {
-      user: user?.nome || user?.email,
-      cargo: userCargo,
-      allowedRoles,
-      timestamp: new Date().toISOString()
-    });
+    // Acesso negado - usuário não tem permissão
 
     // Determinar página para redirecionamento
     // Primeiro tenta usar redirectTo personalizado, depois fallback, depois 404

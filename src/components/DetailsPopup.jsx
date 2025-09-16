@@ -202,10 +202,6 @@ export default function DetailsPopup({
                           subTable.addButton.onClick(data);
                         } else if (onAssociarFormulario) {
                           onAssociarFormulario(data);
-                        } else {
-                          console.warn(
-                            "Nenhuma callback definida para associar formulário"
-                          );
                         }
                       }}
                       className="flex items-center gap-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg transition-colors"

@@ -47,7 +47,6 @@ export default function Consultas() {
       };
 
       // Debug log para verificar filtros
-      console.log('Filtros sendo enviados:', filtersWithUserContext);
 
       const data = await getConsultas(filtersWithUserContext);
       const consultasList = data.content || data.items || data || [];
@@ -122,11 +121,6 @@ export default function Consultas() {
 
   // Função para cancelar/reativar consulta via PATCH
   const handleToggleConsulta = async (row) => {
-    console.log('🚀 BOTÃO CANCELAR CLICADO!', {
-      id: row.id,
-      ativoAtual: row._ativoRaw,
-      acao: row._ativoRaw ? 'cancelar' : 'reativar'
-    });
 
     try {
       // Se está cancelando a consulta e há execução de formulário associada
@@ -134,30 +128,23 @@ export default function Consultas() {
         const execId = row._execucaoFormulario.id || row._execucaoFormulario._exec?.id;
 
         if (execId) {
-          console.log('🗑️ Deletando execução de formulário associada...', execId);
 
           try {
             await deleteExec(execId);
-            console.log('✅ Execução deletada com sucesso');
           } catch (deleteError) {
-            console.error('❌ Erro ao deletar execução:', deleteError);
             // Continua com o cancelamento mesmo se falhar a exclusão
           }
         }
       }
 
-      console.log('🔄 Chamando toggleConsulta API...');
       const response = await toggleConsulta(row.id);
-      console.log('✅ Toggle response:', response);
 
       const acao = row._ativoRaw ? 'cancelada' : 'reativada';
       toast.success(`Consulta ${acao} com sucesso!`);
 
-      console.log('🔄 Recarregando lista de consultas...');
       fetchConsultas();
 
     } catch (error) {
-      console.error('❌ Erro ao fazer toggle:', error);
       toast.error("Erro ao alterar status da consulta: " + error.message);
     }
   };

@@ -63,6 +63,7 @@ export default function DataFrame({
   const [filteredData, setFilteredData] = useState(data);
   const [filters, setFilters] = useState(defaultFilters);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [shouldApplyDefaultFilters, setShouldApplyDefaultFilters] = useState(false);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
 
   // Função para aplicar filtros via backend
@@ -107,7 +108,7 @@ export default function DataFrame({
     } finally {
       setIsFilterLoading(false);
     }
-  }, [useBackendFilters, fetchData, filters, searchQuery, avaiableFilters, dataType]);
+  }, [useBackendFilters, fetchData, filters, searchQuery, avaiableFilters]);
 
   // Effect para filtragem no frontend (quando useBackendFilters = false)
   useEffect(() => {
@@ -167,13 +168,27 @@ export default function DataFrame({
     setFilteredData(newFilteredData);
   }, [data, filters, useBackendFilters, avaiableFilters]);
 
-  // Effect para aplicar filtros padrão na inicialização
+  // Effect para detectar quando defaultFilters deve ser aplicado
   useEffect(() => {
-    if (!hasInitialized && useBackendFilters && fetchData && Object.keys(defaultFilters).length > 0) {
-      applyBackendFilters();
+    if (!hasInitialized && Object.keys(defaultFilters).length > 0) {
+      setShouldApplyDefaultFilters(true);
+      setHasInitialized(true);
+    } else if (!hasInitialized) {
       setHasInitialized(true);
     }
-  }, [defaultFilters, useBackendFilters, fetchData, hasInitialized]);
+  }, [defaultFilters, hasInitialized]);
+
+  // Effect para aplicar filtros padrão quando necessário
+  useEffect(() => {
+    if (shouldApplyDefaultFilters && useBackendFilters && fetchData) {
+      setFilters(defaultFilters);
+      const timer = setTimeout(() => {
+        applyBackendFilters();
+        setShouldApplyDefaultFilters(false);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldApplyDefaultFilters, useBackendFilters, fetchData, defaultFilters, applyBackendFilters]);
 
   // Effect para aplicar filtros do backend quando mudarem
   useEffect(() => {

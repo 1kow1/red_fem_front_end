@@ -83,12 +83,8 @@ export const getUserById = async (id) => {
 
 // ------------- POST -------------
 export const createUser = async (data) => {
-  try {
-    const response = await api.post("/users", cleanPayload(data));
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to create user: " + error);
-  }
+  const response = await api.post("/users", cleanPayload(data));
+  return response.data;
 };
 
 export const forgotPassword = async (email) => {
@@ -102,12 +98,8 @@ export const forgotPassword = async (email) => {
 
 // ------------- PUT -------------
 export const editUser = async (id, userData) => {
-  try {
-    const response = await api.put(`/users/${id}`, userData);
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to edit user: " + error);
-  }
+  const response = await api.put(`/users/${id}`, userData);
+  return response.data;
 };
 
 // ------------- PATCH -------------

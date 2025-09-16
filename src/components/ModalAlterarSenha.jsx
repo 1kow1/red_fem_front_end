@@ -53,8 +53,7 @@ export default function ModalAlterarSenha({ isOpen, onClose, userData }) {
       await changeUserPassword(userData.id, newPassword);
       toast.success(`Senha do usuário ${userData.nome} alterada com sucesso!`);
       handleClose();
-    } catch (error) {
-      console.error('Erro ao alterar senha:', error);
+    } catch {
       toast.error('Erro ao alterar senha. Tente novamente.');
     } finally {
       setLoading(false);

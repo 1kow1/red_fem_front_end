@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
-import { X, User, Save } from 'lucide-react';
+import { X, User, Save, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/auth/useAuth';
-import { getCurrentUser, updateCurrentUserProfile } from '../services/authAPI';
+import { getCurrentUser, updateCurrentUserProfile, changeMyPassword } from '../services/authAPI';
 import { useErrorHandler } from '../hooks/useErrorHandler';
+import PasswordStrengthIndicator from './PasswordStrengthIndicator';
+import { usePasswordValidation } from '../hooks/usePasswordValidation';
+import { useErrorHandler as useBackendErrorHandler, mapPasswordErrors } from '../utils/errorHandling';
 
 export default function ModalEditarPerfil({ isOpen, onClose }) {
   const { user } = useAuth();
   const { showError, showSuccess } = useErrorHandler();
+  const { extractValidationErrors } = useBackendErrorHandler();
   const [loading, setLoading] = useState(false);
   const [loadingUserData, setLoadingUserData] = useState(false);
   const [userData, setUserData] = useState(null);
@@ -15,6 +19,23 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
     email: '',
     telefone: ''
   });
+
+  // Estados para alteração de senha
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    senhaAtual: '',
+    novaSenha: '',
+    confirmarSenha: ''
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    atual: false,
+    nova: false,
+    confirmar: false
+  });
+  const [backendErrors, setBackendErrors] = useState({});
+
+  // Validação de senha
+  const { validation, isPasswordValid } = usePasswordValidation(passwordData.novaSenha);
 
   // Carregar dados completos do usuário quando o modal abrir
   useEffect(() => {
@@ -67,25 +88,137 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
     }));
   };
 
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Limpar erros quando o usuário começar a digitar
+    if (backendErrors[name]) {
+      setBackendErrors(prev => ({
+        ...prev,
+        [name]: undefined
+      }));
+    }
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
+  };
+
+  // Função para verificar se houve mudanças no perfil
+  const hasProfileChanges = () => {
+    if (!userData) return false;
+    return (
+      formData.nome !== (userData.nome || '') ||
+      formData.email !== (userData.email || '') ||
+      formData.telefone !== (userData.telefone || '')
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setBackendErrors({});
 
     try {
-      const response = await updateCurrentUserProfile(formData);
+      let successMessage = '';
+      let updatedUserData = userData;
 
-      if (response.status >= 200 && response.status < 300) {
-        showSuccess('Perfil atualizado com sucesso!');
+      // Verificar se há mudanças no perfil e só fazer PUT se necessário
+      const needsProfileUpdate = hasProfileChanges();
 
-        // Atualizar os dados locais com a resposta da API
-        setUserData(response.data);
+      if (needsProfileUpdate) {
+        const profileResponse = await updateCurrentUserProfile(formData);
 
-        onClose();
-      } else {
-        throw new Error('Resposta inesperada da API');
+        if (profileResponse.status >= 200 && profileResponse.status < 300) {
+          // Atualizar os dados locais com a resposta da API
+          updatedUserData = profileResponse.data;
+          setUserData(updatedUserData);
+          successMessage = 'Perfil atualizado com sucesso!';
+        } else {
+          throw new Error('Resposta inesperada da API');
+        }
       }
+
+      // Se há dados de senha, tentar alterar a senha
+      if (showPasswordSection && passwordData.senhaAtual && passwordData.novaSenha) {
+        // Validar senha antes de enviar
+        if (passwordData.novaSenha !== passwordData.confirmarSenha) {
+          setBackendErrors({ confirmarSenha: 'As senhas não coincidem' });
+          return;
+        }
+
+        if (!isPasswordValid(passwordData.novaSenha)) {
+          setBackendErrors({ novaSenha: 'A senha não atende aos requisitos de complexidade' });
+          return;
+        }
+
+        try {
+          await changeMyPassword({
+            senhaAtual: passwordData.senhaAtual,
+            novaSenha: passwordData.novaSenha
+          });
+
+          if (needsProfileUpdate) {
+            successMessage = 'Perfil e senha atualizados com sucesso!';
+          } else {
+            successMessage = 'Senha atualizada com sucesso!';
+          }
+
+          // Limpar dados de senha
+          setPasswordData({
+            senhaAtual: '',
+            novaSenha: '',
+            confirmarSenha: ''
+          });
+          setShowPasswordSection(false);
+        } catch (passwordError) {
+          // Mapear erros de senha para campos específicos
+          const passwordErrors = mapPasswordErrors(passwordError);
+
+          if (Object.keys(passwordErrors).length > 0) {
+            setBackendErrors(passwordErrors);
+            return; // Não fechar o modal se houver erro na senha
+          }
+
+          // Se não conseguiu extrair erro específico, re-throw
+          throw passwordError;
+        }
+      }
+
+      // Se não houve nenhuma operação, mostrar mensagem
+      if (!needsProfileUpdate && (!showPasswordSection || !passwordData.senhaAtual || !passwordData.novaSenha)) {
+        showError(new Error('Nenhuma alteração foi feita'));
+        return;
+      }
+
+      showSuccess(successMessage);
+      onClose();
     } catch (error) {
-      showError(error);
+      console.error('Submit error:', error);
+
+      // Tentar extrair mensagem mais específica do erro
+      let errorMessage = 'Erro ao atualizar perfil';
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      // Se for erro 500, mostrar mensagem mais amigável
+      if (error.response?.status === 500) {
+        errorMessage = 'Erro interno do servidor. Verifique os logs para mais detalhes.';
+      }
+
+      showError(new Error(errorMessage));
     } finally {
       setLoading(false);
     }
@@ -100,6 +233,16 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
         telefone: userData.telefone || ''
       });
     }
+
+    // Resetar dados de senha
+    setPasswordData({
+      senhaAtual: '',
+      novaSenha: '',
+      confirmarSenha: ''
+    });
+    setShowPasswordSection(false);
+    setBackendErrors({});
+
     onClose();
   };
 
@@ -179,6 +322,144 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
                 disabled={loading}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-redfemActionPink focus:border-transparent disabled:bg-gray-50"
               />
+            </div>
+
+            {/* Seção de Alteração de Senha */}
+            <div className="border-t pt-4 mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-800">Alterar Senha</h3>
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordSection(!showPasswordSection)}
+                  className="text-sm text-redfemActionPink hover:text-redfemDarkPink"
+                  disabled={loading}
+                >
+                  {showPasswordSection ? 'Cancelar' : 'Alterar Senha'}
+                </button>
+              </div>
+
+              {showPasswordSection && (
+                <div className="space-y-4">
+                  {/* Erro geral */}
+                  {backendErrors.general && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+                      {backendErrors.general}
+                    </div>
+                  )}
+
+                  {/* Senha Atual */}
+                  <div>
+                    <label htmlFor="senhaAtual" className="block text-sm font-medium text-gray-700 mb-1">
+                      Senha Atual *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPasswords.atual ? "text" : "password"}
+                        id="senhaAtual"
+                        name="senhaAtual"
+                        value={passwordData.senhaAtual}
+                        onChange={handlePasswordChange}
+                        disabled={loading}
+                        className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-redfemActionPink focus:border-transparent disabled:bg-gray-50 ${
+                          backendErrors.senhaAtual ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('atual')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        disabled={loading}
+                      >
+                        {showPasswords.atual ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {backendErrors.senhaAtual && (
+                      <div className="text-red-500 text-sm mt-1">
+                        {backendErrors.senhaAtual}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Nova Senha */}
+                  <div>
+                    <label htmlFor="novaSenha" className="block text-sm font-medium text-gray-700 mb-1">
+                      Nova Senha *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPasswords.nova ? "text" : "password"}
+                        id="novaSenha"
+                        name="novaSenha"
+                        value={passwordData.novaSenha}
+                        onChange={handlePasswordChange}
+                        disabled={loading}
+                        className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-redfemActionPink focus:border-transparent disabled:bg-gray-50 ${
+                          backendErrors.novaSenha ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('nova')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        disabled={loading}
+                      >
+                        {showPasswords.nova ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {backendErrors.novaSenha && (
+                      <div className="text-red-500 text-sm mt-1">
+                        {backendErrors.novaSenha}
+                      </div>
+                    )}
+                    <PasswordStrengthIndicator
+                      password={passwordData.novaSenha}
+                      showValidation={true}
+                      className="mt-2"
+                    />
+                  </div>
+
+                  {/* Confirmar Nova Senha */}
+                  <div>
+                    <label htmlFor="confirmarSenha" className="block text-sm font-medium text-gray-700 mb-1">
+                      Confirmar Nova Senha *
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPasswords.confirmar ? "text" : "password"}
+                        id="confirmarSenha"
+                        name="confirmarSenha"
+                        value={passwordData.confirmarSenha}
+                        onChange={handlePasswordChange}
+                        disabled={loading}
+                        className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-redfemActionPink focus:border-transparent disabled:bg-gray-50 ${
+                          backendErrors.confirmarSenha ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility('confirmar')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        disabled={loading}
+                      >
+                        {showPasswords.confirmar ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    {backendErrors.confirmarSenha && (
+                      <div className="text-red-500 text-sm mt-1">
+                        {backendErrors.confirmarSenha}
+                      </div>
+                    )}
+                    {passwordData.confirmarSenha && passwordData.novaSenha !== passwordData.confirmarSenha && (
+                      <div className="text-red-500 text-sm mt-1">
+                        As senhas não coincidem
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
             </div>
           )}

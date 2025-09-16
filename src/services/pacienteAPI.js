@@ -98,23 +98,14 @@ export const getPacienteById = async (id) => {
 
 // ------------- POST -------------
 export const createPaciente = async (data) => {
-  try {
-    const response = await api.post("/pacientes", cleanPayload(data));
-    return response.data;
-  } catch (error) {
-    // Preservar o erro original para que o tratamento no componente funcione
-    throw error;
-  }
+  const response = await api.post("/pacientes", cleanPayload(data));
+  return response.data;
 };
 
 // ------------- PUT -------------
 export const editPaciente = async (id, pacienteData) => {
-  try {
-    const response = await api.put(`/pacientes/${id}`, pacienteData);
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to edit paciente: " + error);
-  }
+  const response = await api.put(`/pacientes/${id}`, pacienteData);
+  return response.data;
 };
 
 // ------------- PATCH -------------
