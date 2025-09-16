@@ -365,7 +365,12 @@ export default function DataFrame({
                   });
                 }
               })}
-              {Object.keys(filters).length > 0 && (
+              {Object.entries(filters).some(([key, value]) => {
+                if (Array.isArray(value)) {
+                  return value.length > 0 && value.some(v => v !== "" && v !== null && v !== undefined);
+                }
+                return value !== "" && value !== null && value !== undefined;
+              }) && (
                 <button
                   onClick={() => setFilters({})}
                   className="text-sm text-redfemDarkPink hover:text-redfemPink underline ml-2"

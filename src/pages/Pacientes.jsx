@@ -73,18 +73,48 @@ export default function Pacientes() {
   const handleCreatePaciente = async (formData) => {
     try {
       const payload = adaptPacienteForApi(formData);
-
-      createPaciente(payload)
-        .then(() => fetchPacientes())
-        .catch((err) => {});
-
+      await createPaciente(payload);
+      await fetchPacientes();
       setIsFormOpen(false);
+      toast.success("Paciente criado com sucesso.");
     } catch (err) {
-      const errors = {};
-      err.inner.forEach((e) => {
-        errors[e.path] = e.message;
-      });
-      toast.error("Erros de validação ao criar paciente:", errors)
+      console.error("handleCreatePaciente error:", err);
+
+      // Se é erro de validação do Yup (client-side)
+      if (err.inner && Array.isArray(err.inner)) {
+        const errors = {};
+        err.inner.forEach((e) => {
+          errors[e.path] = e.message;
+        });
+        toast.error("Erros de validação:", Object.values(errors).join(", "));
+        return;
+      }
+
+      // Se é erro do backend (HTTP)
+      const errorMessage = err?.response?.data?.message ||
+                          err?.response?.data?.error ||
+                          err?.message ||
+                          "Erro desconhecido ao criar paciente.";
+
+      // Verificar se é erro de email duplicado
+      if (errorMessage.toLowerCase().includes('email') &&
+          (errorMessage.toLowerCase().includes('já existe') ||
+           errorMessage.toLowerCase().includes('duplicado') ||
+           errorMessage.toLowerCase().includes('unique'))) {
+        toast.error("Este email já está cadastrado no sistema. Utilize um email diferente.");
+        return;
+      }
+
+      // Verificar se é erro de CPF duplicado
+      if (errorMessage.toLowerCase().includes('cpf') &&
+          (errorMessage.toLowerCase().includes('já existe') ||
+           errorMessage.toLowerCase().includes('duplicado') ||
+           errorMessage.toLowerCase().includes('unique'))) {
+        toast.error("Este CPF já está cadastrado no sistema. Utilize um CPF diferente.");
+        return;
+      }
+
+      toast.error(errorMessage);
     }
   };
 

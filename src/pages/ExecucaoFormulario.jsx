@@ -44,9 +44,24 @@ export default function ExecucaoFormulario() {
       // Buscar dados da execução pela API
       const execResponse = await getExecById(execId);
       setExecucaoData(execResponse);
-      // Verificar se a execução está liberada para edição
-      const liberado = execResponse.isLiberado === false; // Se isLiberado é false, pode editar
-      setIsLiberado(!liberado);
+      // Verificar se a execução pode ser editada
+      const execucaoLiberada = execResponse.isLiberado === true;
+
+      // Verificar se a consulta está cancelada
+      const consulta = execResponse.consultaDTO || execResponse.consulta;
+      const consultaCancelada = consulta && (
+        consulta.status === "CANCELADA" ||
+        consulta.ativo === false
+      );
+
+      // A execução só pode ser editada se não estiver liberada E a consulta não estiver cancelada
+      const podeEditar = !execucaoLiberada && !consultaCancelada;
+      setIsLiberado(!podeEditar);
+
+      // Mostrar mensagem se a consulta estiver cancelada
+      if (consultaCancelada) {
+        toast.warning("Esta execução está vinculada a uma consulta cancelada e não pode ser editada.");
+      }
       // Buscar dados do formulário usando formularioId ou formulario.id
       const formularioId = execResponse.formularioId || execResponse.formulario?.id;
       if (formularioId) {
@@ -104,6 +119,14 @@ export default function ExecucaoFormulario() {
   }, [execId]);
   // --- cancelar ---
   const onCancel = useCallback(() => {
+    // Se a execução está liberada, não há alterações possíveis, navegar diretamente
+    if (isLiberado) {
+      const returnPath = location.state?.returnPath || '/consultas';
+      navigate(returnPath);
+      return;
+    }
+
+    // Para execuções não liberadas, verificar se há alterações
     const hasChanges = respostas.length > 0;
     if (hasChanges) {
       setIsConfirmCancelOpen(true);
@@ -112,7 +135,7 @@ export default function ExecucaoFormulario() {
       const returnPath = location.state?.returnPath || '/consultas';
       navigate(returnPath);
     }
-  }, [respostas, location.state, navigate]);
+  }, [respostas, location.state, navigate, isLiberado]);
 
   // Função para confirmar o cancelamento
   const handleConfirmCancel = useCallback(() => {

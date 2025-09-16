@@ -71,6 +71,12 @@ export default function Consultas() {
   };
 
   const openEditForm = (row) => {
+    // Verificar se há execução de formulário liberada
+    if (row._execucaoFormulario && row._execucaoFormulario.isLiberado === true) {
+      toast.warning("Esta consulta não pode ser editada pois possui um formulário liberado associado.");
+      return;
+    }
+
     // Preparar dados para edição convertendo campos ocultos para os nomes que o formulário espera
     const editData = {
       id: row.id,
@@ -123,6 +129,23 @@ export default function Consultas() {
     });
 
     try {
+      // Se está cancelando a consulta e há execução de formulário associada
+      if (row._ativoRaw && row._execucaoFormulario) {
+        const execId = row._execucaoFormulario.id || row._execucaoFormulario._exec?.id;
+
+        if (execId) {
+          console.log('🗑️ Deletando execução de formulário associada...', execId);
+
+          try {
+            await deleteExec(execId);
+            console.log('✅ Execução deletada com sucesso');
+          } catch (deleteError) {
+            console.error('❌ Erro ao deletar execução:', deleteError);
+            // Continua com o cancelamento mesmo se falhar a exclusão
+          }
+        }
+      }
+
       console.log('🔄 Chamando toggleConsulta API...');
       const response = await toggleConsulta(row.id);
       console.log('✅ Toggle response:', response);

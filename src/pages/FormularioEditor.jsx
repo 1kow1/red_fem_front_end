@@ -74,19 +74,32 @@ export default function FormularioEditor() {
   const saveStateToHistory = useCallback((newFormulario) => {
     if (isUndoRedoOperation.current) return; // Não salvar durante undo/redo
 
-    setHistory(prev => {
-      const newHistory = prev.slice(0, historyIndex + 1);
-      newHistory.push(JSON.parse(JSON.stringify(newFormulario)));
+    // Usar setTimeout para garantir que a operação seja executada após o state update
+    setTimeout(() => {
+      setHistory(prev => {
+        const newHistory = prev.slice(0, historyIndex + 1);
+        const serializedState = JSON.parse(JSON.stringify(newFormulario));
 
-      // Limitar o histórico a 50 estados
-      if (newHistory.length > 50) {
-        newHistory.shift();
+        // Evitar duplicatas - verificar se o último estado é igual ao novo
+        if (newHistory.length > 0) {
+          const lastState = newHistory[newHistory.length - 1];
+          if (JSON.stringify(lastState) === JSON.stringify(serializedState)) {
+            return prev; // Não adicionar se for igual ao último
+          }
+        }
+
+        newHistory.push(serializedState);
+
+        // Limitar o histórico a 50 estados
+        if (newHistory.length > 50) {
+          newHistory.shift();
+          return newHistory;
+        }
         return newHistory;
-      }
-      return newHistory;
-    });
+      });
 
-    setHistoryIndex(prev => Math.min(prev + 1, 49));
+      setHistoryIndex(prev => Math.min(prev + 1, 49));
+    }, 0);
   }, [historyIndex]);
 
   const canUndo = historyIndex > 0;
@@ -146,14 +159,33 @@ export default function FormularioEditor() {
       });
       originalPerguntasRef.current = map;
 
-      setFormulario({
+      const initialFormulario = {
         titulo: formDataToEdit.titulo || "",
         descricao: formDataToEdit.descricao || "",
         especialidade: formDataToEdit.especialidade,
         perguntas: perguntasOriginais
-      });
+      };
+
+      setFormulario(initialFormulario);
+
+      // Salvar estado inicial no histórico
+      setHistory([JSON.parse(JSON.stringify(initialFormulario))]);
+      setHistoryIndex(0);
     }
   }, [formDataToEdit, navigate]);
+
+  // Salvar estado inicial para novos formulários
+  useEffect(() => {
+    if (!isEditMode && formulario.titulo === "" && formulario.descricao === "" && formulario.perguntas.length === 0 && history.length === 0) {
+      const initialFormulario = {
+        titulo: "",
+        descricao: "",
+        perguntas: []
+      };
+      setHistory([JSON.parse(JSON.stringify(initialFormulario))]);
+      setHistoryIndex(0);
+    }
+  }, [isEditMode, formulario.titulo, formulario.descricao, formulario.perguntas.length, history.length]);
 
   // --- campos simples ---
   const setTitulo = useCallback((value) => {
@@ -495,10 +527,34 @@ export default function FormularioEditor() {
       versao: isEditMode ? (formDataToEdit?.versao || 1) : 1,
     };
 
-    // Se é modo de edição, adicionar referência ao formulário original
+    // Debug: dados do formulário original
+    console.log('🔍 Debug formulário original:', {
+      isEditMode,
+      formDataToEdit: formDataToEdit,
+      liberadoParaUso: formDataToEdit?.liberadoParaUso,
+      versaoOriginal: formDataToEdit?.versao
+    });
+
+    // Lógica para decidir se atualiza o mesmo ou cria novo:
     if (isEditMode && formDataToEdit?.id) {
-      formularioFinal.idFormularioVersaoAntiga = formDataToEdit.id;
+      if (!formDataToEdit?.liberadoParaUso) {
+        // Formulário ainda não foi liberado -> ATUALIZAR o mesmo
+        formularioFinal.id = formDataToEdit.id;
+        console.log('📝 ATUALIZANDO formulário existente (não liberado)');
+      } else {
+        // Formulário já foi liberado -> CRIAR nova versão
+        formularioFinal.idFormularioVersaoAntiga = formDataToEdit.id;
+        // Enviar versão atual, backend vai incrementar
+        formularioFinal.versao = formDataToEdit?.versao || 1;
+        console.log('🆕 CRIANDO nova versão:', {
+          versaoOriginal: formDataToEdit?.versao,
+          versaoEnviada: formularioFinal.versao,
+          nota: 'Backend vai incrementar +1'
+        });
+      }
     }
+
+    console.log('📤 Payload final sendo enviado:', formularioFinal);
 
     const response = await createForm(formularioFinal);
 

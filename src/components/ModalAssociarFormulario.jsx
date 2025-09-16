@@ -60,6 +60,12 @@ export default function ModalAssociarFormulario({
       return;
     }
 
+    // Verificar se a consulta está cancelada
+    if (consultaData.status === "CANCELADA" || consultaData._ativoRaw === false) {
+      toast.error("Não é possível associar formulário a uma consulta cancelada.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       // Extrair ID do médico de diferentes possíveis localizações
