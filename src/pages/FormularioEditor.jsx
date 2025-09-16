@@ -672,8 +672,8 @@ export default function FormularioEditor() {
         <div className="flex flex-row gap-2">
           <img src={rosaLogo} alt="Logo Rosa RFCC" className="h-8 mr-4 self-center" />
 
-          {/* Botões de Undo/Redo */}
-          {!isViewOnly && (
+          {/* Botões de Undo/Redo - TEMPORARIAMENTE OCULTOS */}
+          {false && !isViewOnly && (
             <div className="flex flex-row gap-2 ml-4">
               <button
                 onClick={handleUndo}
