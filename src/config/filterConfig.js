@@ -69,16 +69,6 @@ export const filterConfigs = {
 
     consultas: [
         {
-            name: "especialidades",
-            label: "Especialidade",
-            type: "select",
-            options: [
-                { value: "GINECOLOGIA", label: "Ginecologia" },
-                { value: "ONCOLOGIA", label: "Oncologia" },
-                { value: "ODONTOLOGIA", label: "Odontologia" },
-            ]
-        },
-        {
             name: "status",
             label: "Status",
             type: "select",

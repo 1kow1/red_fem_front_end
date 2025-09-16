@@ -43,7 +43,7 @@ export const popupConfigs = {
           { label: "Email", key: "email" },
           { label: "Sexo", key: "_sexo" },
           { label: "Telefone", key: "telefone" },
-          { label: "Data de Nascimento", key: "_dataDeNascimento", type: "date" },
+          { label: "Data de Nascimento", key: "_dataDeNascimento" },
           { label: "Estado Civil", key: "_estadoCivil" },
           { label: "Profissão", key: "_profissao" },
           { label: "Estado", key: "_uf" },
@@ -105,8 +105,8 @@ export const popupConfigs = {
         fields: [
           { label: "Email", key: "email" },
           { label: "Telefone", key: "telefone"},
-          { label: "Cargo", key: "cargo" },
-          { label: "Especialidade", key: "especialidade" },
+          { label: "Cargo", key: "cargoFormatado" },
+          { label: "Especialidade", key: "especialidadeFormatada" },
           { label: "CRM", key: "crm" },
           { label: "Ativo", key: "ativo" }
         ],
@@ -116,13 +116,16 @@ export const popupConfigs = {
   },
 
   consultas: {
-    getConfig: (data, callbacks = {}) => {
+    getConfig: (data, callbacks = {}, userCargo = null) => {
       // Verificar se já tem associação e se está liberado
       const hasExecucaoFormulario = !!data._execucaoFormulario;
       const isFormularioLiberado = hasExecucaoFormulario && (
         data._execucaoFormulario.liberado === "Sim" ||
         data._execucaoFormulario._exec?.isLiberado === true
       );
+
+      // Secretárias não podem remover associações
+      const canRemoveAssociation = userCargo !== "RECEPCIONISTA";
 
       // Transforma execucaoFormulario (objeto) em array SUPER SIMPLES
       const execucaoFormularioArray = data._execucaoFormulario
@@ -154,7 +157,7 @@ export const popupConfigs = {
           {
             label: "Deletar",
             variant: "secondary",
-            onClick: callbacks.onDelete
+            onClick: callbacks.onToggle
           },
           {
             label: "Editar",
@@ -170,7 +173,7 @@ export const popupConfigs = {
             label: "Associar Formulário",
             onClick: callbacks.onAssociarFormulario
           },
-          actionButtons: hasExecucaoFormulario && !isFormularioLiberado ? [
+          actionButtons: hasExecucaoFormulario && !isFormularioLiberado && canRemoveAssociation ? [
             {
               label: "Remover Associação",
               variant: "danger",
@@ -219,29 +222,17 @@ export const popupConfigs = {
   // Configuração para formulários (será usada pela subtabela)
   formularios: {
     getConfig: (data, callbacks = {}) => {
-      const isFormularioLiberado = data.liberadoParaUso === true || data.liberadoParaUso === "Sim";
+      // Verificar se o formulário está ativo para determinar se pode ser editado
+      const isAtivo = data.ativo === true || data.ativo === "true";
+      const isLiberado = data.liberadoParaUso === "Sim" || data.liberadoParaUso === true;
 
       const actions = [
         {
-          label: "Desativar",
-          variant: "secondary",
-          onClick: callbacks.onDesativar
-        },
-        {
-          label: "Editar",
+          label: isAtivo ? "Editar" : "Visualizar",
           variant: "primary",
-          onClick: callbacks.onEdit
+          onClick: isAtivo ? callbacks.onEdit : callbacks.onView || callbacks.onEdit
         }
       ];
-
-      // Adicionar botão de liberação apenas se não estiver liberado e callback existir
-      if (!isFormularioLiberado && callbacks.onLiberarFormulario) {
-        actions.unshift({
-          label: "Liberar para Uso",
-          variant: "warning",
-          onClick: callbacks.onLiberarFormulario
-        });
-      }
 
       return {
         title: data.titulo,
@@ -250,7 +241,8 @@ export const popupConfigs = {
           { label: "Descrição", key: "descricao"},
           { label: "Especialidade", key: "especialidade" },
           { label: "Versão", key: "versao"},
-          { label: "Liberado?", key: "liberadoParaUso"}
+          { label: "Liberado?", key: "liberadoParaUso"},
+          { label: "Ativo", key: "ativo", format: (value) => value ? "Sim" : "Não" }
         ],
         actions
       };

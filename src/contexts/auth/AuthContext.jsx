@@ -1,4 +1,3 @@
-// src/contexts/auth/AuthContext.jsx
 import React, { createContext, useState, useEffect } from "react";
 import { loginUser, pingProtected, logoutUser } from "../../services/authAPI";
 import { isValidCargo, getDefaultPage } from "../../utils/permissions";

@@ -109,7 +109,6 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
           <div className="flex items-center gap-2">
-            <User size={20} className="text-redfemActionPink" />
             <h2 className="text-xl font-semibold text-gray-800">
               Editar Perfil
             </h2>
@@ -206,7 +205,6 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
                 </>
               ) : (
                 <>
-                  <Save size={16} />
                   Salvar
                 </>
               )}

@@ -19,6 +19,8 @@ export const adaptFormForView = (form) => {
     especialidade: capitalizeWords(form.especialidade),
     versao: form.versao,
     liberadoParaUso: form.liberadoParaUso ? "Sim" : "Não",
+    _ativo: form.ativo, // Adicionar campo ativo para controle de edição
+    _rawData: form, // Manter dados originais para referência
   };
 };
 

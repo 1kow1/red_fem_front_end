@@ -90,11 +90,25 @@ export default function FormularioPopUp({
         } else if (field.type === "date") {
           // Tratamento especial para campos de data na inicialização
           if (value) {
-            const dateValue = new Date(value);
-            if (!isNaN(dateValue.getTime())) {
-              normalizedData[fieldName] = dateValue.toISOString().split('T')[0];
-            } else {
+            if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+              // Já é string no formato correto
               normalizedData[fieldName] = value;
+            } else {
+              // Tentar converter evitando problemas de UTC
+              try {
+                const dateValue = new Date(value);
+                if (!isNaN(dateValue.getTime())) {
+                  // Usar componentes locais da data para evitar UTC
+                  const year = dateValue.getFullYear();
+                  const month = String(dateValue.getMonth() + 1).padStart(2, '0');
+                  const day = String(dateValue.getDate()).padStart(2, '0');
+                  normalizedData[fieldName] = `${year}-${month}-${day}`;
+                } else {
+                  normalizedData[fieldName] = value;
+                }
+              } catch {
+                normalizedData[fieldName] = value;
+              }
             }
           } else {
             normalizedData[fieldName] = value;
@@ -183,13 +197,8 @@ export default function FormularioPopUp({
         if (data[name] !== undefined) {
           // Tratamento especial para campos de data
           if (f.type === "date" && data[name]) {
-            // Garantir que data seja enviada como string YYYY-MM-DD
-            const dateValue = new Date(data[name]);
-            if (!isNaN(dateValue.getTime())) {
-              cleaned[name] = dateValue.toISOString().split('T')[0];
-            } else {
-              cleaned[name] = data[name];
-            }
+            // Para campos de data, sempre passar a string diretamente sem conversão
+            cleaned[name] = data[name];
           } else {
             cleaned[name] = data[name];
           }

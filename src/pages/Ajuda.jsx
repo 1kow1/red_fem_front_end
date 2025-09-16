@@ -616,11 +616,13 @@ export default function Ajuda() {
         <div className="mt-12 p-6 bg-white rounded-lg border border-gray-200">
           <h3 className="text-lg font-semibold mb-2">Precisa de mais ajuda?</h3>
           <p className="text-gray-600">
-            Se não encontrou o que procurava, entre em contato com o suporte técnico
+            Se não encontrou o que procurava, entre em contato com o suporte técnico:
+            <a className="text-blue-500 underline ml-1" href='mailto:kowuepg2025@gmail.com'>kowuepg2025@gmail.com</a> 
+            <br></br>
             ou consulte a documentação técnica do sistema.
           </p>
         </div>
       </div>
-    </div>
+  </div>
   );
 }

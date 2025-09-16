@@ -34,10 +34,10 @@ export const formConfigs = {
       placeholder: "Selecione o cargo",
       required: true,
       options: [
-        { value: "RECEPCIONISTA", label: "Recepcionista" },
+        { value: "ACADEMICO", label: "Acadêmico" },
         { value: "MEDICO", label: "Médico" },
+        { value: "RECEPCIONISTA", label: "Recepcionista" },
         { value: "RESIDENTE", label: "Residente" },
-        { value: "ACADEMICO", label: "Acadêmico" }
       ]
     },
     {

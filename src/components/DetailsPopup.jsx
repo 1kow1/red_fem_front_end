@@ -225,7 +225,7 @@ export default function DetailsPopup({
                         }}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                           actionButton.variant === 'danger'
-                            ? 'bg-red-500 hover:bg-red-600 text-white'
+                            ? 'bg-pink-500 hover:bg-pink-600 text-white'
                             : 'bg-gray-500 hover:bg-gray-600 text-white'
                         }`}
                       >

@@ -9,7 +9,7 @@ import SaveReleaseDropdown from "../components/SaveReleaseDropdown";
 import { XIcon, MoveUpIcon, MoveDownIcon, AddIcon, DeleteIcon } from "../components/Icons";
 import { Undo2, Redo2 } from "lucide-react";
 import Input from "../components/Input";
-import { createForm } from "../services/formAPI";
+import { createForm, releaseFormForUse } from "../services/formAPI";
 import Card from "../components/Card";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import { useAuth } from '../contexts/auth/useAuth';
@@ -22,6 +22,7 @@ export default function FormularioEditor() {
 
   const formDataToEdit = location.state?.formData;
   const isEditMode = Boolean(formDataToEdit);
+  const isViewOnly = isEditMode && formDataToEdit?.ativo === false;
 
   const [isConfirmOpenFormulario, setIsConfirmOpenFormulario] = useState(false);
   const [isConfirmOpenPergunta, setIsConfirmOpenPergunta] = useState(false);
@@ -122,7 +123,6 @@ export default function FormularioEditor() {
     if (formDataToEdit) {
       // Validação de segurança dos dados recebidos
       if (!formDataToEdit.id) {
-        console.error('❌ Formulário para edição sem ID:', formDataToEdit);
         toast.error('Erro: formulário inválido para edição.');
         navigate('/formularios');
         return;
@@ -151,13 +151,6 @@ export default function FormularioEditor() {
         descricao: formDataToEdit.descricao || "",
         especialidade: formDataToEdit.especialidade,
         perguntas: perguntasOriginais
-      });
-
-      console.log('📝 Formulário carregado para edição:', {
-        id: formDataToEdit.id,
-        titulo: formDataToEdit.titulo,
-        liberado: formDataToEdit.liberadoParaUso,
-        perguntas: perguntasOriginais.length
       });
     }
   }, [formDataToEdit, navigate]);
@@ -408,12 +401,34 @@ export default function FormularioEditor() {
     });
   }, [formulario.perguntas]);
 
+  // --- função para detectar mudanças reais no formulário ---
+  const detectFormChanges = useCallback(() => {
+    if (!isEditMode || !formDataToEdit) {
+      return true; // Para formulários novos, sempre considerar como mudança
+    }
+
+    // Verificar título e descrição
+    const titleChanged = formulario.titulo !== (formDataToEdit.titulo || '');
+    const descChanged = formulario.descricao !== (formDataToEdit.descricao || '');
+
+    // Verificar se número de perguntas mudou
+    const originalQuestionsCount = formDataToEdit.perguntas?.length || 0;
+    const currentQuestionsCount = formulario.perguntas.length;
+    const questionsCountChanged = currentQuestionsCount !== originalQuestionsCount;
+
+    // Verificar se alguma pergunta foi editada
+    const hasEditedQuestions = formulario.perguntas.some(pergunta => isPerguntaEdited(pergunta));
+
+    const hasChanges = titleChanged || descChanged || questionsCountChanged || hasEditedQuestions;
+
+
+    return hasChanges;
+  }, [formulario, formDataToEdit, isEditMode, isPerguntaEdited]);
 
   // --- função unificada para salvar ---
   const handleSaveForm = useCallback(async (shouldRelease = false) => {
     // Prevenir múltiplas execuções simultâneas
     if (loading) {
-      console.log('Operação já em andamento, ignorando...');
       return;
     }
 
@@ -428,76 +443,91 @@ export default function FormularioEditor() {
     try {
       setLoading(true);
 
-      const newPerguntas = setPerguntasPosicao();
+      // Detectar se houve mudanças reais no formulário
+      const hasRealChanges = detectFormChanges();
 
-      const formularioFinal = {
-        titulo: formulario.titulo,
-        descricao: formulario.descricao,
-        perguntas: newPerguntas,
-        liberadoParaUso: shouldRelease, // true para "Salvar e Liberar", false para "Salvar"
-        editavel: true,
-        especialidade: formulario.especialidade || user?.especialidade || 'GINECOLOGIA',
-        versao: isEditMode ? (formDataToEdit?.versao || 1) : 1, // Versão atual para edição, 1 para novo
-      };
-
-      // Se é modo de edição, sempre criar uma nova versão com referência ao formulário original
-      if (isEditMode && formDataToEdit?.id) {
-        formularioFinal.idFormularioVersaoAntiga = formDataToEdit.id;
-        console.log('🔗 Modo edição detectado - idFormularioVersaoAntiga:', formDataToEdit.id);
-      } else if (isEditMode) {
-        console.error('❌ Modo edição ativo mas formDataToEdit.id não encontrado:', formDataToEdit);
-      }
-
-      console.log(`💾 ${shouldRelease ? 'Criando e liberando' : 'Criando'} formulário:`, {
-        isEditMode,
-        originalId: formDataToEdit?.id,
-        titulo: formularioFinal.titulo,
-        versao: formularioFinal.versao,
-        liberadoParaUso: shouldRelease,
-        idFormularioVersaoAntiga: formularioFinal.idFormularioVersaoAntiga
-      });
-
-      console.log('📋 Payload completo sendo enviado:', formularioFinal);
-
-      // Verificação final antes do envio
       if (isEditMode) {
-        if (formularioFinal.idFormularioVersaoAntiga) {
-          console.log('✅ idFormularioVersaoAntiga confirmado no payload:', formularioFinal.idFormularioVersaoAntiga);
+        // Em modo de edição, tomar decisão baseada nas mudanças
+        if (hasRealChanges) {
+          // Há mudanças: criar nova versão
+          await createNewVersion(shouldRelease);
+        } else if (shouldRelease && !formDataToEdit.liberadoParaUso) {
+          // Sem mudanças, mas quer liberar: fazer PATCH
+          await releaseExistingForm();
+        } else if (shouldRelease && formDataToEdit.liberadoParaUso) {
+          // Sem mudanças e já liberado
+          toast.info('O formulário já está liberado para uso e não houve alterações.');
+          navigate('/formularios');
+          return;
         } else {
-          console.error('❌ ERRO: idFormularioVersaoAntiga não está no payload final!');
+          // Sem mudanças e só quer salvar
+          toast.info('Nenhuma alteração detectada no formulário.');
+          navigate('/formularios');
+          return;
         }
+      } else {
+        // Formulário novo: sempre criar
+        await createNewVersion(shouldRelease);
       }
-
-      const response = await createForm(formularioFinal);
-
-      // Atualizar formulário local com ID retornado
-      if (response && response.id) {
-        setFormulario(prev => ({
-          ...prev,
-          id: response.id,
-          liberadoParaUso: shouldRelease
-        }));
-      }
-
-      // Mensagem de sucesso
-      const actionText = shouldRelease ? 'criado e liberado' : 'criado';
-      const successMessage = isEditMode
-        ? `Nova versão do formulário ${actionText} com sucesso!`
-        : `Formulário ${actionText} com sucesso!`;
-
-      toast.success(successMessage);
-      navigate('/formularios');
 
     } catch (error) {
-      const actionText = shouldRelease ? 'criar e liberar' : 'criar';
+      const actionText = shouldRelease ? 'salvar e liberar' : 'salvar';
       const message = error?.response?.data?.message ||
         error?.message ||
-        `Erro ao ${isEditMode ? `${actionText} nova versão do` : actionText} formulário`;
+        `Erro ao ${actionText} formulário`;
       toast.error(message);
     } finally {
       setLoading(false);
     }
-  }, [formulario, isEditMode, checkFormulario, setPerguntasPosicao, formDataToEdit?.id, user?.especialidade, navigate, loading]);
+  }, [formulario, isEditMode, checkFormulario, formDataToEdit, detectFormChanges, navigate, loading]);
+
+  // --- função para criar nova versão ---
+  const createNewVersion = useCallback(async (shouldRelease = false) => {
+    const newPerguntas = setPerguntasPosicao();
+
+    const formularioFinal = {
+      titulo: formulario.titulo,
+      descricao: formulario.descricao,
+      perguntas: newPerguntas,
+      liberadoParaUso: shouldRelease,
+      editavel: true,
+      especialidade: formulario.especialidade || user?.especialidade || 'GINECOLOGIA',
+      versao: isEditMode ? (formDataToEdit?.versao || 1) : 1,
+    };
+
+    // Se é modo de edição, adicionar referência ao formulário original
+    if (isEditMode && formDataToEdit?.id) {
+      formularioFinal.idFormularioVersaoAntiga = formDataToEdit.id;
+    }
+
+    const response = await createForm(formularioFinal);
+
+    // Atualizar formulário local com ID retornado
+    if (response && response.id) {
+      setFormulario(prev => ({
+        ...prev,
+        id: response.id,
+        liberadoParaUso: shouldRelease
+      }));
+    }
+
+    // Mensagem de sucesso
+    const actionText = shouldRelease ? 'criado e liberado' : 'criado';
+    const successMessage = isEditMode
+      ? `Nova versão do formulário ${actionText} com sucesso!`
+      : `Formulário ${actionText} com sucesso!`;
+
+    toast.success(successMessage);
+    navigate('/formularios');
+  }, [formulario, isEditMode, formDataToEdit, setPerguntasPosicao, user?.especialidade, navigate]);
+
+  // --- função para liberar formulário existente ---
+  const releaseExistingForm = useCallback(async () => {
+    await releaseFormForUse(formDataToEdit.id, true);
+
+    toast.success('Formulário liberado para uso com sucesso!');
+    navigate('/formularios');
+  }, [formDataToEdit, navigate]);
 
   // --- salvar ---
   const onSave = useCallback(async () => {
@@ -587,58 +617,75 @@ export default function FormularioEditor() {
           <img src={rosaLogo} alt="Logo Rosa RFCC" className="h-8 mr-4 self-center" />
 
           {/* Botões de Undo/Redo */}
-          <div className="flex flex-row gap-2 ml-4">
-            <button
-              onClick={handleUndo}
-              disabled={!canUndo || loading}
-              aria-label="Desfazer - Ctrl+Z ou Cmd+Z"
-              title="Desfazer - Ctrl+Z ou Cmd+Z"
-              className={`
-                flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200
-                border border-gray-300 bg-white shadow-sm
-                ${!canUndo || loading
-                  ? 'cursor-not-allowed opacity-50 text-gray-400'
-                  : 'hover:bg-redfemHoverPink hover:border-redfemActionPink text-redfemActionPink hover:shadow-md'
-                }
-              `}
-            >
-              <Undo2 size={16} />
-              <span className="text-sm font-medium hidden sm:inline">Desfazer</span>
-            </button>
-            <button
-              onClick={handleRedo}
-              disabled={!canRedo || loading}
-              aria-label="Refazer - Ctrl+Y, Cmd+Y ou Ctrl+Shift+Z"
-              title="Refazer - Ctrl+Y, Cmd+Y ou Ctrl+Shift+Z"
-              className={`
-                flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200
-                border border-gray-300 bg-white shadow-sm
-                ${!canRedo || loading
-                  ? 'cursor-not-allowed opacity-50 text-gray-400'
-                  : 'hover:bg-redfemHoverPink hover:border-redfemActionPink text-redfemActionPink hover:shadow-md'
-                }
-              `}
-            >
-              <Redo2 size={16} />
-              <span className="text-sm font-medium hidden sm:inline">Refazer</span>
-            </button>
-          </div>
+          {!isViewOnly && (
+            <div className="flex flex-row gap-2 ml-4">
+              <button
+                onClick={handleUndo}
+                disabled={!canUndo || loading}
+                aria-label="Desfazer - Ctrl+Z ou Cmd+Z"
+                title="Desfazer - Ctrl+Z ou Cmd+Z"
+                className={`
+                  flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200
+                  border border-gray-300 bg-white shadow-sm
+                  ${!canUndo || loading
+                    ? 'cursor-not-allowed opacity-50 text-gray-400'
+                    : 'hover:bg-redfemHoverPink hover:border-redfemActionPink text-redfemActionPink hover:shadow-md'
+                  }
+                `}
+              >
+                <Undo2 size={16} />
+                <span className="text-sm font-medium hidden sm:inline">Desfazer</span>
+              </button>
+              <button
+                onClick={handleRedo}
+                disabled={!canRedo || loading}
+                aria-label="Refazer - Ctrl+Y, Cmd+Y ou Ctrl+Shift+Z"
+                title="Refazer - Ctrl+Y, Cmd+Y ou Ctrl+Shift+Z"
+                className={`
+                  flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200
+                  border border-gray-300 bg-white shadow-sm
+                  ${!canRedo || loading
+                    ? 'cursor-not-allowed opacity-50 text-gray-400'
+                    : 'hover:bg-redfemHoverPink hover:border-redfemActionPink text-redfemActionPink hover:shadow-md'
+                  }
+                `}
+              >
+                <Redo2 size={16} />
+                <span className="text-sm font-medium hidden sm:inline">Refazer</span>
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex flex-row gap-2">
-          <ButtonSecondary
-            onClick={onCancel}
-            disabled={loading}
-          >
-            Descartar
-          </ButtonSecondary>
-          <SaveReleaseDropdown
-            onSave={onSave}
-            onSaveAndRelease={onSaveAndRelease}
-            disabled={loading}
-            loading={loading}
-            isReleased={false} // Sempre permitir ambas as opções no editor
-            releasePermissionKey="formularios"
-          />
+          {isViewOnly ? (
+            <>
+              <ButtonSecondary
+                onClick={() => navigate('/formularios')}
+              >
+                Voltar
+              </ButtonSecondary>
+              <div className="px-4 py-2 bg-gray-100 text-gray-600 rounded-md text-sm">
+                Modo Somente Leitura - Formulário Inativo
+              </div>
+            </>
+          ) : (
+            <>
+              <ButtonSecondary
+                onClick={onCancel}
+                disabled={loading}
+              >
+                Descartar
+              </ButtonSecondary>
+              <SaveReleaseDropdown
+                onSave={onSave}
+                onSaveAndRelease={onSaveAndRelease}
+                disabled={loading}
+                loading={loading}
+                isReleased={false} // Sempre permitir ambas as opções no editor
+                releasePermissionKey="formularios"
+              />
+            </>
+          )}
         </div>
       </div>
 
@@ -664,14 +711,16 @@ export default function FormularioEditor() {
                 className="text-2xl"
                 placeholder="Nome do formulário"
                 value={formulario.titulo}
-                onChange={(e) => setTitulo(e.target.value)}
+                onChange={(e) => !isViewOnly && setTitulo(e.target.value)}
+                disabled={isViewOnly}
                 aria-label="Nome do formulário"
               />
               <Input
                 type="text"
                 placeholder="Descrição do formulário"
                 value={formulario.descricao}
-                onChange={(e) => setDescricao(e.target.value)}
+                onChange={(e) => !isViewOnly && setDescricao(e.target.value)}
+                disabled={isViewOnly}
                 aria-label="Descrição do formulário"
               />
             </div>
@@ -698,13 +747,15 @@ export default function FormularioEditor() {
                 )}
 
                 {/* Move Up */}
-                <IconButton
-                  onClick={() => onMoveUp(index)}
-                  disabled={index === 0}
-                  aria-label="Mover pergunta para cima"
-                >
-                  <MoveUpIcon className={`${index === 0 ? 'text-gray-300' : 'text-redfemActionPink hover:text-redfemDarkPink'}`} />
-                </IconButton>
+                {!isViewOnly && (
+                  <IconButton
+                    onClick={() => onMoveUp(index)}
+                    disabled={index === 0}
+                    aria-label="Mover pergunta para cima"
+                  >
+                    <MoveUpIcon className={`${index === 0 ? 'text-gray-300' : 'text-redfemActionPink hover:text-redfemDarkPink'}`} />
+                  </IconButton>
+                )}
 
                 {/* Enunciado e Select */}
                 <div className="w-full mb-4">
@@ -714,17 +765,20 @@ export default function FormularioEditor() {
                       type="text"
                       placeholder="Pergunta"
                       value={pergunta.enunciado}
-                      onChange={(e) => onChangePergunta(pergunta.id, 'enunciado', e.target.value)}
+                      onChange={(e) => !isViewOnly && onChangePergunta(pergunta.id, 'enunciado', e.target.value)}
+                      disabled={isViewOnly}
                       aria-label={`Enunciado da pergunta ${index + 1}`}
                     />
 
                     <select
-                      className="p-1 w-96 mb-4
+                      className={`p-1 w-96 mb-4
                             border-b border-b-gray-950
                             focus:border-b-redfemActionPink focus:border-b-2
-                            outline-none cursor-pointer custom-select"
+                            outline-none cursor-pointer custom-select
+                            ${isViewOnly ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                       value={pergunta.tipo}
-                      onChange={(e) => onChangePergunta(pergunta.id, 'tipo', e.target.value)}
+                      onChange={(e) => !isViewOnly && onChangePergunta(pergunta.id, 'tipo', e.target.value)}
+                      disabled={isViewOnly}
                       aria-label={`Tipo da pergunta ${index + 1}`}
                     >
                       {tiposPergunta.map(tipo => (
@@ -774,61 +828,72 @@ export default function FormularioEditor() {
                                 type="text"
                                 placeholder="Opção"
                                 value={alternativa.texto}
-                                onChange={(e) => onChangeAlternativa(pergunta.id, alternativa.id, e.target.value)}
+                                onChange={(e) => !isViewOnly && onChangeAlternativa(pergunta.id, alternativa.id, e.target.value)}
+                                disabled={isViewOnly}
                                 aria-label={`Alternativa ${altIndex + 1} da pergunta ${index + 1}`}
                               />
-                              <IconButton
-                                onClick={() => onDeleteAlternativa(pergunta.id, alternativa.id)}
-                                aria-label={`Excluir alternativa ${altIndex + 1}`}
-                              >
-                                <XIcon className="text-gray-600 hover:text-redfemActionPink" />
-                              </IconButton>
+                              {!isViewOnly && (
+                                <IconButton
+                                  onClick={() => onDeleteAlternativa(pergunta.id, alternativa.id)}
+                                  aria-label={`Excluir alternativa ${altIndex + 1}`}
+                                >
+                                  <XIcon className="text-gray-600 hover:text-redfemActionPink" />
+                                </IconButton>
+                              )}
                             </div>
                           ))}
 
                         </div>
-                        <ButtonPrimary
-                          className="justify-center w-fit mx-auto mb-4"
-                          onClick={() => onAddAlternativa(pergunta.id)}
-                          aria-label={`Adicionar opção à pergunta ${index + 1}`}
-                        >
-                          Adicionar Opção
-                        </ButtonPrimary>
+                        {!isViewOnly && (
+                          <ButtonPrimary
+                            className="justify-center w-fit mx-auto mb-4"
+                            onClick={() => onAddAlternativa(pergunta.id)}
+                            aria-label={`Adicionar opção à pergunta ${index + 1}`}
+                          >
+                            Adicionar Opção
+                          </ButtonPrimary>
+                        )}
                       </div>
                     )}
                 </div>
 
                 {/* Delete */}
-                <div className="w-full h-0 flex justify-end">
-                  <IconButton
-                    onClick={() => onDeletePergunta(pergunta.id)}
-                    aria-label={`Excluir pergunta ${index + 1}`}
-                  >
-                    <DeleteIcon className="hover:text-redfemActionPink text-gray-800" />
-                  </IconButton>
-                </div>
+                {!isViewOnly && (
+                  <div className="w-full h-0 flex justify-end">
+                    <IconButton
+                      onClick={() => onDeletePergunta(pergunta.id)}
+                      aria-label={`Excluir pergunta ${index + 1}`}
+                    >
+                      <DeleteIcon className="hover:text-redfemActionPink text-gray-800" />
+                    </IconButton>
+                  </div>
+                )}
 
                 {/* Move Down */}
-                <IconButton
-                  onClick={() => onMoveDown(index)}
-                  disabled={index === formulario.perguntas.length - 1}
-                  aria-label="Mover pergunta para baixo"
-                >
-                  <MoveDownIcon className={`${index === formulario.perguntas.length - 1 ? 'text-gray-300' : 'text-redfemActionPink hover:text-redfemDarkPink'}`} />
-                </IconButton>
+                {!isViewOnly && (
+                  <IconButton
+                    onClick={() => onMoveDown(index)}
+                    disabled={index === formulario.perguntas.length - 1}
+                    aria-label="Mover pergunta para baixo"
+                  >
+                    <MoveDownIcon className={`${index === formulario.perguntas.length - 1 ? 'text-gray-300' : 'text-redfemActionPink hover:text-redfemDarkPink'}`} />
+                  </IconButton>
+                )}
 
               </Card>
             ))}
           </div>
 
-          <ButtonPrimary
-            className="justify-center w-fit m-auto mt-4"
-            onClick={onAddPergunta}
-            aria-label="Adicionar nova pergunta"
-          >
-            <AddIcon />
-            Adicionar Pergunta
-          </ButtonPrimary>
+          {!isViewOnly && (
+            <ButtonPrimary
+              className="justify-center w-fit m-auto mt-4"
+              onClick={onAddPergunta}
+              aria-label="Adicionar nova pergunta"
+            >
+              <AddIcon />
+              Adicionar Pergunta
+            </ButtonPrimary>
+          )}
         </div>
       </div>
     </div>

@@ -84,20 +84,10 @@ export const createConsulta = async (data) => {
 // ------------- PUT -------------
 export const editConsulta = async (id, consultaData) => {
   try {
-    const response = await api.put(`/consultas/`, consultaData);
+    const response = await api.put(`/consultas/${id}`, consultaData);
     return response.data;
   } catch (error) {
     throw new Error("Failed to edit consulta: " + error.message);
-  }
-};
-
-// ------------- DELETE -------------
-export const deleteConsulta = async (id) => {
-  try {
-    const response = await api.delete(`/consultas/${id}`);
-    return response.data;
-  } catch (error) {
-    throw new Error("Failed to delete consulta: " + error.message);
   }
 };
 

@@ -63,12 +63,15 @@ export default function DataFrame({
   const [filteredData, setFilteredData] = useState(data);
   const [filters, setFilters] = useState(defaultFilters);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
 
   // Função para aplicar filtros via backend
-  const applyBackendFilters = useCallback(() => {
+  const applyBackendFilters = useCallback(async () => {
     if (!useBackendFilters || !fetchData) {
       return;
     }
+
+    setIsFilterLoading(true);
 
     // Converter filtros do frontend para o formato do backend
     const backendFilters = {};
@@ -99,7 +102,11 @@ export default function DataFrame({
       backendFilters.buscaGenerica = searchQuery;
     }
 
-    fetchData(backendFilters);
+    try {
+      await fetchData(backendFilters);
+    } finally {
+      setIsFilterLoading(false);
+    }
   }, [useBackendFilters, fetchData, filters, searchQuery, avaiableFilters, dataType]);
 
   // Effect para filtragem no frontend (quando useBackendFilters = false)
@@ -177,12 +184,20 @@ export default function DataFrame({
     const hasSearch = searchQuery && searchQuery.trim() !== '';
 
     if (hasFilters || hasSearch) {
+      // Mostrar loading imediatamente quando começar a digitar/filtrar
+      setIsFilterLoading(true);
 
       const timeoutId = setTimeout(() => {
         applyBackendFilters();
-      }, 800); // Debounce de 800ms
+      }, 600); // Debounce reduzido para 600ms para melhor UX com loading
 
-      return () => clearTimeout(timeoutId);
+      return () => {
+        clearTimeout(timeoutId);
+        // Se o timeout for cancelado (usuário ainda digitando), manter loading
+      };
+    } else {
+      // Se não há filtros, remover loading
+      setIsFilterLoading(false);
     }
   }, [JSON.stringify(filters), searchQuery, useBackendFilters, dataType, hasInitialized]);
 
@@ -362,17 +377,31 @@ export default function DataFrame({
           </div>
         )}
 
-        <Table
-          data={filteredData}
-          dataType={dataType}
-          className="mt-4"
-          onEditRow={onEditRow}
-          onToggleRow={onToggleRow}
-          onChangePassword={onChangePassword}
-          formFields={formFields}
-          onAssociarFormulario={onAssociarFormulario}
-          callbacks={callbacks}
-        />
+        <div className="relative">
+          <Table
+            data={filteredData}
+            dataType={dataType}
+            className={`mt-4 transition-opacity duration-200 ${isFilterLoading ? 'opacity-30' : 'opacity-100'}`}
+            onEditRow={onEditRow}
+            onToggleRow={onToggleRow}
+            onChangePassword={onChangePassword}
+            formFields={formFields}
+            onAssociarFormulario={onAssociarFormulario}
+            callbacks={callbacks}
+          />
+
+          {/* Loading overlay específico para a tabela */}
+          {isFilterLoading && (
+            <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10 rounded-lg">
+              <div className="flex flex-col items-center gap-3 p-4 bg-white rounded-lg shadow-lg border">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-redfemActionPink"></div>
+                <p className="text-sm text-gray-600 font-medium">
+                  Aplicando filtros...
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </>
   )

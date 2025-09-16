@@ -6,7 +6,7 @@ import DataFrame from "../components/DataFrame";
 import FormPopUp from "../components/FormPopUp";
 import ModalAssociarFormulario from "../components/ModalAssociarFormulario"; // Novo import
 import ConfirmationPopUp from "../components/ConfirmationPopUp"; // Novo import
-import { getConsultas, createConsulta, editConsulta, deleteConsulta } from "../services/consultaAPI";
+import { getConsultas, createConsulta, editConsulta, toggleConsulta } from "../services/consultaAPI";
 import { deleteExec } from "../services/execAPI"; // Nova import
 import { adaptConsultaForView, adaptConsultaForApi } from "../adapters/consultaAdapter";
 import { formConfigs } from "../config/formConfig";
@@ -71,14 +71,16 @@ export default function Consultas() {
   };
 
   const openEditForm = (row) => {
-    // Preparar dados para edição convertendo campos ocultos
+    // Preparar dados para edição convertendo campos ocultos para os nomes que o formulário espera
     const editData = {
-      ...row,
-      pacienteId: row._patientId,
+      id: row.id,
+      patientId: row._patientId,
       medicoId: row._medicoId,
       dataConsulta: row._dataConsulta,
       horario: row._horario,
-      ativo: row._ativo
+      tipoConsulta: row.tipoConsulta,
+      status: row.status,
+      ativo: row._ativoRaw
     };
 
     setFormMode("edit");
@@ -109,6 +111,31 @@ export default function Consultas() {
       setIsFormOpen(false);
     } catch (error) {
       toast.error("Erro ao editar consulta");
+    }
+  };
+
+  // Função para cancelar/reativar consulta via PATCH
+  const handleToggleConsulta = async (row) => {
+    console.log('🚀 BOTÃO CANCELAR CLICADO!', {
+      id: row.id,
+      ativoAtual: row._ativoRaw,
+      acao: row._ativoRaw ? 'cancelar' : 'reativar'
+    });
+
+    try {
+      console.log('🔄 Chamando toggleConsulta API...');
+      const response = await toggleConsulta(row.id);
+      console.log('✅ Toggle response:', response);
+
+      const acao = row._ativoRaw ? 'cancelada' : 'reativada';
+      toast.success(`Consulta ${acao} com sucesso!`);
+
+      console.log('🔄 Recarregando lista de consultas...');
+      fetchConsultas();
+
+    } catch (error) {
+      console.error('❌ Erro ao fazer toggle:', error);
+      toast.error("Erro ao alterar status da consulta: " + error.message);
     }
   };
 
@@ -168,31 +195,10 @@ export default function Consultas() {
     });
   };
 
-  // Nova função para deletar consulta
-  const handleDeleteConsulta = async (consultaData) => {
-    try {
-      const id = consultaData.id;
-      if (!id) {
-        toast.error("ID da consulta não encontrado");
-        return;
-      }
-
-      await deleteConsulta(id);
-      toast.success("Consulta deletada com sucesso!");
-
-      // Recarregar consultas para atualizar a interface
-      fetchConsultas();
-
-    } catch (error) {
-      toast.error("Erro ao deletar consulta");
-    }
-  };
-
   // Atualizar o DataFrame para incluir a nova callback
   const dataFrameCallbacks = {
     onEdit: openEditForm,
-    onToggle: (row) => console.log("Toggle consulta:", row),
-    onDelete: handleDeleteConsulta, // Nova callback para deletar
+    onToggle: handleToggleConsulta,
     onAssociarFormulario: handleAssociarFormulario, // Nova callback
     onRemoverAssociacao: handleRemoverAssociacao, // Nova callback
     onAbrirExecucao: handleAbrirExecucao // Callback para abrir execução
@@ -218,7 +224,7 @@ export default function Consultas() {
         onToggleRow={dataFrameCallbacks.onToggle}
         onAssociarFormulario={dataFrameCallbacks.onAssociarFormulario}
         fetchData={fetchConsultas}
-        defaultFilters={{ status: ["PENDENTE", "CONCLUIDA"] }}
+        defaultFilters={{ status: ["PENDENTE"] }}
         // Passar todas as callbacks necessárias
         callbacks={dataFrameCallbacks}
       />
@@ -247,7 +253,7 @@ export default function Consultas() {
       {/* Modal de confirmação para remover associação */}
       <ConfirmationPopUp
         isOpen={isConfirmRemoveOpen}
-        message={`Tem certeza que deseja remover a associação do formulário "${consultaParaRemover?._execucaoFormulario?.formulario || "N/A"}"?`}
+        message={`Tem certeza que deseja remover a associação do formulário "${consultaParaRemover?._execucaoFormulario?.formulario || "N/A"}" da consulta do paciente ${consultaParaRemover?.paciente || "N/A"}?`}
         onConfirm={handleConfirmRemoveAssociacao}
         onCancel={() => {
           setIsConfirmRemoveOpen(false);
