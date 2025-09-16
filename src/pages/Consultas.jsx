@@ -24,6 +24,7 @@ export default function Consultas() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState("create");
   const [editInitialData, setEditInitialData] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   
   // Novo state para o modal de associar formulário
   const [isModalAssociarOpen, setIsModalAssociarOpen] = useState(false);
@@ -234,6 +235,8 @@ export default function Consultas() {
         onToggleRow={dataFrameCallbacks.onToggle}
         onAssociarFormulario={dataFrameCallbacks.onAssociarFormulario}
         fetchData={fetchConsultas}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
         defaultFilters={{ status: ["PENDENTE"] }}
         // Passar todas as callbacks necessárias
         callbacks={dataFrameCallbacks}
