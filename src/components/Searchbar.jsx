@@ -4,9 +4,9 @@ import { ButtonSecondary } from "./Button"
 export default function Searchbar({placeholder, searchQuery, setSearchQuery, onClickFilter, fetchData}) {
 
   return <>
-    <div className="flex gap-2 mb-4 items-center w-full">
+    <div className="flex gap-2 items-center w-full">
       <div className="relative flex-1">
-        <div className="absolute left-4 bottom-3.5">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2">
           <SearchIcon  />
         </div>
         <input
@@ -14,25 +14,17 @@ export default function Searchbar({placeholder, searchQuery, setSearchQuery, onC
           placeholder={`Pesquise em ${placeholder}`}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 pr-5 py-2 w-full border-2 rounded-lg outline-redfemPink"
+          className="pl-10 pr-12 py-2 w-full border-2 rounded-lg outline-redfemPink"
         />
         <button
-          className="absolute right-4 bottom-3 hover:text-redfemPink active:text-redfemDarkPink"
+          className="absolute right-4 top-1/2 -translate-y-1/2 hover:text-redfemPink active:text-redfemDarkPink transition-colors"
           onClick={onClickFilter}
-          // variant={isFilterOpen ? "default" : "outline"}
+          aria-label="Filtros"
+          title="Abrir filtros"
         >
           <FilterIcon />
-          {/* {activeFiltersCount > 0 && (
-            <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
-              {activeFiltersCount}
-            </Badge>
-          )} */}
         </button>
       </div>
-      
-      <ButtonSecondary onClick={fetchData}>
-        Procurar
-      </ButtonSecondary>
     </div>
   </>
 }

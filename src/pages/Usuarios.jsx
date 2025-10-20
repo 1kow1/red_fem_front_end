@@ -55,7 +55,14 @@ export default function Usuarios() {
       const data = await getUsers(filterWithPagination);
       const mapped = data.content.map(adaptUserForView);
 
-      setUsers(mapped);
+      // Ordenar usuários por nome (alfabeticamente)
+      const sortedUsers = mapped.sort((a, b) => {
+        const nameA = (a.nome || '').toLowerCase();
+        const nameB = (b.nome || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+
+      setUsers(sortedUsers);
       setTotalPages(data.totalPages);
       setTotalRecords(data.totalElements);
     } catch (err) {
@@ -221,7 +228,7 @@ export default function Usuarios() {
         key={formMode === "create" ? Date.now() : editInitialData?.id ?? "edit"}
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={formMode === "create" ? "Criar Usuário" : "Editar Usuário"}
+        title={formMode === "create" ? "Adicionar Usuário" : "Editar Usuário"}
         mode={formMode}
         fields={formConfigs.usuarios.fields}
         validationSchema={formConfigs.usuarios.validationSchema}

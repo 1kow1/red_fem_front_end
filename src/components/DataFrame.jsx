@@ -3,7 +3,8 @@ import Table from "./Table"
 import Searchbar from "./Searchbar"
 import { ButtonPrimary } from "./Button"
 import { AddIcon } from "./Icons"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
+import HelpTooltip from "./HelpTooltip"
 
 function Tag({ children, isSelected, onClick, onRemove, removable = false }) {
   return (
@@ -56,7 +57,9 @@ export default function DataFrame({
   setSearchQuery,
   fetchData,
   useBackendFilters = true, // nova prop para usar filtros do backend
-  defaultFilters = {} // nova prop para filtros padrão
+  defaultFilters = {}, // nova prop para filtros padrão
+  page, // número da página atual
+  size  // tamanho da página
 }) {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -64,6 +67,20 @@ export default function DataFrame({
   const [filters, setFilters] = useState(defaultFilters);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const dateInputsRef = useRef({});
+
+  // Função para limpar todos os filtros
+  const handleClearAllFilters = () => {
+    // Limpar TODOS os filtros (incluindo defaultFilters)
+    setFilters({});
+    // Limpar todos os inputs de data manualmente
+    Object.keys(dateInputsRef.current).forEach(key => {
+      const input = dateInputsRef.current[key];
+      if (input) {
+        input.value = '';
+      }
+    });
+  };
 
   // Função para aplicar filtros via backend
   const applyBackendFilters = useCallback(async () => {
@@ -102,12 +119,20 @@ export default function DataFrame({
       backendFilters.buscaGenerica = searchQuery;
     }
 
+    // Adicionar paginação
+    if (page !== undefined) {
+      backendFilters.page = page;
+    }
+    if (size !== undefined) {
+      backendFilters.size = size;
+    }
+
     try {
       await fetchData(backendFilters);
     } finally {
       setIsFilterLoading(false);
     }
-  }, [useBackendFilters, fetchData, filters, searchQuery, avaiableFilters, dataType]);
+  }, [useBackendFilters, fetchData, filters, searchQuery, avaiableFilters, dataType, page, size]);
 
   // Effect para filtragem no frontend (quando useBackendFilters = false)
   useEffect(() => {
@@ -173,7 +198,7 @@ export default function DataFrame({
       applyBackendFilters();
       setHasInitialized(true);
     }
-  }, [defaultFilters, useBackendFilters, fetchData, hasInitialized]);
+  }, [defaultFilters, useBackendFilters, fetchData, hasInitialized, applyBackendFilters]);
 
   // Effect para aplicar filtros do backend quando mudarem
   useEffect(() => {
@@ -196,15 +221,24 @@ export default function DataFrame({
         // Se o timeout for cancelado (usuário ainda digitando), manter loading
       };
     } else {
-      // Se não há filtros, remover loading
+      // Se não há filtros, remover loading e aplicar filtros vazios
       setIsFilterLoading(false);
+      applyBackendFilters();
     }
-  }, [JSON.stringify(filters), searchQuery, useBackendFilters, dataType, hasInitialized]);
+  }, [JSON.stringify(filters), searchQuery, useBackendFilters, dataType, hasInitialized, applyBackendFilters]);
+
+  // Effect para aplicar filtros quando a página ou tamanho mudarem
+  useEffect(() => {
+    if (!useBackendFilters || !fetchData) return;
+    if (!hasInitialized) return;
+
+    applyBackendFilters();
+  }, [page, size, applyBackendFilters, useBackendFilters, fetchData, hasInitialized]);
 
   return (
     <>
       <div>
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-2 items-center mb-4">
           <Searchbar
             placeholder={`${title.toLowerCase()}...`}
             searchQuery={searchQuery}
@@ -216,6 +250,16 @@ export default function DataFrame({
             <AddIcon />
             Adicionar {title}
           </ButtonPrimary>
+
+          {/* Tooltip de ajuda sobre filtros */}
+          <div className="self-center">
+            <HelpTooltip
+              title="Ajuda"
+              content="Pressione <strong>F1</strong> para ajuda completa"
+              position="bottom"
+              maxWidth={180}
+            />
+          </div>
         </div>
 
         {isFilterOpen && (
@@ -263,6 +307,7 @@ export default function DataFrame({
                       </span>
                       <input
                         type="date"
+                        ref={(el) => dateInputsRef.current[`${filter.name}-start`] = el}
                         className="w-fit border-2 rounded-lg p-1 outline-redfemVariantPink"
                         onChange={(e) => {
                           const newFilters = { ...filters };
@@ -283,6 +328,7 @@ export default function DataFrame({
                       </span>
                       <input
                         type="date"
+                        ref={(el) => dateInputsRef.current[`${filter.name}-end`] = el}
                         className="border-2 rounded-lg p-1 outline-redfemVariantPink"
                         onChange={(e) => {
                           const newFilters = { ...filters };
@@ -372,7 +418,7 @@ export default function DataFrame({
                 return value !== "" && value !== null && value !== undefined;
               }) && (
                 <button
-                  onClick={() => setFilters({})}
+                  onClick={handleClearAllFilters}
                   className="text-sm text-redfemDarkPink hover:text-redfemPink underline ml-2"
                 >
                   Limpar todos

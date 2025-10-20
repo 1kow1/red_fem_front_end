@@ -127,101 +127,179 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
     // Importação dinâmica do jsPDF
     const { jsPDF } = await import('jspdf');
 
-
     const doc = new jsPDF();
     let yPosition = 20;
-    const lineHeight = 7;
+    const lineHeight = 6;
     const pageHeight = doc.internal.pageSize.height;
+    const pageWidth = doc.internal.pageSize.width;
+
+    // Função para adicionar cabeçalho em cada página
+    const addHeader = () => {
+      // Linha superior rosa
+      doc.setFillColor(219, 112, 147); // Rosa similar ao logo
+      doc.rect(0, 0, pageWidth, 8, 'F');
+
+      // Título principal
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(139, 0, 76); // Rosa escuro
+      doc.text('Ficha Clínica de Ginecologia', pageWidth / 2, 18, { align: 'center' });
+
+      // Subtítulo
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Rede Feminina de Combate ao Câncer', pageWidth / 2, 24, { align: 'center' });
+
+      // Linha decorativa
+      doc.setDrawColor(219, 112, 147);
+      doc.setLineWidth(0.5);
+      doc.line(20, 28, pageWidth - 20, 28);
+
+      return 35; // Retorna posição Y após o cabeçalho
+    };
+
+    // Função para adicionar rodapé
+    const addFooter = (pageNum) => {
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.setFont(undefined, 'italic');
+      doc.text(
+        `Relatório gerado em ${format(new Date(), 'dd/MM/yyyy')} às ${format(new Date(), 'HH:mm')}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+      doc.text(`Página ${pageNum}`, pageWidth - 20, pageHeight - 10, { align: 'right' });
+    };
 
     // Função para adicionar nova página se necessário
+    let currentPage = 1;
     const checkPageBreak = (neededSpace = 20) => {
       if (yPosition + neededSpace > pageHeight - 20) {
+        addFooter(currentPage);
         doc.addPage();
-        yPosition = 20;
+        currentPage++;
+        yPosition = addHeader();
         return true;
       }
       return false;
     };
 
-    // Cabeçalho do relatório
-    doc.setFontSize(18);
-    doc.setFont(undefined, 'bold');
-    doc.text('Relatório de Execuções de Formulários', 20, yPosition);
-    yPosition += 15;
+    // Adicionar cabeçalho da primeira página
+    yPosition = addHeader();
+    yPosition += 5;
 
-    // Dados do paciente
+    // Seção 1: Identificação do Paciente
     doc.setFontSize(12);
-    doc.text('Dados do Paciente:', 20, yPosition);
-    yPosition += 10;
-
-    doc.setFont(undefined, 'normal');
-    doc.setFontSize(10);
-    doc.text(`Nome: ${pacienteData.nome}`, 25, yPosition);
-    yPosition += lineHeight;
-    doc.text(`CPF: ${pacienteData.cpf || 'N/A'}`, 25, yPosition);
-    yPosition += lineHeight;
-    doc.text(`Email: ${pacienteData.email || 'N/A'}`, 25, yPosition);
-    yPosition += lineHeight;
-    doc.text(`Data de Nascimento: ${pacienteData._dataDeNascimento || 'N/A'}`, 25, yPosition);
-    yPosition += lineHeight;
-
-    yPosition += 10; // Espaço
-
-    // Data de geração
-    doc.text(`Relatório gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 25, yPosition);
-    yPosition += 15;
-
-    // Processar consultas
-    doc.setFontSize(14);
     doc.setFont(undefined, 'bold');
-    doc.text('Histórico de Consultas e Execuções:', 20, yPosition);
-    yPosition += 10;
+    doc.setTextColor(139, 0, 76);
+    doc.text('1. Identificação', 20, yPosition);
+    yPosition += 8;
+
+    // Dados do paciente em formato de tabela
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(0, 0, 0);
+
+    const drawField = (label, value, x, y, width = 85) => {
+      doc.setFont(undefined, 'bold');
+      doc.text(label + ':', x, y);
+      doc.setFont(undefined, 'normal');
+      doc.text(value || 'N/A', x + 25, y);
+      // Linha inferior do campo
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.3);
+      doc.line(x, y + 1, x + width, y + 1);
+    };
+
+    drawField('Nome', pacienteData.nome, 25, yPosition, 165);
+    yPosition += 8;
+
+    drawField('CPF', pacienteData.cpf, 25, yPosition, 80);
+    drawField('Data Nasc', pacienteData._dataDeNascimento, 110, yPosition, 80);
+    yPosition += 8;
+
+    drawField('Email', pacienteData.email, 25, yPosition, 80);
+    drawField('Telefone', pacienteData.telefone, 110, yPosition, 80);
+    yPosition += 8;
+
+    if (pacienteData.endereco) {
+      drawField('Endereço', pacienteData.endereco, 25, yPosition, 165);
+      yPosition += 8;
+    }
+
+    yPosition += 5;
+
+    // Seção 2: Histórico de Consultas
+    checkPageBreak(30);
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(139, 0, 76);
+    doc.text('2. Histórico de Consultas e Anamneses', 20, yPosition);
+    yPosition += 8;
 
     if (!consultas || consultas.length === 0) {
       doc.setFont(undefined, 'normal');
       doc.setFontSize(10);
-      doc.text('Nenhuma consulta encontrada.', 25, yPosition);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Nenhuma consulta registrada.', 25, yPosition);
     } else {
       consultas.forEach((consulta, index) => {
-        checkPageBreak(40);
+        checkPageBreak(50);
+
+        // Box da consulta
+        doc.setDrawColor(219, 112, 147);
+        doc.setLineWidth(0.5);
+        const boxStartY = yPosition - 3;
+
+        // Cabeçalho da consulta com fundo rosa claro
+        doc.setFillColor(255, 240, 245);
+        doc.rect(20, boxStartY, pageWidth - 40, 10, 'F');
+        doc.rect(20, boxStartY, pageWidth - 40, 10, 'S');
+
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(139, 0, 76);
+        doc.text(`Consulta ${index + 1} - ${consulta.dataHora ? format(new Date(consulta.dataHora), 'dd/MM/yyyy HH:mm') : 'Data não informada'}`, 25, yPosition + 4);
+        yPosition += 13;
 
         // Dados da consulta
-        doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        doc.text(`Consulta ${index + 1}`, 25, yPosition);
-        yPosition += 8;
-
         doc.setFont(undefined, 'normal');
         doc.setFontSize(10);
-        doc.text(`Data: ${consulta.dataHora ? format(new Date(consulta.dataHora), 'dd/MM/yyyy HH:mm') : 'N/A'}`, 30, yPosition);
-        yPosition += lineHeight;
-        doc.text(`Médico: ${consulta.usuarioDTO?.nome || 'N/A'}`, 30, yPosition);
-        yPosition += lineHeight;
-        doc.text(`Tipo: ${consulta.tipoConsulta || 'N/A'}`, 30, yPosition);
-        yPosition += lineHeight;
-        doc.text(`Status: ${consulta.status || 'N/A'}`, 30, yPosition);
-        yPosition += lineHeight;
+        doc.setTextColor(0, 0, 0);
+
+        drawField('Profissional', consulta.usuarioDTO?.nome, 25, yPosition, 80);
+        drawField('Tipo', consulta.tipoConsulta, 110, yPosition, 80);
+        yPosition += 8;
+
+        drawField('Status', consulta.status, 25, yPosition, 165);
+        yPosition += 8;
 
         // Execução do formulário
         const execucao = consulta.execucaoFormulario;
         if (!execucao) {
-          doc.text('• Sem formulário associado', 30, yPosition);
-          yPosition += lineHeight;
+          doc.setFont(undefined, 'italic');
+          doc.setTextColor(128, 128, 128);
+          doc.text('Sem anamnese associada a esta consulta', 25, yPosition);
+          yPosition += lineHeight + 2;
         } else {
-          doc.text(`• Formulário: ${execucao.formulario?.titulo || 'Não identificado'}`, 30, yPosition);
-          yPosition += lineHeight;
-          doc.text(`• Liberado: ${execucao.isLiberado ? 'Sim' : 'Não'}`, 30, yPosition);
-          yPosition += lineHeight;
+          // Nome do formulário
+          doc.setFont(undefined, 'bold');
+          doc.setTextColor(0, 0, 0);
+          doc.text('Anamnese:', 25, yPosition);
+          doc.setFont(undefined, 'normal');
+          doc.text(execucao.formulario?.titulo || 'Não identificado', 50, yPosition);
+          yPosition += lineHeight + 2;
 
           // Respostas
           if (!execucao.respostas || execucao.respostas.length === 0) {
-            doc.text('• Sem respostas registradas', 30, yPosition);
-            yPosition += lineHeight;
+            doc.setFont(undefined, 'italic');
+            doc.setTextColor(128, 128, 128);
+            doc.text('Formulário sem respostas preenchidas', 25, yPosition);
+            yPosition += lineHeight + 2;
           } else {
-            doc.text('• Respostas:', 30, yPosition);
-            yPosition += lineHeight;
-
-            // Agrupar respostas por pergunta, mantendo o enunciado
+            // Agrupar respostas por pergunta
             const respostasPorPergunta = {};
             execucao.respostas.forEach(resposta => {
               const perguntaId = String(resposta.perguntaId);
@@ -234,32 +312,55 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
               respostasPorPergunta[perguntaId].textos.push(resposta.texto);
             });
 
-            Object.entries(respostasPorPergunta).forEach(([perguntaId, dadosPergunta]) => {
+            // Renderizar cada pergunta e resposta
+            Object.entries(respostasPorPergunta).forEach(([perguntaId, dadosPergunta], idx) => {
               checkPageBreak(15);
 
-              // Usar o enunciado que vem na resposta
-              const enunciadoPergunta = dadosPergunta.enunciado;
+              // Pergunta em negrito
+              doc.setFont(undefined, 'bold');
+              doc.setTextColor(0, 0, 0);
+              const maxWidthPergunta = 160;
+              const perguntaLines = doc.splitTextToSize(`${idx + 1}. ${dadosPergunta.enunciado}`, maxWidthPergunta);
 
-              // Quebra texto longo
-              const respostaTexto = dadosPergunta.textos.join('; ');
-              const maxWidth = 150;
-              const splitText = doc.splitTextToSize(`  - ${enunciadoPergunta}: ${respostaTexto}`, maxWidth);
-
-              splitText.forEach(line => {
+              perguntaLines.forEach(line => {
                 checkPageBreak();
-                doc.text(line, 35, yPosition);
+                doc.text(line, 25, yPosition);
                 yPosition += lineHeight;
               });
+
+              // Resposta normal
+              doc.setFont(undefined, 'normal');
+              doc.setTextColor(60, 60, 60);
+              const respostaTexto = dadosPergunta.textos.join('; ');
+              const maxWidthResposta = 155;
+              const respostaLines = doc.splitTextToSize(`R: ${respostaTexto}`, maxWidthResposta);
+
+              respostaLines.forEach(line => {
+                checkPageBreak();
+                doc.text(line, 30, yPosition);
+                yPosition += lineHeight;
+              });
+
+              yPosition += 2; // Espaço entre perguntas
             });
           }
         }
 
-        yPosition += 8; // Espaço entre consultas
+        // Fechar box da consulta
+        const boxEndY = yPosition + 2;
+        doc.setDrawColor(219, 112, 147);
+        doc.setLineWidth(0.5);
+        doc.rect(20, boxStartY, pageWidth - 40, boxEndY - boxStartY, 'S');
+
+        yPosition += 10; // Espaço entre consultas
       });
     }
 
+    // Adicionar rodapé na última página
+    addFooter(currentPage);
+
     // Salvar PDF
-    const fileName = `relatorio_${pacienteData.nome.replace(/\s+/g, '_')}_${format(new Date(), 'ddMMyyyy')}.pdf`;
+    const fileName = `Ficha_Clinica_${pacienteData.nome.replace(/\s+/g, '_')}_${format(new Date(), 'ddMMyyyy')}.pdf`;
     doc.save(fileName);
 
     return true;

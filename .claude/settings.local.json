@@ -3,7 +3,10 @@
     "allow": [
       "Bash(npm run lint:*)",
       "Bash(npm run dev:*)",
-      "Read(//c/Users/Wende/OneDrive/Área de Trabalho/KOW/Anamnese/red_fem_back_end/src/main/java/org/redefem/anamnese/controllers/**)"
+      "Read(//c/Users/Wende/OneDrive/Área de Trabalho/KOW/Anamnese/red_fem_back_end/src/main/java/org/redefem/anamnese/controllers/**)",
+      "Bash(npm install:*)",
+      "Read(//c/Users/Wende/OneDrive/Área de Trabalho/KOW/Anamnese/red_fem_back_end/src/main/java/org/redefem/anamnese/services/**)",
+      "Read(//c/Users/Wende/OneDrive/Área de Trabalho/KOW/Anamnese/red_fem_back_end/**)"
     ],
     "deny": [],
     "ask": []

@@ -12,9 +12,13 @@ import { toast } from "react-toastify";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import ModalRelatorio from "../components/ModalRelatorio";
 import { filterConfigs } from "../config/filterConfig";
+import { useAuth } from "../contexts/auth/useAuth";
+import { ButtonPrimaryDropdown } from "../components/Button";
+import { generateCSVReport, generatePDFReport } from "../utils/reportUtils";
 
 export default function Pacientes() {
   const navigate = useNavigate();
+  const { user, userCargo } = useAuth();
   const [pacientes, setPacientes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -178,6 +182,334 @@ export default function Pacientes() {
     setIsRelatorioModalOpen(true);
   };
 
+  // Função para exportar TODOS os pacientes (Admin apenas)
+  const handleExportarTodosPacientesCSV = async () => {
+    try {
+      setLoading(true);
+      // Buscar todos os pacientes sem paginação
+      const allPacientesData = await getPacientes({ page: 0, size: 10000, ativo: [true, false] });
+      const allPacientes = allPacientesData.content.map(adaptPacienteForView);
+
+      if (allPacientes.length === 0) {
+        toast.warning('Nenhum paciente encontrado para exportar');
+        return;
+      }
+
+      // Criar CSV com dados de pacientes e formulários
+      const rows = [];
+
+      // Cabeçalho principal
+      rows.push([
+        'Nome Paciente', 'CPF', 'Email', 'Telefone', 'Data Nascimento', 'Ativo',
+        'Data Consulta', 'Médico', 'Tipo Consulta', 'Status Consulta',
+        'Formulário', 'Data Preenchimento', 'Liberado',
+        'Pergunta', 'Resposta'
+      ]);
+
+      allPacientes.forEach(paciente => {
+        const consultas = paciente.consultas || [];
+
+        if (consultas.length === 0) {
+          // Paciente sem consultas
+          rows.push([
+            paciente.nome || '',
+            paciente.cpf || '',
+            paciente.email || '',
+            paciente.telefone || '',
+            paciente._dataDeNascimento || '',
+            paciente.ativo || '',
+            '', '', '', '', '', '', '', '', ''
+          ]);
+        } else {
+          consultas.forEach(consulta => {
+            const exec = consulta.execucaoFormulario;
+            const medicoNome = consulta.usuarioDTO?.nome || '';
+
+            if (!exec) {
+              // Consulta sem formulário
+              rows.push([
+                paciente.nome || '',
+                paciente.cpf || '',
+                paciente.email || '',
+                paciente.telefone || '',
+                paciente._dataDeNascimento || '',
+                paciente.ativo || '',
+                consulta.dataHora || '',
+                medicoNome,
+                consulta.tipoConsulta || '',
+                consulta.status || '',
+                '', '', '', '', ''
+              ]);
+            } else {
+              const respostas = exec.respostas || [];
+              const formularioTitulo = exec.formulario?.titulo || 'N/A';
+              const dataPreenchimento = exec.dataHora || '';
+              const liberado = exec.isLiberado ? 'Sim' : 'Não';
+
+              if (respostas.length === 0) {
+                // Formulário sem respostas
+                rows.push([
+                  paciente.nome || '',
+                  paciente.cpf || '',
+                  paciente.email || '',
+                  paciente.telefone || '',
+                  paciente._dataDeNascimento || '',
+                  paciente.ativo || '',
+                  consulta.dataHora || '',
+                  medicoNome,
+                  consulta.tipoConsulta || '',
+                  consulta.status || '',
+                  formularioTitulo,
+                  dataPreenchimento,
+                  liberado,
+                  '', ''
+                ]);
+              } else {
+                // Formulário com respostas
+                respostas.forEach(resposta => {
+                  const perguntaTexto = resposta.enunciado || '';
+                  const respostaTexto = resposta.texto || '';
+
+                  rows.push([
+                    paciente.nome || '',
+                    paciente.cpf || '',
+                    paciente.email || '',
+                    paciente.telefone || '',
+                    paciente._dataDeNascimento || '',
+                    paciente.ativo || '',
+                    consulta.dataHora || '',
+                    medicoNome,
+                    consulta.tipoConsulta || '',
+                    consulta.status || '',
+                    formularioTitulo,
+                    dataPreenchimento,
+                    liberado,
+                    perguntaTexto,
+                    respostaTexto
+                  ]);
+                });
+              }
+            }
+          });
+        }
+      });
+
+      const csvContent = rows.map(row =>
+        row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',')
+      ).join('\n');
+
+      const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Todos_Pacientes_Completo_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success(`Exportados ${allPacientes.length} pacientes com dados completos!`);
+    } catch (error) {
+      console.error('Erro ao exportar pacientes:', error);
+      toast.error('Erro ao exportar pacientes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportarTodosPacientesPDF = async () => {
+    try {
+      setLoading(true);
+      const { jsPDF } = await import('jspdf');
+      const allPacientesData = await getPacientes({ page: 0, size: 10000, ativo: [true, false] });
+      const allPacientes = allPacientesData.content.map(adaptPacienteForView);
+
+      if (allPacientes.length === 0) {
+        toast.warning('Nenhum paciente encontrado para exportar');
+        return;
+      }
+
+      const doc = new jsPDF();
+      let yPos = 20;
+      const pageHeight = doc.internal.pageSize.height;
+      const pageWidth = doc.internal.pageSize.width;
+      const margin = 15;
+      const maxWidth = pageWidth - (margin * 2);
+
+      // Função auxiliar para adicionar cabeçalho em novas páginas
+      const addHeader = () => {
+        doc.setFillColor(219, 112, 147);
+        doc.rect(0, 0, pageWidth, 8, 'F');
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(139, 0, 76);
+        doc.text('Relatório Completo de Pacientes', pageWidth / 2, 18, { align: 'center' });
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text('Rede Feminina de Combate ao Câncer', pageWidth / 2, 24, { align: 'center' });
+        doc.setDrawColor(219, 112, 147);
+        doc.setLineWidth(0.5);
+        doc.line(margin, 28, pageWidth - margin, 28);
+        return 35;
+      };
+
+      // Função auxiliar para verificar espaço e adicionar nova página
+      const checkPageBreak = (requiredSpace) => {
+        if (yPos + requiredSpace > pageHeight - 20) {
+          doc.addPage();
+          yPos = addHeader();
+          yPos += 5;
+        }
+      };
+
+      yPos = addHeader();
+
+      // Info
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Total de pacientes: ${allPacientes.length}`, margin, yPos);
+      yPos += 6;
+      doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, margin, yPos);
+      yPos += 12;
+
+      // Listagem de pacientes com consultas e formulários
+      allPacientes.forEach((paciente, index) => {
+        checkPageBreak(15);
+
+        // Nome do paciente
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(139, 0, 76);
+        doc.text(`${index + 1}. ${paciente.nome}`, margin, yPos);
+        yPos += 6;
+
+        // Dados do paciente
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(0, 0, 0);
+
+        const dadosPaciente = [
+          paciente.cpf ? `CPF: ${paciente.cpf}` : null,
+          paciente.telefone ? `Tel: ${paciente.telefone}` : null,
+          paciente._dataDeNascimento ? `Nasc: ${paciente._dataDeNascimento}` : null,
+          paciente.email ? `Email: ${paciente.email}` : null
+        ].filter(Boolean);
+
+        dadosPaciente.forEach(dado => {
+          doc.text(dado, margin + 5, yPos);
+          yPos += 4;
+        });
+
+        yPos += 2;
+
+        // Consultas do paciente
+        const consultas = paciente.consultas || [];
+        if (consultas.length > 0) {
+          checkPageBreak(10);
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(10);
+          doc.setTextColor(70, 70, 70);
+          doc.text(`Consultas (${consultas.length}):`, margin + 5, yPos);
+          yPos += 5;
+
+          consultas.forEach((consulta, consultaIndex) => {
+            checkPageBreak(15);
+
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(0, 0, 0);
+
+            const medicoNome = consulta.usuarioDTO?.nome || '';
+            doc.text(`${consultaIndex + 1}. Data: ${consulta.dataHora} | Médico: ${medicoNome}`, margin + 10, yPos);
+            yPos += 4;
+            doc.text(`   Tipo: ${consulta.tipoConsulta} | Status: ${consulta.status}`, margin + 10, yPos);
+            yPos += 5;
+
+            // Formulário da consulta
+            const exec = consulta.execucaoFormulario;
+            if (exec) {
+              const formularioTitulo = exec.formulario?.titulo || 'N/A';
+              const respostas = exec.respostas || [];
+              const dataPreenchimento = exec.dataHora || '';
+              const liberado = exec.isLiberado ? 'Sim' : 'Não';
+
+              checkPageBreak(10);
+              doc.setFont(undefined, 'bold');
+              doc.setFontSize(9);
+              doc.setTextColor(100, 100, 100);
+              doc.text(`   Formulário: ${formularioTitulo}`, margin + 10, yPos);
+              yPos += 4;
+              doc.setFont(undefined, 'normal');
+              doc.setFontSize(8);
+              doc.text(`   Preenchido em: ${dataPreenchimento} | Liberado: ${liberado}`, margin + 10, yPos);
+              yPos += 5;
+
+              if (respostas.length > 0) {
+                doc.setTextColor(80, 80, 80);
+                doc.text(`   Respostas (${respostas.length}):`, margin + 10, yPos);
+                yPos += 4;
+
+                respostas.forEach(resposta => {
+                  const perguntaTexto = resposta.enunciado || '';
+                  const respostaTexto = resposta.texto || 'Sem resposta';
+
+                  checkPageBreak(8);
+
+                  doc.setFont(undefined, 'italic');
+                  doc.setTextColor(60, 60, 60);
+
+                  // Quebrar texto da pergunta se for muito longo
+                  const perguntaLines = doc.splitTextToSize(`P: ${perguntaTexto}`, maxWidth - 25);
+                  perguntaLines.forEach(line => {
+                    doc.text(line, margin + 15, yPos);
+                    yPos += 3.5;
+                  });
+
+                  doc.setFont(undefined, 'normal');
+                  doc.setTextColor(0, 0, 0);
+
+                  // Quebrar texto da resposta se for muito longo
+                  const respostaLines = doc.splitTextToSize(`R: ${respostaTexto}`, maxWidth - 25);
+                  respostaLines.forEach(line => {
+                    checkPageBreak(4);
+                    doc.text(line, margin + 15, yPos);
+                    yPos += 3.5;
+                  });
+
+                  yPos += 2;
+                });
+              } else {
+                doc.setTextColor(150, 150, 150);
+                doc.text(`   (Formulário sem respostas)`, margin + 10, yPos);
+                yPos += 4;
+              }
+            }
+
+            yPos += 2;
+          });
+        } else {
+          doc.setFont(undefined, 'italic');
+          doc.setFontSize(9);
+          doc.setTextColor(150, 150, 150);
+          doc.text('Nenhuma consulta registrada', margin + 5, yPos);
+          yPos += 5;
+        }
+
+        yPos += 5;
+      });
+
+      doc.save(`Todos_Pacientes_Completo_${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success(`Exportados ${allPacientes.length} pacientes com dados completos!`);
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+      toast.error('Erro ao exportar PDF');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchPacientes();
   }, [fetchPacientes]);
@@ -193,7 +525,28 @@ export default function Pacientes() {
 
   return (
     <div>
-      <h1 className="text-lg mb-4">Pacientes</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-lg">Pacientes</h1>
+
+        {/* Botão de exportação geral - só para Admin */}
+        {userCargo === 'ADMINISTRADOR' && (
+          <ButtonPrimaryDropdown
+            variant="secondary"
+            options={[
+              {
+                label: 'Exportar Todos (CSV)',
+                onClick: handleExportarTodosPacientesCSV
+              },
+              {
+                label: 'Exportar Todos (PDF)',
+                onClick: handleExportarTodosPacientesPDF
+              }
+            ]}
+          >
+            Exportar Todos os Pacientes
+          </ButtonPrimaryDropdown>
+        )}
+      </div>
 
       {loading && <p>Carregando...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
@@ -211,6 +564,8 @@ export default function Pacientes() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         defaultFilters={{ ativo: [true] }}
+        page={page}
+        size={size}
         callbacks={{
           onEdit: openEditForm,
           onToggle: handleToggleActive,
@@ -231,7 +586,7 @@ export default function Pacientes() {
         key={formMode === "create" ? Date.now() : editInitialData?.id ?? "edit"}
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={formMode === "create" ? "Criar Paciente" : "Editar Paciente"}
+        title={formMode === "create" ? "Adicionar Paciente" : "Editar Paciente"}
         mode={formMode}
         fields={formConfigs.pacientes.fields}
         validationSchema={formConfigs.pacientes.validationSchema}

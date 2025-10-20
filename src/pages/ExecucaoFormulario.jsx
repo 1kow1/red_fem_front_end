@@ -13,6 +13,9 @@ import { getFormById } from "../services/formAPI";
 import ModalRelatorio from "../components/ModalRelatorio";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import { generateCSVReport, generatePDFReport } from "../utils/reportUtils";
+import HelpTooltip from "../components/HelpTooltip";
+import ContextualHelpModal from "../components/ContextualHelpModal";
+import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 export default function ExecucaoFormulario() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,6 +33,9 @@ export default function ExecucaoFormulario() {
 
   // Estados para o modal de confirmação de cancelamento
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
+
+  // Estado para o modal de ajuda
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const fetchExecucaoData = async () => {
     if (!execId) {
       toast.error("ID da execução não fornecido");
@@ -427,16 +433,42 @@ export default function ExecucaoFormulario() {
     }
   }, [pacienteData]);
 
+  // Atalho F1 para ajuda contextual
+  useKeyboardShortcut('F1', () => {
+    setIsHelpModalOpen(true);
+  });
+
   // --- UI render ---
   return (
     <div>
+      <ContextualHelpModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+        context="execucao-formulario"
+      />
+
       <div
         className="
           flex flex-row justify-between items-center p-4
           border-b border-gray-300 shadow-md fixed bg-white w-full z-10"
       >
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-2 items-center">
           <img src={rosaLogo} alt="Logo Rosa RFCC" className="h-8 mr-4 self-center" />
+
+          <div className="flex items-center gap-3 ml-2">
+            <HelpTooltip
+              title="Ajuda Rápida"
+              content="<strong>Salvar:</strong> Mantém progresso (editável)<br/><strong>Liberar:</strong> Finaliza formulário (permanente)<br/><strong>F1:</strong> Abrir ajuda completa<br/><br/>⚠️ Formulários são liberados automaticamente à meia-noite"
+              position="bottom"
+              maxWidth={380}
+            />
+            {isLiberado && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-300 rounded-md text-sm text-blue-800">
+                <span className="font-semibold">🔒 Somente Leitura:</span>
+                <span>Formulário liberado</span>
+              </div>
+            )}
+          </div>
 
           {/* Botão de relatório - só aparece quando formulário está liberado */}
           {isLiberado && pacienteData && (
@@ -474,6 +506,44 @@ export default function ExecucaoFormulario() {
       </div>
       <div className="pt-24 pb-4 px-80 max-[1200px]:px-20 bg-redfemVariantPink bg-opacity-10 min-h-screen">
         <div className="flex flex-col gap-4">
+          {/* Card com dados do paciente */}
+          {pacienteData && (
+            <Card className="bg-white border-l-4 border-l-redfemPink">
+              <div className="py-3 px-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-redfemDarkPink">👤</span>
+                    <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Dados do Paciente</h3>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2 mt-3">
+                  <div>
+                    <span className="text-xs font-semibold text-gray-500">Nome:</span>
+                    <p className="text-sm font-medium text-gray-900">{pacienteData.nome}</p>
+                  </div>
+                  {pacienteData.cpf && (
+                    <div>
+                      <span className="text-xs font-semibold text-gray-500">CPF:</span>
+                      <p className="text-sm font-medium text-gray-900">{pacienteData.cpf}</p>
+                    </div>
+                  )}
+                  {pacienteData._dataDeNascimento && (
+                    <div>
+                      <span className="text-xs font-semibold text-gray-500">Data de Nascimento:</span>
+                      <p className="text-sm font-medium text-gray-900">{pacienteData._dataDeNascimento}</p>
+                    </div>
+                  )}
+                  {pacienteData.telefone && (
+                    <div>
+                      <span className="text-xs font-semibold text-gray-500">Telefone:</span>
+                      <p className="text-sm font-medium text-gray-900">{pacienteData.telefone}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Card>
+          )}
+
           <Card
             className={`${erros.length > 0 ? 'border border-red-500' : ''}`}
           >

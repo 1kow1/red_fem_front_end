@@ -14,6 +14,9 @@ import Card from "../components/Card";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import { useAuth } from '../contexts/auth/useAuth';
 import { canUseComponent } from '../utils/permissions';
+import HelpTooltip from "../components/HelpTooltip";
+import ContextualHelpModal from "../components/ContextualHelpModal";
+import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 
 export default function FormularioEditor() {
   const location = useLocation();
@@ -27,6 +30,7 @@ export default function FormularioEditor() {
   const [isConfirmOpenFormulario, setIsConfirmOpenFormulario] = useState(false);
   const [isConfirmOpenPergunta, setIsConfirmOpenPergunta] = useState(false);
   const [perguntaIdToDelete, setPerguntaIdToDelete] = useState(null);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [erros, setErros] = useState({});
@@ -647,9 +651,20 @@ export default function FormularioEditor() {
     return () => document.removeEventListener('keydown', handleKeydown);
   }, [handleUndo, handleRedo]);
 
+  // Atalho F1 para ajuda contextual
+  useKeyboardShortcut('F1', () => {
+    setIsHelpModalOpen(true);
+  });
+
   // --- UI render ---
   return (
     <div>
+      <ContextualHelpModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+        context="formulario-editor"
+      />
+
       <ConfirmationPopUp
         isOpen={isConfirmOpenFormulario}
         message={`Tem certeza que deseja descartar todas as alterações?`}
@@ -669,8 +684,23 @@ export default function FormularioEditor() {
           flex flex-row justify-between items-center p-4
           border-b border-gray-300 shadow-md fixed bg-white w-full z-10"
       >
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-2 items-center">
           <img src={rosaLogo} alt="Logo Rosa RFCC" className="h-8 mr-4 self-center" />
+
+          <div className="flex items-center gap-3 ml-2">
+            <HelpTooltip
+              title="Ajuda Rápida"
+              content="<strong>Ctrl+Z:</strong> Desfazer<br/><strong>Ctrl+Y:</strong> Refazer<br/><strong>F1:</strong> Abrir ajuda completa<br/><br/>💡 <strong>Versionamento:</strong> Editar formulários liberados cria automaticamente uma nova versão"
+              position="bottom"
+              maxWidth={350}
+            />
+            {isEditMode && formDataToEdit?.liberadoParaUso && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-300 rounded-md text-sm text-amber-800">
+                <span className="font-semibold">⚠️ Modo Versão:</span>
+                <span>Alterações criarão nova versão</span>
+              </div>
+            )}
+          </div>
 
           {/* Botões de Undo/Redo - TEMPORARIAMENTE OCULTOS */}
           {false && !isViewOnly && (
@@ -815,7 +845,7 @@ export default function FormularioEditor() {
 
                 {/* Enunciado e Select */}
                 <div className="w-full mb-4">
-                  <div className="flex flex-row gap-5">
+                  <div className="flex flex-row gap-5 items-center">
 
                     <Input
                       type="text"
@@ -826,23 +856,31 @@ export default function FormularioEditor() {
                       aria-label={`Enunciado da pergunta ${index + 1}`}
                     />
 
-                    <select
-                      className={`p-1 w-96 mb-4
-                            border-b border-b-gray-950
-                            focus:border-b-redfemActionPink focus:border-b-2
-                            outline-none cursor-pointer custom-select
-                            ${isViewOnly ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                      value={pergunta.tipo}
-                      onChange={(e) => !isViewOnly && onChangePergunta(pergunta.id, 'tipo', e.target.value)}
-                      disabled={isViewOnly}
-                      aria-label={`Tipo da pergunta ${index + 1}`}
-                    >
-                      {tiposPergunta.map(tipo => (
-                        <option key={tipo.value} value={tipo.value}>
-                          {tipo.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex items-center gap-2">
+                      <select
+                        className={`p-1 w-96 mb-4
+                              border-b border-b-gray-950
+                              focus:border-b-redfemActionPink focus:border-b-2
+                              outline-none cursor-pointer custom-select
+                              ${isViewOnly ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                        value={pergunta.tipo}
+                        onChange={(e) => !isViewOnly && onChangePergunta(pergunta.id, 'tipo', e.target.value)}
+                        disabled={isViewOnly}
+                        aria-label={`Tipo da pergunta ${index + 1}`}
+                      >
+                        {tiposPergunta.map(tipo => (
+                          <option key={tipo.value} value={tipo.value}>
+                            {tipo.label}
+                          </option>
+                        ))}
+                      </select>
+                      <HelpTooltip
+                        title="Tipos de Questões"
+                        content="<strong>Texto:</strong> Resposta livre<br/><strong>Sim/Não:</strong> Resposta binária<br/><strong>Múltipla Escolha:</strong> Várias opções<br/><strong>Seleção Única:</strong> Uma opção"
+                        position="right"
+                        className="mb-4"
+                      />
+                    </div>
 
                   </div>
 

@@ -62,7 +62,7 @@ export default function ModalAssociarFormulario({
 
     // Verificar se a consulta está cancelada
     if (consultaData.status === "CANCELADA" || consultaData._ativoRaw === false) {
-      toast.error("Não é possível associar formulário a uma consulta cancelada.");
+      toast.error("Não é possível vincular formulário a uma consulta cancelada.");
       return;
     }
 
@@ -93,7 +93,7 @@ export default function ModalAssociarFormulario({
 
       await createExec(payload); // Usando sua função existente
       
-      toast.success("Formulário associado com sucesso!");
+      toast.success("Formulário vinculado com sucesso!");
       
       // Callback para atualizar a interface pai
       if (onSuccess) {
@@ -103,9 +103,9 @@ export default function ModalAssociarFormulario({
       onClose();
       
     } catch (error) {
-      const message = error?.response?.data?.message || 
-                     error?.message || 
-                     "Erro ao associar formulário";
+      const message = error?.response?.data?.message ||
+                     error?.message ||
+                     "Erro ao vincular formulário";
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -124,7 +124,7 @@ export default function ModalAssociarFormulario({
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Associar Formulário</h2>
+          <h2 className="text-xl font-semibold">Vincular Formulário</h2>
           <button 
             onClick={handleClose} 
             className="text-2xl font-light hover:text-gray-600"
@@ -147,7 +147,7 @@ export default function ModalAssociarFormulario({
               </div>
             ) : consultaData?._execucaoFormulario ? (
               <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-500">
-                Consulta já possui formulário associado
+                Consulta já possui formulário vinculado
               </div>
             ) : (
               <select
@@ -182,10 +182,10 @@ export default function ModalAssociarFormulario({
             disabled={submitting || !selectedFormularioId || loading || !!consultaData?._execucaoFormulario}
           >
             {consultaData?._execucaoFormulario
-              ? "Formulário Já Associado"
+              ? "Formulário Já Vinculado"
               : submitting
-                ? "Associando..."
-                : "Associar Formulário"}
+                ? "Vinculando..."
+                : "Vincular Formulário"}
           </ButtonPrimary>
         </div>
       </div>
