@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { X, User, Save } from 'lucide-react';
+import { X, User, Save, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/auth/useAuth';
-import { getCurrentUser, updateCurrentUserProfile } from '../services/authAPI';
+import { getCurrentUser, updateCurrentUserProfile, changeCurrentUserPassword } from '../services/authAPI';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 
 export default function ModalEditarPerfil({ isOpen, onClose }) {
@@ -15,6 +15,15 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
     email: '',
     telefone: ''
   });
+  const [passwordData, setPasswordData] = useState({
+    senhaAtual: '',
+    novaSenha: '',
+    confirmarSenha: ''
+  });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [changePassword, setChangePassword] = useState(false);
 
   // Carregar dados completos do usuário quando o modal abrir
   useEffect(() => {
@@ -67,18 +76,81 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
     }));
   };
 
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const validatePassword = () => {
+    if (changePassword) {
+      if (!passwordData.senhaAtual) {
+        showError({ message: 'Senha atual é obrigatória' });
+        return false;
+      }
+      if (!passwordData.novaSenha) {
+        showError({ message: 'Nova senha é obrigatória' });
+        return false;
+      }
+      if (passwordData.novaSenha.length < 6) {
+        showError({ message: 'Nova senha deve ter pelo menos 6 caracteres' });
+        return false;
+      }
+      if (passwordData.novaSenha !== passwordData.confirmarSenha) {
+        showError({ message: 'Confirmação de senha não confere' });
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validatePassword()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
+      // Update profile data
       const response = await updateCurrentUserProfile(formData);
 
       if (response.status >= 200 && response.status < 300) {
-        showSuccess('Perfil atualizado com sucesso!');
-
         // Atualizar os dados locais com a resposta da API
         setUserData(response.data);
+
+        // Change password if requested
+        if (changePassword) {
+          try {
+            const passwordResponse = await changeCurrentUserPassword(
+              passwordData.senhaAtual,
+              passwordData.novaSenha
+            );
+
+            if (passwordResponse.status >= 200 && passwordResponse.status < 300) {
+              showSuccess('Perfil e senha atualizados com sucesso!');
+            } else {
+              showSuccess('Perfil atualizado, mas houve um erro ao alterar a senha');
+            }
+          } catch (passwordError) {
+            showSuccess('Perfil atualizado com sucesso!');
+            showError(passwordError);
+          }
+        } else {
+          showSuccess('Perfil atualizado com sucesso!');
+        }
+
+        // Reset password fields
+        setPasswordData({
+          senhaAtual: '',
+          novaSenha: '',
+          confirmarSenha: ''
+        });
+        setChangePassword(false);
 
         onClose();
       } else {
@@ -100,6 +172,13 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
         telefone: userData.telefone || ''
       });
     }
+    // Reset password fields
+    setPasswordData({
+      senhaAtual: '',
+      novaSenha: '',
+      confirmarSenha: ''
+    });
+    setChangePassword(false);
     onClose();
   };
 
@@ -180,6 +259,123 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-redfemActionPink focus:border-transparent disabled:bg-gray-50"
               />
             </div>
+
+            {/* Divider */}
+            <div className="border-t pt-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={changePassword}
+                  onChange={(e) => setChangePassword(e.target.checked)}
+                  disabled={loading}
+                  className="w-4 h-4 text-redfemActionPink focus:ring-redfemActionPink border-gray-300 rounded"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  Alterar senha
+                </span>
+              </label>
+            </div>
+
+            {/* Password fields - show only if changePassword is true */}
+            {changePassword && (
+              <>
+                {/* Senha Atual */}
+                <div>
+                  <label htmlFor="senhaAtual" className="block text-sm font-medium text-gray-700 mb-1">
+                    Senha Atual *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      id="senhaAtual"
+                      name="senhaAtual"
+                      value={passwordData.senhaAtual}
+                      onChange={handlePasswordChange}
+                      disabled={loading}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-redfemActionPink focus:border-transparent disabled:bg-gray-50 pr-10"
+                      placeholder="Digite sua senha atual"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      disabled={loading}
+                    >
+                      {showCurrentPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Nova Senha */}
+                <div>
+                  <label htmlFor="novaSenha" className="block text-sm font-medium text-gray-700 mb-1">
+                    Nova Senha *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      id="novaSenha"
+                      name="novaSenha"
+                      value={passwordData.novaSenha}
+                      onChange={handlePasswordChange}
+                      disabled={loading}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-redfemActionPink focus:border-transparent disabled:bg-gray-50 pr-10"
+                      placeholder="Digite a nova senha"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      disabled={loading}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Mínimo de 6 caracteres
+                  </p>
+                </div>
+
+                {/* Confirmar Nova Senha */}
+                <div>
+                  <label htmlFor="confirmarSenha" className="block text-sm font-medium text-gray-700 mb-1">
+                    Confirmar Nova Senha *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      id="confirmarSenha"
+                      name="confirmarSenha"
+                      value={passwordData.confirmarSenha}
+                      onChange={handlePasswordChange}
+                      disabled={loading}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-redfemActionPink focus:border-transparent disabled:bg-gray-50 pr-10"
+                      placeholder="Confirme a nova senha"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      disabled={loading}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
             </div>
           )}
 

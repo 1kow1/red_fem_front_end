@@ -39,11 +39,13 @@ export const getForms = async (filters = {}) => {
       descricoes.forEach(desc => params.append('descricoes', desc));
     }
 
-    // Access control: Doctors/Residents can only see forms of their specialty
-    if ((userCargo === 'MEDICO' || userCargo === 'RESIDENTE') && userEspecialidade) {
-      params.append('especialidades', userEspecialidade);
-    } else if (especialidades?.length) {
+    // Apply specialty filter
+    if (especialidades?.length) {
+      // User explicitly selected specialty filter - use it
       especialidades.forEach(esp => params.append('especialidades', esp));
+    } else if ((userCargo === 'MEDICO' || userCargo === 'RESIDENTE') && userEspecialidade) {
+      // No filter selected: Doctors/Residents default to their own specialty
+      params.append('especialidades', userEspecialidade);
     }
     if (versoes?.length) {
       versoes.forEach(ver => params.append('versoes', ver));

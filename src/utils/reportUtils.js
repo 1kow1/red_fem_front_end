@@ -2,6 +2,16 @@
 import { format } from 'date-fns';
 
 /**
+ * Logo da Rede Feminina em base64
+ * TODO: Substituir por logo real quando disponível
+ * Para adicionar o logo:
+ * 1. Converta o arquivo PNG/JPG para base64
+ * 2. Substitua a string abaixo pelo resultado
+ * 3. Ajuste as dimensões no addHeader() se necessário
+ */
+const LOGO_BASE64 = null; // Adicione aqui: 'data:image/png;base64,iVBORw0KGgoAAAANSU...'
+
+/**
  * Gera relatório CSV das execuções de formulários do paciente
  */
 export const generateCSVReport = (pacienteData, consultas = []) => {
@@ -135,28 +145,50 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
 
     // Função para adicionar cabeçalho em cada página
     const addHeader = () => {
-      // Linha superior rosa
-      doc.setFillColor(219, 112, 147); // Rosa similar ao logo
-      doc.rect(0, 0, pageWidth, 8, 'F');
+      let titleY = 18;
+      let subtitleY = 24;
+      let lineY = 28;
+      let returnY = 35;
+
+      // Adicionar logo se disponível
+      if (LOGO_BASE64) {
+        try {
+          const logoWidth = 25;
+          const logoHeight = 25;
+          const logoX = 15;
+          const logoY = 8;
+
+          doc.addImage(LOGO_BASE64, 'PNG', logoX, logoY, logoWidth, logoHeight);
+
+          // Ajustar posições do texto para acomodar o logo
+          titleY = 18;
+          subtitleY = 24;
+          lineY = 33;
+          returnY = 40;
+        } catch (error) {
+          console.error('Erro ao adicionar logo ao PDF:', error);
+          // Continua sem o logo
+        }
+      }
 
       // Título principal
       doc.setFontSize(16);
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(139, 0, 76); // Rosa escuro
-      doc.text('Ficha Clínica de Ginecologia', pageWidth / 2, 18, { align: 'center' });
+      doc.setTextColor(0, 0, 0); // Preto
+      doc.text('Ficha Clínica de Ginecologia', pageWidth / 2, titleY, { align: 'center' });
 
       // Subtítulo
       doc.setFontSize(10);
       doc.setFont(undefined, 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text('Rede Feminina de Combate ao Câncer', pageWidth / 2, 24, { align: 'center' });
+      doc.text('Rede Feminina de Combate ao Câncer', pageWidth / 2, subtitleY, { align: 'center' });
 
-      // Linha decorativa
-      doc.setDrawColor(219, 112, 147);
+      // Linha decorativa preta
+      doc.setDrawColor(0, 0, 0);
       doc.setLineWidth(0.5);
-      doc.line(20, 28, pageWidth - 20, 28);
+      doc.line(20, lineY, pageWidth - 20, lineY);
 
-      return 35; // Retorna posição Y após o cabeçalho
+      return returnY; // Retorna posição Y após o cabeçalho
     };
 
     // Função para adicionar rodapé
@@ -193,7 +225,7 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
     // Seção 1: Identificação do Paciente
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.setTextColor(139, 0, 76);
+    doc.setTextColor(0, 0, 0); // Preto
     doc.text('1. Identificação', 20, yPosition);
     yPosition += 8;
 
@@ -235,7 +267,7 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
     checkPageBreak(30);
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.setTextColor(139, 0, 76);
+    doc.setTextColor(0, 0, 0); // Preto
     doc.text('2. Histórico de Consultas e Anamneses', 20, yPosition);
     yPosition += 8;
 
@@ -249,18 +281,18 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
         checkPageBreak(50);
 
         // Box da consulta
-        doc.setDrawColor(219, 112, 147);
+        doc.setDrawColor(0, 0, 0); // Borda preta
         doc.setLineWidth(0.5);
         const boxStartY = yPosition - 3;
 
-        // Cabeçalho da consulta com fundo rosa claro
-        doc.setFillColor(255, 240, 245);
+        // Cabeçalho da consulta com fundo cinza claro
+        doc.setFillColor(245, 245, 245); // Cinza claro
         doc.rect(20, boxStartY, pageWidth - 40, 10, 'F');
         doc.rect(20, boxStartY, pageWidth - 40, 10, 'S');
 
         doc.setFontSize(11);
         doc.setFont(undefined, 'bold');
-        doc.setTextColor(139, 0, 76);
+        doc.setTextColor(0, 0, 0); // Preto
         doc.text(`Consulta ${index + 1} - ${consulta.dataHora ? format(new Date(consulta.dataHora), 'dd/MM/yyyy HH:mm') : 'Data não informada'}`, 25, yPosition + 4);
         yPosition += 13;
 
@@ -348,7 +380,7 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
 
         // Fechar box da consulta
         const boxEndY = yPosition + 2;
-        doc.setDrawColor(219, 112, 147);
+        doc.setDrawColor(0, 0, 0); // Borda preta
         doc.setLineWidth(0.5);
         doc.rect(20, boxStartY, pageWidth - 40, boxEndY - boxStartY, 'S');
 

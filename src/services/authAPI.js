@@ -31,3 +31,8 @@ export const updateCurrentUserProfile = async (profileData) => {
   const resp = await api.put("/login/me", profileData);
   return { data: resp.data, status: resp.status };
 };
+
+export const changeCurrentUserPassword = async (senhaAtual, novaSenha) => {
+  const resp = await api.patch("/login/me/change-password", { senhaAtual, novaSenha });
+  return { data: resp.data, status: resp.status };
+};

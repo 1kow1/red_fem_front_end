@@ -218,11 +218,11 @@ export default function DataFrame({
 
       return () => {
         clearTimeout(timeoutId);
-        // Se o timeout for cancelado (usuário ainda digitando), manter loading
+        // Se o timeout for cancelado (usuário ainda digitando), desligar o loading
+        setIsFilterLoading(false);
       };
     } else {
-      // Se não há filtros, remover loading e aplicar filtros vazios
-      setIsFilterLoading(false);
+      // Se não há filtros, aplicar filtros vazios (sem loading pois será setado em applyBackendFilters)
       applyBackendFilters();
     }
   }, [JSON.stringify(filters), searchQuery, useBackendFilters, dataType, hasInitialized, applyBackendFilters]);
@@ -428,22 +428,10 @@ export default function DataFrame({
           </div>
         )}
 
-        <div className="relative">
-          <Table
-            data={filteredData}
-            dataType={dataType}
-            className={`mt-4 transition-opacity duration-200 ${isFilterLoading ? 'opacity-30' : 'opacity-100'}`}
-            onEditRow={onEditRow}
-            onToggleRow={onToggleRow}
-            onChangePassword={onChangePassword}
-            formFields={formFields}
-            onAssociarFormulario={onAssociarFormulario}
-            callbacks={callbacks}
-          />
-
-          {/* Loading overlay específico para a tabela */}
-          {isFilterLoading && (
-            <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10 rounded-lg">
+        <div className="relative min-h-[200px]">
+          {isFilterLoading ? (
+            /* Loading overlay que substitui completamente a tabela */
+            <div className="absolute inset-0 bg-white flex items-center justify-center z-10 rounded-lg">
               <div className="flex flex-col items-center gap-3 p-4 bg-white rounded-lg shadow-lg border">
                 <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-redfemActionPink"></div>
                 <p className="text-sm text-gray-600 font-medium">
@@ -451,6 +439,18 @@ export default function DataFrame({
                 </p>
               </div>
             </div>
+          ) : (
+            <Table
+              data={filteredData}
+              dataType={dataType}
+              className="mt-4"
+              onEditRow={onEditRow}
+              onToggleRow={onToggleRow}
+              onChangePassword={onChangePassword}
+              formFields={formFields}
+              onAssociarFormulario={onAssociarFormulario}
+              callbacks={callbacks}
+            />
           )}
         </div>
       </div>
