@@ -184,43 +184,37 @@ export default function FormularioPopUp({
   };
 
   const handleFormSubmit = async (data) => {
-    try {
-      // Check validation before submitting
-      if (validationSchema && !isValid) {
-        // Don't submit, just let react-hook-form show the errors
-        return;
-      }
+    // Check validation before submitting
+    if (validationSchema && !isValid) {
+      // Don't submit, just let react-hook-form show the errors
+      return;
+    }
 
-      const cleaned = {};
-      fields.forEach((f) => {
-        const name = f.name;
-        if (data[name] !== undefined) {
-          // Tratamento especial para campos de data
-          if (f.type === "date" && data[name]) {
-            // Para campos de data, sempre passar a string diretamente sem conversão
-            cleaned[name] = data[name];
-          } else {
-            cleaned[name] = data[name];
-          }
-        } else if (initialData && initialData[name] !== undefined) {
-          cleaned[name] = initialData[name];
+    const cleaned = {};
+    fields.forEach((f) => {
+      const name = f.name;
+      if (data[name] !== undefined) {
+        // Tratamento especial para campos de data
+        if (f.type === "date" && data[name]) {
+          // Para campos de data, sempre passar a string diretamente sem conversão
+          cleaned[name] = data[name];
+        } else {
+          cleaned[name] = data[name];
         }
-      });
-
-      // Se estamos no modo de edição, incluir o ID
-      if (mode === "edit" && idKey && initialData[idKey]) {
-        cleaned[idKey] = initialData[idKey];
+      } else if (initialData && initialData[name] !== undefined) {
+        cleaned[name] = initialData[name];
       }
+    });
 
+    // Se estamos no modo de edição, incluir o ID
+    if (mode === "edit" && idKey && initialData[idKey]) {
+      cleaned[idKey] = initialData[idKey];
+    }
 
-      await onSubmit?.(cleaned);
+    await onSubmit?.(cleaned);
 
-      if (closeOnSubmit) {
-        onClose?.();
-      }
-    } catch (err) {
-      // Error is handled by the parent component via onSubmit
-      throw err;
+    if (closeOnSubmit) {
+      onClose?.();
     }
   };
 

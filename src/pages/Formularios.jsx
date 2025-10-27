@@ -87,9 +87,12 @@ export default function Formularios() {
     }
   };
 
-  // fetch on page/size change
+  // fetch on page/size change - aguarda um ciclo para permitir que defaultFilters seja aplicado
   useEffect(() => {
-    fetchForms();
+    const timer = setTimeout(() => {
+      fetchForms();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchForms]);
 
   // debounce search

@@ -531,34 +531,21 @@ export default function FormularioEditor() {
       versao: isEditMode ? (formDataToEdit?.versao || 1) : 1,
     };
 
-    // Debug: dados do formulário original
-    console.log('🔍 Debug formulário original:', {
-      isEditMode,
-      formDataToEdit: formDataToEdit,
-      liberadoParaUso: formDataToEdit?.liberadoParaUso,
-      versaoOriginal: formDataToEdit?.versao
-    });
+    // Analisando dados do formulário original
 
     // Lógica para decidir se atualiza o mesmo ou cria novo:
     if (isEditMode && formDataToEdit?.id) {
       if (!formDataToEdit?.liberadoParaUso) {
         // Formulário ainda não foi liberado -> ATUALIZAR o mesmo
         formularioFinal.id = formDataToEdit.id;
-        console.log('📝 ATUALIZANDO formulário existente (não liberado)');
       } else {
         // Formulário já foi liberado -> CRIAR nova versão
         formularioFinal.idFormularioVersaoAntiga = formDataToEdit.id;
         // Enviar versão atual, backend vai incrementar
         formularioFinal.versao = formDataToEdit?.versao || 1;
-        console.log('🆕 CRIANDO nova versão:', {
-          versaoOriginal: formDataToEdit?.versao,
-          versaoEnviada: formularioFinal.versao,
-          nota: 'Backend vai incrementar +1'
-        });
       }
     }
 
-    console.log('📤 Payload final sendo enviado:', formularioFinal);
 
     const response = await createForm(formularioFinal);
 

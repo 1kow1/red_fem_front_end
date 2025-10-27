@@ -155,7 +155,7 @@ export const popupConfigs = {
         ],
         actions: [
           {
-            label: "Deletar",
+            label: "Cancelar",
             variant: "secondary",
             onClick: callbacks.onToggle
           },

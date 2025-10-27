@@ -124,7 +124,6 @@ export const generateCSVReport = (pacienteData, consultas = []) => {
     return true;
 
   } catch (error) {
-    console.error('❌ Erro ao gerar relatório CSV:', error);
     throw new Error('Erro ao gerar relatório CSV: ' + error.message);
   }
 };
@@ -398,7 +397,6 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
     return true;
 
   } catch (error) {
-    console.error('❌ Erro ao gerar relatório PDF:', error);
     throw new Error('Erro ao gerar relatório PDF: ' + error.message);
   }
 };

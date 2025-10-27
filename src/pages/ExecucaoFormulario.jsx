@@ -75,12 +75,10 @@ export default function ExecucaoFormulario() {
           const formResponse = await getFormById(formularioId);
           setFormulario(formResponse);
         } catch (formError) {
-          console.error("Erro ao carregar formulário:", formError);
           toast.error(`Formulário não encontrado (ID: ${formularioId})`);
           // Não redirecionar, apenas mostrar mensagem
         }
       } else {
-        console.warn("⚠️ Execução sem formulário associado");
         toast.warning("Esta execução não possui formulário associado");
         // Não redirecionar, mostrar estado vazio
       }
@@ -101,7 +99,6 @@ export default function ExecucaoFormulario() {
         }
       }
     } catch (error) {
-      console.error("Erro ao buscar dados da execução:", error);
       toast.error("Erro ao carregar execução do formulário");
       // Tentar usar dados do state como fallback
       const stateData = location.state?.execData;
@@ -111,8 +108,8 @@ export default function ExecucaoFormulario() {
           try {
             const formResponse = await getFormById(stateData.formulario.id);
             setFormulario(formResponse);
-          } catch (formError) {
-            console.error("Erro ao buscar formulário:", formError);
+          } catch {
+            // Erro ao carregar formulário será ignorado
           }
         }
       }
@@ -260,7 +257,6 @@ export default function ExecucaoFormulario() {
                        location.state?.execData?.consulta?.id ||
                        location.state?.idConsulta;
     if (!idConsulta) {
-      console.error("❌ ID da consulta não encontrado em nenhuma fonte");
       toast.error('ID da consulta não encontrado. Não é possível salvar.');
       return;
     }
@@ -294,7 +290,6 @@ export default function ExecucaoFormulario() {
       }
       navigate('/consultas');
     } catch (error) {
-      console.error('Erro ao salvar:', error);
       toast.error('Erro ao salvar formulário. Tente novamente.');
     } finally {
       setLoading(false);
@@ -324,7 +319,6 @@ export default function ExecucaoFormulario() {
                        location.state?.execData?.consulta?.id ||
                        location.state?.idConsulta;
     if (!idConsulta) {
-      console.error("❌ ID da consulta não encontrado em nenhuma fonte");
       toast.error('ID da consulta não encontrado. Não é possível salvar.');
       return;
     }
@@ -375,19 +369,12 @@ export default function ExecucaoFormulario() {
         try {
           const finalState = await getExecById(execId);
         } catch (checkError) {
-          console.error("❌ Erro ao verificar estado final:", checkError);
         }
       }
       toast.success('Formulário salvo e liberado com sucesso!');
       navigate('/consultas');
     } catch (error) {
-      console.error('❌ Erro ao salvar e liberar:', error);
-      console.error('❌ Detalhes do erro:', {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data
-      });
+      toast.error('Erro ao salvar e liberar formulário');
       // Tratamento de erros específicos baseado na documentação
       if (error.message.includes('not completely filled')) {
         toast.error('Todos os campos obrigatórios devem ser preenchidos antes de liberar o formulário');
