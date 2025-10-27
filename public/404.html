@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Redirecionando...</title>
+  <script>
+    // Solução para suportar rotas do React Router no GitHub Pages
+    // Armazena a rota completa e redireciona para index.html
+    sessionStorage.setItem('redirect', location.pathname + location.search + location.hash);
+    location.replace(location.pathname.split('/').slice(0, -1).join('/') + '/');
+  </script>
+</head>
+<body>
+  Redirecionando...
+</body>
+</html>
