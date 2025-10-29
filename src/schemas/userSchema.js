@@ -119,7 +119,7 @@ export const prepareUserForValidation = (formData) => {
     ...formData,
     ativo: formData.ativo !== false, // Default true se não especificado
     // Limpar especialidade e CRM se não forem necessários
-    especialidade: ['MEDICO', 'RESIDENTE', 'ACADEMICO'].includes(formData.cargo) ? formData.especialidade : null,
+    especialidade: ['MEDICO', 'RESIDENTE'].includes(formData.cargo) ? formData.especialidade : null,
     crm: ['MEDICO', 'RESIDENTE'].includes(formData.cargo) ? formData.crm : null,
   };
 };

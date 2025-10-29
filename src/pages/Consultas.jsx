@@ -13,6 +13,8 @@ import { formConfigs } from "../config/formConfig";
 import { toast } from "react-toastify";
 import { filterConfigs } from "../config/filterConfig";
 import { useAuth } from "../contexts/auth";
+import { PaginationFooter } from "../components/PaginationFooter";
+import { usePagination } from "../hooks/usePagination";
 
 export default function Consultas() {
   const navigate = useNavigate();
@@ -25,6 +27,19 @@ export default function Consultas() {
   const [formMode, setFormMode] = useState("create");
   const [editInitialData, setEditInitialData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Paginação
+  const {
+    page,
+    setPage,
+    size,
+    setSize,
+    totalPages,
+    setTotalPages,
+    totalRecords,
+    setTotalRecords,
+    resetPagination,
+  } = usePagination();
   
   // Novo state para o modal de associar formulário
   const [isModalAssociarOpen, setIsModalAssociarOpen] = useState(false);
@@ -40,14 +55,14 @@ export default function Consultas() {
   const fetchConsultas = useCallback(async (filters = {}) => {
     setLoading(true);
     try {
-      // Add user context for access control
+      // Add user context for access control and pagination
       const filtersWithUserContext = {
         ...filters,
         currentUserId: user?.id,
-        userCargo: userCargo
+        userCargo: userCargo,
+        page: filters.page ?? page,
+        size: filters.size ?? size
       };
-
-      // Debug log para verificar filtros
 
       const data = await getConsultas(filtersWithUserContext);
       const consultasList = data.content || data.items || data || [];
@@ -56,12 +71,16 @@ export default function Consultas() {
       const adaptedConsultas = consultasList.map(consulta => adaptConsultaForView(consulta));
       setConsultas(adaptedConsultas);
 
+      // Atualizar informações de paginação
+      setTotalPages(data.totalPages || 0);
+      setTotalRecords(data.totalElements || consultasList.length);
+
     } catch (error) {
       toast.error("Erro ao carregar consultas");
     } finally {
       setLoading(false);
     }
-  }, [user?.id, userCargo]);
+  }, [user?.id, userCargo, page, size, setTotalPages, setTotalRecords]);
 
   // Callbacks existentes...
   const openCreateForm = () => {
@@ -217,7 +236,16 @@ export default function Consultas() {
 
   useEffect(() => {
     fetchConsultas();
-  }, [fetchConsultas]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, size]);
+
+  // debounce search - quando busca muda, resetar página
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(0);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, setPage]);
 
   return (
     <div>
@@ -238,8 +266,18 @@ export default function Consultas() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         defaultFilters={{ status: ["PENDENTE"] }}
+        page={page}
+        size={size}
         // Passar todas as callbacks necessárias
         callbacks={dataFrameCallbacks}
+      />
+
+      <PaginationFooter
+        page={page}
+        totalPages={totalPages}
+        totalRecords={totalRecords}
+        onPageChange={setPage}
+        size={size}
       />
 
       {/* Modal de formulário existente */}

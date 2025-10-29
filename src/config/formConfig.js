@@ -48,8 +48,7 @@ export const formConfigs = {
       required: true,
       options: [
         { value: "GINECOLOGIA", label: "Ginecologia"},
-        { value: "ONCOLOGIA", label: "Oncologia"},
-        { value: "ODONTOLOGIA", label: "Odontologia"}
+        { value: "ONCOLOGIA", label: "Oncologia"}
       ],
       showIf: (formData) => ["MEDICO", "RESIDENTE"].includes(formData.cargo)
     },
@@ -154,13 +153,6 @@ export const formConfigs = {
       },
     },
     {
-      name: "cidade",
-      label: "Cidade",
-      type: "text",
-      placeholder: "Nome da cidade",
-      required: true,
-    },
-    {
       name: "uf",
       label: "Estado",
       type: "select",
@@ -195,6 +187,13 @@ export const formConfigs = {
         { value: "SE", label: "Sergipe" },
         { value: "TO", label: "Tocantins" }
       ],
+    },
+    {
+      name: "cidade",
+      label: "Cidade",
+      type: "text",
+      placeholder: "Nome da cidade",
+      required: true,
     },
     ],
     validationSchema: pacienteSchema

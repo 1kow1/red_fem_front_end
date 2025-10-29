@@ -52,22 +52,6 @@ export default function ExecucaoFormulario() {
       setExecucaoData(execResponse);
       // Verificar se a execução pode ser editada
       const execucaoLiberada = execResponse.isLiberado === true;
-
-      // Verificar se a consulta está cancelada
-      const consulta = execResponse.consultaDTO || execResponse.consulta;
-      const consultaCancelada = consulta && (
-        consulta.status === "CANCELADA" ||
-        consulta.ativo === false
-      );
-
-      // A execução só pode ser editada se não estiver liberada E a consulta não estiver cancelada
-      const podeEditar = !execucaoLiberada && !consultaCancelada;
-      setIsLiberado(!podeEditar);
-
-      // Mostrar mensagem se a consulta estiver cancelada
-      if (consultaCancelada) {
-        toast.warning("Esta execução está vinculada a uma consulta cancelada e não pode ser editada.");
-      }
       // Buscar dados do formulário usando formularioId ou formulario.id
       const formularioId = execResponse.formularioId || execResponse.formulario?.id;
       if (formularioId) {
@@ -88,15 +72,79 @@ export default function ExecucaoFormulario() {
       }
 
       // Extrair dados do paciente para relatórios
-      if (execResponse.consultaDTO || execResponse.consulta) {
-        const consulta = execResponse.consultaDTO || execResponse.consulta;
+      console.log('📋 Dados da execução:', execResponse);
+
+      let consulta = execResponse.consultaDTO || execResponse.consulta;
+
+      // Se não tem consulta nos dados, buscar pela API usando idConsulta
+      if (!consulta && (execResponse.idConsulta || execResponse.consultaId)) {
+        const consultaId = execResponse.idConsulta || execResponse.consultaId;
+        console.log('🔍 Buscando consulta pelo ID:', consultaId);
+        try {
+          const consultaResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/consultas/${consultaId}`, {
+            credentials: 'include'
+          });
+          if (consultaResponse.ok) {
+            consulta = await consultaResponse.json();
+            console.log('✅ Consulta encontrada pela API:', consulta);
+          }
+        } catch (err) {
+          console.error('❌ Erro ao buscar consulta:', err);
+        }
+      }
+
+      if (consulta) {
+        console.log('📅 Consulta encontrada:', consulta);
+
+        // Verificar se a consulta está cancelada
+        const consultaCancelada = consulta && (
+          consulta.status === "CANCELADA" ||
+          consulta.ativo === false
+        );
+
+        // A execução só pode ser editada se não estiver liberada E a consulta não estiver cancelada
+        const podeEditar = !execucaoLiberada && !consultaCancelada;
+        setIsLiberado(!podeEditar);
+
+        // Mostrar mensagem se a consulta estiver cancelada
+        if (consultaCancelada) {
+          toast.warning("Esta execução está vinculada a uma consulta cancelada e não pode ser editada.");
+        }
+
         const paciente = consulta.pacienteDTO || consulta.paciente;
+        console.log('👤 Paciente da consulta:', paciente);
+
         if (paciente) {
-          setPacienteData({
+          const pacienteFormatado = {
             ...paciente,
             consultas: [consulta] // Consulta atual
-          });
+          };
+          console.log('✅ Definindo pacienteData:', pacienteFormatado);
+          setPacienteData(pacienteFormatado);
+        } else if (consulta.pacienteId || consulta.patientId) {
+          // Se não tem dados do paciente, buscar pela API
+          const pacienteId = consulta.pacienteId || consulta.patientId;
+          console.log('🔍 Buscando paciente pelo ID:', pacienteId);
+          try {
+            const pacienteResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/pacientes/${pacienteId}`, {
+              credentials: 'include'
+            });
+            if (pacienteResponse.ok) {
+              const pacienteData = await pacienteResponse.json();
+              console.log('✅ Paciente encontrado:', pacienteData);
+              setPacienteData({
+                ...pacienteData,
+                consultas: [consulta]
+              });
+            }
+          } catch (err) {
+            console.error('❌ Erro ao buscar paciente:', err);
+          }
+        } else {
+          console.warn('⚠️ Nenhum dado de paciente disponível');
         }
+      } else {
+        console.warn('⚠️ Nenhuma consulta encontrada na execução');
       }
     } catch (error) {
       toast.error("Erro ao carregar execução do formulário");
@@ -493,37 +541,63 @@ export default function ExecucaoFormulario() {
       </div>
       <div className="pt-24 pb-4 px-80 max-[1200px]:px-20 bg-redfemVariantPink bg-opacity-10 min-h-screen">
         <div className="flex flex-col gap-4">
-          {/* Card com dados do paciente */}
+          {/* Card com dados do paciente - Sempre visível */}
           {pacienteData && (
-            <Card className="bg-white border-l-4 border-l-redfemPink">
-              <div className="py-3 px-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-redfemDarkPink">👤</span>
-                    <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Dados do Paciente</h3>
+            <Card className="bg-gradient-to-r from-redfemPink/5 to-white border-l-4 border-l-redfemPink shadow-md sticky top-20 z-10">
+              <div className="py-4 px-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-redfemPink rounded-full p-2">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
                   </div>
+                  <h3 className="text-base font-bold text-redfemDarkPink uppercase tracking-wide">Informações da Paciente</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-2 mt-3">
-                  <div>
-                    <span className="text-xs font-semibold text-gray-500">Nome:</span>
-                    <p className="text-sm font-medium text-gray-900">{pacienteData.nome}</p>
+                <div className="grid grid-cols-3 gap-x-6 gap-y-3">
+                  <div className="col-span-2">
+                    <span className="text-xs font-semibold text-gray-500 uppercase">Nome Completo</span>
+                    <p className="text-base font-semibold text-gray-900">{pacienteData.nome}</p>
                   </div>
                   {pacienteData.cpf && (
                     <div>
-                      <span className="text-xs font-semibold text-gray-500">CPF:</span>
-                      <p className="text-sm font-medium text-gray-900">{pacienteData.cpf}</p>
+                      <span className="text-xs font-semibold text-gray-500 uppercase">CPF</span>
+                      <p className="text-base font-medium text-gray-900">{pacienteData.cpf}</p>
                     </div>
                   )}
                   {pacienteData._dataDeNascimento && (
                     <div>
-                      <span className="text-xs font-semibold text-gray-500">Data de Nascimento:</span>
-                      <p className="text-sm font-medium text-gray-900">{pacienteData._dataDeNascimento}</p>
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Data de Nascimento</span>
+                      <p className="text-base font-medium text-gray-900">{pacienteData._dataDeNascimento}</p>
                     </div>
                   )}
                   {pacienteData.telefone && (
                     <div>
-                      <span className="text-xs font-semibold text-gray-500">Telefone:</span>
-                      <p className="text-sm font-medium text-gray-900">{pacienteData.telefone}</p>
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Telefone</span>
+                      <p className="text-base font-medium text-gray-900">{pacienteData.telefone}</p>
+                    </div>
+                  )}
+                  {pacienteData.email && (
+                    <div>
+                      <span className="text-xs font-semibold text-gray-500 uppercase">E-mail</span>
+                      <p className="text-base font-medium text-gray-900">{pacienteData.email}</p>
+                    </div>
+                  )}
+                  {pacienteData.estadoCivil && (
+                    <div>
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Estado Civil</span>
+                      <p className="text-base font-medium text-gray-900">{pacienteData._estadoCivil || pacienteData.estadoCivil}</p>
+                    </div>
+                  )}
+                  {pacienteData.profissao && (
+                    <div>
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Profissão</span>
+                      <p className="text-base font-medium text-gray-900">{pacienteData.profissao}</p>
+                    </div>
+                  )}
+                  {pacienteData.cidade && (
+                    <div>
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Cidade/UF</span>
+                      <p className="text-base font-medium text-gray-900">{pacienteData.cidade}/{pacienteData.uf}</p>
                     </div>
                   )}
                 </div>

@@ -12,8 +12,10 @@ import { toast } from "react-toastify";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import ModalAlterarSenha from "../components/ModalAlterarSenha";
 import { handleApiError } from "../utils/errorHandler";
+import { useAuth } from "../contexts/auth/useAuth";
 
 export default function Usuarios() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -113,6 +115,49 @@ export default function Usuarios() {
 
   // REATIVAR / DESATIVAR
   const handleToggleActive = async (row) => {
+    // Impedir que o usuário desative a si mesmo
+    if (currentUser && row.id === currentUser.id && row.ativo === "Sim") {
+      toast.error("Você não pode desativar seu próprio usuário!");
+      return;
+    }
+
+    // Se está tentando desativar (ativo = "Sim"), verificar se tem consultas futuras
+    if (row.ativo === "Sim") {
+      try {
+        // Buscar consultas futuras deste médico
+        const hoje = new Date().toISOString().split('T')[0];
+        const url = `${import.meta.env.VITE_API_BASE_URL}/consultas/buscar?medicoIds=${row.id}&dataInicio=${hoje}&status=PENDENTE&size=1`;
+
+        console.log('🔍 Verificando consultas futuras para usuário:', row.id);
+        console.log('📅 Data de início:', hoje);
+        console.log('🔗 URL:', url);
+
+        const response = await fetch(url, {
+          credentials: 'include'
+        });
+
+        console.log('📡 Status da resposta:', response.status);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('📊 Dados retornados:', data);
+
+          if (data.totalElements > 0) {
+            toast.error(`Não é possível desativar este usuário pois há ${data.totalElements} consulta(s) agendada(s).`);
+            return;
+          }
+          console.log('✅ Nenhuma consulta futura encontrada, pode desativar');
+        } else {
+          console.error('❌ Erro na resposta:', response.status);
+          const errorText = await response.text();
+          console.error('Detalhes do erro:', errorText);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao verificar consultas:', error);
+        // Continuar mesmo com erro na verificação
+      }
+    }
+
     setIsConfirmOpen(true);
     setRow(row);
   };
@@ -159,16 +204,16 @@ export default function Usuarios() {
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, size]);
 
-  // debounce search
+  // debounce search - quando busca muda, resetar página
   useEffect(() => {
     const timer = setTimeout(() => {
       setPage(0);
-      fetchUsers();
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery, fetchUsers]);
+  }, [searchQuery, setPage]);
 
   return (
     <div>

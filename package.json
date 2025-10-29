@@ -16,7 +16,9 @@
     "@tailwindcss/cli": "^4.1.11",
     "@tanstack/react-table": "^8.21.3",
     "axios": "^1.11.0",
+    "axios-cookiejar-support": "^6.0.4",
     "date-fns": "^4.1.0",
+    "http-cookie-agent": "^7.0.2",
     "jspdf": "^3.0.2",
     "lint": "^0.8.19",
     "lucide-react": "^0.541.0",
@@ -26,6 +28,7 @@
     "react-router-dom": "^7.6.3",
     "react-select": "^5.10.2",
     "react-toastify": "^11.0.5",
+    "tough-cookie": "^5.1.2",
     "yup": "^1.7.0"
   },
   "devDependencies": {

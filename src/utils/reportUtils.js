@@ -1,5 +1,6 @@
 // src/utils/reportUtils.js
 import { format } from 'date-fns';
+import { jsPDF } from 'jspdf';
 
 /**
  * Logo da Rede Feminina em base64
@@ -133,9 +134,6 @@ export const generateCSVReport = (pacienteData, consultas = []) => {
  */
 export const generatePDFReport = async (pacienteData, consultas = []) => {
   try {
-    // Importação dinâmica do jsPDF
-    const { jsPDF } = await import('jspdf');
-
     const doc = new jsPDF();
     let yPosition = 20;
     const lineHeight = 6;

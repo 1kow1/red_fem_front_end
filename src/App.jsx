@@ -5,7 +5,7 @@ import { AuthProvider } from "./contexts/auth";
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename="/red_fem_front_end">
         <MyRoutes/>
       </Router>
     </AuthProvider>

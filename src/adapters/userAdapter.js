@@ -83,21 +83,28 @@ export const adaptUserForApi = (user = {}) => {
 
   const parsedCriacao = parseMaybeDate(user.dataCriacao);
 
-  // For cargo and especialidade, prefer the hidden field values (original) over the transformed ones
-  const cargo = user._cargo ?? user.cargo;
-  const especialidade = user._especialidade ?? user.especialidade;
+  // Preferir valores do formulário (novos) sobre os valores originais (antigos)
+  const cargo = user.cargo ?? user._cargo;
+  const cargoUpper = typeof cargo === "string" ? cargo.toUpperCase() : cargo;
+
+  // Apenas MEDICO e RESIDENTE precisam de especialidade e CRM
+  const needsEspecialidade = ["MEDICO", "RESIDENTE"].includes(cargoUpper);
+
+  const especialidade = user.especialidade ?? user._especialidade;
+  const crm = user.crm;
 
   return {
     id,
     nome: user.nome,
     email: user.email,
-    cargo: typeof cargo === "string" ? cargo.toUpperCase() : cargo,
-    especialidade:
-      typeof especialidade === "string"
-        ? especialidade.toUpperCase()
-        : especialidade,
+    cargo: cargoUpper,
+    especialidade: needsEspecialidade
+      ? (typeof especialidade === "string" && especialidade.trim() !== ""
+          ? especialidade.toUpperCase()
+          : null)
+      : null, // Limpar especialidade se cargo não precisa
     telefone: user.telefone ? String(user.telefone).replace(/\D/g, "") : null,
-    crm: user.crm,
+    crm: needsEspecialidade ? crm : null, // Limpar CRM se cargo não precisa
     ativo: parseBoolean(user.ativo),
     dataCriacao: parsedCriacao ? parsedCriacao.toISOString() : null,
   };

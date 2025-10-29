@@ -7,7 +7,9 @@
       "Bash(npm install:*)",
       "Read(//c/Users/Wende/OneDrive/Área de Trabalho/KOW/Anamnese/red_fem_back_end/src/main/java/org/redefem/anamnese/services/**)",
       "Read(//c/Users/Wende/OneDrive/Área de Trabalho/KOW/Anamnese/red_fem_back_end/**)",
-      "Read(//c/Users/Wende/OneDrive/Área de Trabalho/KOW/Anamnese/**)"
+      "Read(//c/Users/Wende/OneDrive/Área de Trabalho/KOW/Anamnese/**)",
+      "Bash(curl:*)",
+      "Bash(node scripts/populate-database.js:*)"
     ],
     "deny": [],
     "ask": []

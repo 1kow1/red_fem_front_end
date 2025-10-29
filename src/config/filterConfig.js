@@ -20,8 +20,7 @@ export const filterConfigs = {
             type: "select",
             options: [
                 { value: "GINECOLOGIA", label: "Ginecologia" },
-                { value: "ONCOLOGIA", label: "Oncologia" },
-                { value: "ODONTOLOGIA", label: "Odontologia" },
+                { value: "ONCOLOGIA", label: "Oncologia" }
             ]
         },
         {
@@ -110,8 +109,7 @@ export const filterConfigs = {
             type: "select",
             options: [
                 { value: "GINECOLOGIA", label: "Ginecologia" },
-                { value: "ONCOLOGIA", label: "Oncologia" },
-                { value: "ODONTOLOGIA", label: "Odontologia" }
+                { value: "ONCOLOGIA", label: "Oncologia" }
             ]
         },
         {

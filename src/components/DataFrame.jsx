@@ -214,15 +214,14 @@ export default function DataFrame({
 
       const timeoutId = setTimeout(() => {
         applyBackendFilters();
-      }, 600); // Debounce reduzido para 600ms para melhor UX com loading
+      }, 400); // Debounce otimizado para 400ms
 
       return () => {
         clearTimeout(timeoutId);
-        // Se o timeout for cancelado (usuário ainda digitando), desligar o loading
-        setIsFilterLoading(false);
+        // Manter loading ativo até que a requisição seja completada
       };
     } else {
-      // Se não há filtros, aplicar filtros vazios (sem loading pois será setado em applyBackendFilters)
+      // Se não há filtros, aplicar filtros vazios
       applyBackendFilters();
     }
   }, [JSON.stringify(filters), searchQuery, useBackendFilters, dataType, hasInitialized, applyBackendFilters]);
@@ -428,10 +427,10 @@ export default function DataFrame({
           </div>
         )}
 
-        <div className="relative min-h-[200px]">
-          {isFilterLoading ? (
-            /* Loading overlay que substitui completamente a tabela */
-            <div className="absolute inset-0 bg-white flex items-center justify-center z-10 rounded-lg">
+        <div className="relative min-h-[400px]">
+          {isFilterLoading && (
+            /* Loading overlay que cobre a tabela */
+            <div className="absolute inset-0 bg-white/95 flex items-center justify-center z-10 rounded-lg">
               <div className="flex flex-col items-center gap-3 p-4 bg-white rounded-lg shadow-lg border">
                 <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-redfemActionPink"></div>
                 <p className="text-sm text-gray-600 font-medium">
@@ -439,19 +438,18 @@ export default function DataFrame({
                 </p>
               </div>
             </div>
-          ) : (
-            <Table
-              data={filteredData}
-              dataType={dataType}
-              className="mt-4"
-              onEditRow={onEditRow}
-              onToggleRow={onToggleRow}
-              onChangePassword={onChangePassword}
-              formFields={formFields}
-              onAssociarFormulario={onAssociarFormulario}
-              callbacks={callbacks}
-            />
           )}
+          <Table
+            data={filteredData}
+            dataType={dataType}
+            className="mt-4"
+            onEditRow={onEditRow}
+            onToggleRow={onToggleRow}
+            onChangePassword={onChangePassword}
+            formFields={formFields}
+            onAssociarFormulario={onAssociarFormulario}
+            callbacks={callbacks}
+          />
         </div>
       </div>
     </>
