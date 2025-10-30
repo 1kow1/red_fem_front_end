@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://github.com/1kow1/red_fem_front_end"
   "scripts": {
     "dev": "vite",
     "build": "vite build",
