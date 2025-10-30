@@ -158,7 +158,7 @@ export const canAssociateForm = (consulta) => {
     return {
       canAssociate: false,
       reason: "cancelled",
-      message: "Não é possível associar formulário a consulta cancelada"
+      message: "Não é possível vincular formulário a consulta cancelada"
     };
   }
 

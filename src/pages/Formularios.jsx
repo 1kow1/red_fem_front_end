@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { filterConfigs } from "../config/filterConfig";
 import { useAuth } from "../contexts/auth";
+import { generateFormularioCSVReport } from "../utils/reportUtils";
 
 export default function Formularios() {
   const { user, userCargo } = useAuth();
@@ -87,6 +88,15 @@ export default function Formularios() {
     }
   };
 
+  const handleExportarCSV = async (formularioData) => {
+    try {
+      await generateFormularioCSVReport(formularioData);
+      toast.success("Relatório CSV exportado com sucesso!");
+    } catch (error) {
+      toast.error(error.message || "Erro ao exportar relatório CSV");
+    }
+  };
+
   // fetch on page/size change - aguarda um ciclo para permitir que defaultFilters seja aplicado
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -108,7 +118,6 @@ export default function Formularios() {
     <div>
       <h1 className="text-lg mb-4">Formulários</h1>
 
-      {loading && <p>Carregando...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {/* Indicador de loading para edição */}
@@ -131,6 +140,13 @@ export default function Formularios() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         defaultFilters={{ ativo: [true] }}
+        page={page}
+        size={size}
+        setPage={setPage}
+        callbacks={{
+          onEdit: handleEditForm,
+          onExportarCSV: handleExportarCSV
+        }}
       />
 
       <PaginationFooter

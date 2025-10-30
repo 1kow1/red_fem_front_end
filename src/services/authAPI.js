@@ -32,15 +32,6 @@ export const updateCurrentUserProfile = async (profileData) => {
     const resp = await api.put("/login/me", profileData);
     return { data: resp.data, status: resp.status };
   } catch (error) {
-    // Melhor tratamento de erros para debug
-    console.error('Profile update error:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message,
-      profileData
-    });
-
     // Re-throw para que o componente possa tratar
     throw error;
   }

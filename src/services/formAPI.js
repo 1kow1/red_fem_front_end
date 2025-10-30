@@ -45,6 +45,7 @@ export const getForms = async (filters = {}) => {
       especialidades.forEach(esp => params.append('especialidades', esp));
     } else if ((userCargo === 'MEDICO' || userCargo === 'RESIDENTE') && userEspecialidade) {
       // No filter selected: Doctors/Residents default to their own specialty
+      // ADMINISTRADOR can see all forms regardless of specialty
       params.append('especialidades', userEspecialidade);
     }
     if (versoes?.length) {

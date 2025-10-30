@@ -49,6 +49,10 @@ export default function Consultas() {
   const [isConfirmRemoveOpen, setIsConfirmRemoveOpen] = useState(false);
   const [consultaParaRemover, setConsultaParaRemover] = useState(null);
 
+  // States para cancelamento de consulta
+  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
+  const [consultaParaCancelar, setConsultaParaCancelar] = useState(null);
+
   const avaiableFilters = filterConfigs['consultas']
 
   // Função existente para buscar consultas...
@@ -140,15 +144,22 @@ export default function Consultas() {
   };
 
   // Função para cancelar/reativar consulta via PATCH
-  const handleToggleConsulta = async (row) => {
+  const handleToggleConsulta = (row) => {
+    // Abrir modal de confirmação
+    setConsultaParaCancelar(row);
+    setIsConfirmCancelOpen(true);
+  };
 
+  // Confirmar cancelamento/reativação da consulta
+  const handleConfirmToggleConsulta = async () => {
     try {
+      const row = consultaParaCancelar;
+
       // Se está cancelando a consulta e há execução de formulário associada
       if (row._ativoRaw && row._execucaoFormulario) {
         const execId = row._execucaoFormulario.id || row._execucaoFormulario._exec?.id;
 
         if (execId) {
-
           try {
             await deleteExec(execId);
           } catch (deleteError) {
@@ -166,6 +177,9 @@ export default function Consultas() {
 
     } catch (error) {
       toast.error("Erro ao alterar status da consulta: " + error.message);
+    } finally {
+      setIsConfirmCancelOpen(false);
+      setConsultaParaCancelar(null);
     }
   };
 
@@ -201,13 +215,13 @@ export default function Consultas() {
       }
 
       await deleteExec(execId);
-      toast.success("Associação removida com sucesso!");
+      toast.success("Vínculo removido com sucesso!");
 
       // Recarregar consultas para atualizar a interface
       fetchConsultas({ status: ["PENDENTE"] }); // Aplicar filtros padrão
 
     } catch (error) {
-      toast.error("Erro ao remover associação");
+      toast.error("Erro ao remover vínculo");
     } finally {
       setIsConfirmRemoveOpen(false);
       setConsultaParaRemover(null);
@@ -251,8 +265,6 @@ export default function Consultas() {
     <div>
       <h1 className="text-lg mb-4">Consultas</h1>
 
-      {loading && <p>Carregando...</p>}
-
       <DataFrame
         title="Consulta"
         data={consultas}
@@ -268,6 +280,7 @@ export default function Consultas() {
         defaultFilters={{ status: ["PENDENTE"] }}
         page={page}
         size={size}
+        setPage={setPage}
         // Passar todas as callbacks necessárias
         callbacks={dataFrameCallbacks}
       />
@@ -293,7 +306,7 @@ export default function Consultas() {
         onSubmit={formMode === "create" ? handleCreateConsulta : handleEditConsulta}
       />
 
-      {/* Novo modal para associar formulário */}
+      {/* Novo modal para vincular formulário */}
       <ModalAssociarFormulario
         isOpen={isModalAssociarOpen}
         onClose={() => setIsModalAssociarOpen(false)}
@@ -301,14 +314,29 @@ export default function Consultas() {
         onSuccess={handleAssociacaoSuccess}
       />
 
-      {/* Modal de confirmação para remover associação */}
+      {/* Modal de confirmação para remover vínculo */}
       <ConfirmationPopUp
         isOpen={isConfirmRemoveOpen}
-        message={`Tem certeza que deseja remover a associação do formulário "${consultaParaRemover?._execucaoFormulario?.formulario || "N/A"}" da consulta do paciente ${consultaParaRemover?.paciente || "N/A"}?`}
+        message={`Tem certeza que deseja remover o vínculo do formulário "${consultaParaRemover?._execucaoFormulario?.formulario || "N/A"}" da consulta do paciente ${consultaParaRemover?.paciente || "N/A"}?`}
         onConfirm={handleConfirmRemoveAssociacao}
         onCancel={() => {
           setIsConfirmRemoveOpen(false);
           setConsultaParaRemover(null);
+        }}
+      />
+
+      {/* Modal de confirmação para cancelar/reativar consulta */}
+      <ConfirmationPopUp
+        isOpen={isConfirmCancelOpen}
+        message={
+          consultaParaCancelar?._ativoRaw
+            ? `Tem certeza que deseja cancelar a consulta do paciente ${consultaParaCancelar?.paciente || "N/A"} marcada para ${consultaParaCancelar?.dataHora || "N/A"}?${consultaParaCancelar?._execucaoFormulario ? '\n\nAtenção: O formulário associado a esta consulta será removido.' : ''}`
+            : `Tem certeza que deseja reativar a consulta do paciente ${consultaParaCancelar?.paciente || "N/A"}?`
+        }
+        onConfirm={handleConfirmToggleConsulta}
+        onCancel={() => {
+          setIsConfirmCancelOpen(false);
+          setConsultaParaCancelar(null);
         }}
       />
     </div>

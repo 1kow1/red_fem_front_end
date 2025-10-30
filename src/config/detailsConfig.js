@@ -170,12 +170,12 @@ export const popupConfigs = {
           data: execucaoFormularioArray,
           dataType: "execucaoFormulario",
           addButton: hasExecucaoFormulario ? null : {
-            label: "Associar Formulário",
+            label: "Vincular Formulário",
             onClick: callbacks.onAssociarFormulario
           },
           actionButtons: hasExecucaoFormulario && !isFormularioLiberado && canRemoveAssociation ? [
             {
-              label: "Remover Associação",
+              label: "Remover Vínculo",
               variant: "danger",
               onClick: () => callbacks.onRemoverAssociacao(data)
             }
@@ -227,6 +227,11 @@ export const popupConfigs = {
       const isLiberado = data.liberadoParaUso === "Sim" || data.liberadoParaUso === true;
 
       const actions = [
+        {
+          label: "Exportar CSV",
+          variant: "secondary",
+          onClick: callbacks.onExportarCSV
+        },
         {
           label: isAtivo ? "Editar" : "Visualizar",
           variant: "primary",

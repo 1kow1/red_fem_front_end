@@ -59,7 +59,8 @@ export default function DataFrame({
   useBackendFilters = true, // nova prop para usar filtros do backend
   defaultFilters = {}, // nova prop para filtros padrão
   page, // número da página atual
-  size  // tamanho da página
+  size,  // tamanho da página
+  setPage // função para resetar a página
 }) {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -67,7 +68,11 @@ export default function DataFrame({
   const [filters, setFilters] = useState(defaultFilters);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false);
   const dateInputsRef = useRef({});
+  const previousFiltersRef = useRef(JSON.stringify(defaultFilters));
+  const previousSearchRef = useRef("");
+  const loadingTimerRef = useRef(null);
 
   // Função para limpar todos os filtros
   const handleClearAllFilters = () => {
@@ -89,6 +94,11 @@ export default function DataFrame({
     }
 
     setIsFilterLoading(true);
+
+    // Delay mínimo antes de mostrar loading indicator (evita flash em requisições rápidas)
+    loadingTimerRef.current = setTimeout(() => {
+      setShowLoadingIndicator(true);
+    }, 300);
 
     // Converter filtros do frontend para o formato do backend
     const backendFilters = {};
@@ -130,7 +140,13 @@ export default function DataFrame({
     try {
       await fetchData(backendFilters);
     } finally {
+      // Limpar timer e esconder loading
+      if (loadingTimerRef.current) {
+        clearTimeout(loadingTimerRef.current);
+        loadingTimerRef.current = null;
+      }
       setIsFilterLoading(false);
+      setShowLoadingIndicator(false);
     }
   }, [useBackendFilters, fetchData, filters, searchQuery, avaiableFilters, dataType, page, size]);
 
@@ -205,26 +221,38 @@ export default function DataFrame({
     if (!useBackendFilters || !fetchData) return;
     if (!hasInitialized) return; // Não aplicar até que a inicialização seja feita
 
+    const currentFilters = JSON.stringify(filters);
+    const currentSearch = searchQuery || "";
+
+    // Verificar se filtros ou busca realmente mudaram
+    const filtersChanged = previousFiltersRef.current !== currentFilters;
+    const searchChanged = previousSearchRef.current !== currentSearch;
+
+    // Resetar para página 1 APENAS quando filtros ou busca mudarem
+    if ((filtersChanged || searchChanged) && setPage && page !== 0) {
+      setPage(0);
+    }
+
+    // Atualizar refs
+    previousFiltersRef.current = currentFilters;
+    previousSearchRef.current = currentSearch;
+
     const hasFilters = Object.keys(filters).length > 0;
     const hasSearch = searchQuery && searchQuery.trim() !== '';
 
     if (hasFilters || hasSearch) {
-      // Mostrar loading imediatamente quando começar a digitar/filtrar
-      setIsFilterLoading(true);
-
       const timeoutId = setTimeout(() => {
         applyBackendFilters();
-      }, 400); // Debounce otimizado para 400ms
+      }, 800); // Debounce aumentado para 800ms para reduzir requisições
 
       return () => {
         clearTimeout(timeoutId);
-        // Manter loading ativo até que a requisição seja completada
       };
     } else {
       // Se não há filtros, aplicar filtros vazios
       applyBackendFilters();
     }
-  }, [JSON.stringify(filters), searchQuery, useBackendFilters, dataType, hasInitialized, applyBackendFilters]);
+  }, [JSON.stringify(filters), searchQuery, useBackendFilters, dataType, hasInitialized, applyBackendFilters, page, setPage]);
 
   // Effect para aplicar filtros quando a página ou tamanho mudarem
   useEffect(() => {
@@ -428,13 +456,13 @@ export default function DataFrame({
         )}
 
         <div className="relative min-h-[400px]">
-          {isFilterLoading && (
+          {showLoadingIndicator && (
             /* Loading overlay que cobre a tabela */
-            <div className="absolute inset-0 bg-white/95 flex items-center justify-center z-10 rounded-lg">
+            <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10 rounded-lg backdrop-blur-sm">
               <div className="flex flex-col items-center gap-3 p-4 bg-white rounded-lg shadow-lg border">
                 <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-redfemActionPink"></div>
                 <p className="text-sm text-gray-600 font-medium">
-                  Aplicando filtros...
+                  Carregando...
                 </p>
               </div>
             </div>

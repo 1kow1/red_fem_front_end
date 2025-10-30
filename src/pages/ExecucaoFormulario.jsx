@@ -72,29 +72,23 @@ export default function ExecucaoFormulario() {
       }
 
       // Extrair dados do paciente para relatórios
-      console.log('📋 Dados da execução:', execResponse);
-
       let consulta = execResponse.consultaDTO || execResponse.consulta;
 
       // Se não tem consulta nos dados, buscar pela API usando idConsulta
       if (!consulta && (execResponse.idConsulta || execResponse.consultaId)) {
         const consultaId = execResponse.idConsulta || execResponse.consultaId;
-        console.log('🔍 Buscando consulta pelo ID:', consultaId);
         try {
           const consultaResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/consultas/${consultaId}`, {
             credentials: 'include'
           });
           if (consultaResponse.ok) {
             consulta = await consultaResponse.json();
-            console.log('✅ Consulta encontrada pela API:', consulta);
           }
         } catch (err) {
-          console.error('❌ Erro ao buscar consulta:', err);
         }
       }
 
       if (consulta) {
-        console.log('📅 Consulta encontrada:', consulta);
 
         // Verificar se a consulta está cancelada
         const consultaCancelada = consulta && (
@@ -112,39 +106,30 @@ export default function ExecucaoFormulario() {
         }
 
         const paciente = consulta.pacienteDTO || consulta.paciente;
-        console.log('👤 Paciente da consulta:', paciente);
 
         if (paciente) {
           const pacienteFormatado = {
             ...paciente,
             consultas: [consulta] // Consulta atual
           };
-          console.log('✅ Definindo pacienteData:', pacienteFormatado);
           setPacienteData(pacienteFormatado);
         } else if (consulta.pacienteId || consulta.patientId) {
           // Se não tem dados do paciente, buscar pela API
           const pacienteId = consulta.pacienteId || consulta.patientId;
-          console.log('🔍 Buscando paciente pelo ID:', pacienteId);
           try {
             const pacienteResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/pacientes/${pacienteId}`, {
               credentials: 'include'
             });
             if (pacienteResponse.ok) {
               const pacienteData = await pacienteResponse.json();
-              console.log('✅ Paciente encontrado:', pacienteData);
               setPacienteData({
                 ...pacienteData,
                 consultas: [consulta]
               });
             }
           } catch (err) {
-            console.error('❌ Erro ao buscar paciente:', err);
           }
-        } else {
-          console.warn('⚠️ Nenhum dado de paciente disponível');
         }
-      } else {
-        console.warn('⚠️ Nenhuma consulta encontrada na execução');
       }
     } catch (error) {
       toast.error("Erro ao carregar execução do formulário");

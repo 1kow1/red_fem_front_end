@@ -1,16 +1,129 @@
 // src/utils/reportUtils.js
 import { format } from 'date-fns';
 import { jsPDF } from 'jspdf';
+import logoImage from '../assets/logos/redeLogo.png';
+import { getExecsByFormularioId } from '../services/execAPI';
 
 /**
- * Logo da Rede Feminina em base64
- * TODO: Substituir por logo real quando disponível
- * Para adicionar o logo:
- * 1. Converta o arquivo PNG/JPG para base64
- * 2. Substitua a string abaixo pelo resultado
- * 3. Ajuste as dimensões no addHeader() se necessário
+ * Logo da Rede Feminina
+ * Importada diretamente do arquivo PNG
  */
-const LOGO_BASE64 = null; // Adicione aqui: 'data:image/png;base64,iVBORw0KGgoAAAANSU...'
+const LOGO_BASE64 = logoImage;
+
+/**
+ * Gera relatório CSV de todas as execuções de um formulário
+ * @param {Object} formularioData - Dados do formulário
+ * @param {string} formularioData.id - ID do formulário
+ * @param {string} formularioData.titulo - Título do formulário
+ */
+export const generateFormularioCSVReport = async (formularioData) => {
+  try {
+    // Buscar todas as execuções do formulário
+    const execucoes = await getExecsByFormularioId(formularioData.id);
+
+    if (!execucoes || execucoes.length === 0) {
+      throw new Error('Nenhuma execução encontrada para este formulário');
+    }
+
+    // Coletar todas as perguntas únicas de todas as execuções
+    const todasPerguntas = new Map();
+
+    execucoes.forEach(execucao => {
+      if (execucao.respostas && Array.isArray(execucao.respostas)) {
+        execucao.respostas.forEach(resposta => {
+          const perguntaId = String(resposta.perguntaId);
+          if (!todasPerguntas.has(perguntaId)) {
+            todasPerguntas.set(perguntaId, resposta.enunciado || `Pergunta ${perguntaId}`);
+          }
+        });
+      }
+    });
+
+    // Criar cabeçalhos: dados básicos + perguntas como colunas
+    const headers = [
+      'Data/Hora Execução',
+      'Paciente',
+      'Médico',
+      'Liberado',
+      ...Array.from(todasPerguntas.values())
+    ];
+
+    const rows = [];
+    rows.push(headers);
+
+    // Processar cada execução
+    execucoes.forEach(execucao => {
+      // Criar mapa de respostas por pergunta ID
+      const respostasPorPergunta = {};
+      if (execucao.respostas && Array.isArray(execucao.respostas)) {
+        execucao.respostas.forEach(resposta => {
+          const perguntaId = String(resposta.perguntaId);
+          if (!respostasPorPergunta[perguntaId]) {
+            respostasPorPergunta[perguntaId] = [];
+          }
+          respostasPorPergunta[perguntaId].push(resposta.texto);
+        });
+      }
+
+      // Extrair dados do paciente e médico de diferentes estruturas possíveis
+      const pacienteNome = execucao.paciente?.nome ||
+                          execucao.consulta?.paciente?.nome ||
+                          execucao.consultaDTO?.paciente?.nome ||
+                          'N/A';
+
+      const medicoNome = execucao.medico?.nome ||
+                        execucao.usuario?.nome ||
+                        execucao.usuarioDTO?.nome ||
+                        execucao.consulta?.usuarioDTO?.nome ||
+                        execucao.consultaDTO?.usuarioDTO?.nome ||
+                        'N/A';
+
+      // Criar linha com dados básicos + respostas nas colunas correspondentes
+      const row = [
+        execucao.dataHora ? format(new Date(execucao.dataHora), 'dd/MM/yyyy HH:mm') : 'N/A',
+        pacienteNome,
+        medicoNome,
+        execucao.isLiberado ? 'Sim' : 'Não'
+      ];
+
+      // Adicionar respostas para cada pergunta na ordem dos headers
+      Array.from(todasPerguntas.keys()).forEach(perguntaId => {
+        const respostas = respostasPorPergunta[perguntaId];
+        if (respostas && respostas.length > 0) {
+          row.push(respostas.join('; '));
+        } else {
+          row.push('N/A');
+        }
+      });
+
+      rows.push(row);
+    });
+
+    // Converter para string CSV
+    const csvContent = rows.map(row =>
+      row.map(field => `"${String(field).replace(/"/g, '""')}"`)
+         .join(',')
+    ).join('\n');
+
+    // Criar e baixar arquivo
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `exportacao_${formularioData.titulo.replace(/\s+/g, '_')}_${format(new Date(), 'ddMMyyyy')}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    return true;
+
+  } catch (error) {
+    throw new Error('Erro ao gerar relatório CSV do formulário: ' + error.message);
+  }
+};
 
 /**
  * Gera relatório CSV das execuções de formulários do paciente
@@ -150,20 +263,19 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
       // Adicionar logo se disponível
       if (LOGO_BASE64) {
         try {
-          const logoWidth = 25;
-          const logoHeight = 25;
-          const logoX = 15;
-          const logoY = 8;
+          const logoWidth = 18;
+          const logoHeight = 18;
+          const logoX = 20;
+          const logoY = 9;
 
           doc.addImage(LOGO_BASE64, 'PNG', logoX, logoY, logoWidth, logoHeight);
 
           // Ajustar posições do texto para acomodar o logo
           titleY = 18;
           subtitleY = 24;
-          lineY = 33;
-          returnY = 40;
+          lineY = 28;
+          returnY = 35;
         } catch (error) {
-          console.error('Erro ao adicionar logo ao PDF:', error);
           // Continua sem o logo
         }
       }
@@ -279,7 +391,7 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
 
         // Box da consulta
         doc.setDrawColor(0, 0, 0); // Borda preta
-        doc.setLineWidth(0.5);
+        doc.setLineWidth(0.1);
         const boxStartY = yPosition - 3;
 
         // Cabeçalho da consulta com fundo cinza claro
@@ -378,7 +490,7 @@ export const generatePDFReport = async (pacienteData, consultas = []) => {
         // Fechar box da consulta
         const boxEndY = yPosition + 2;
         doc.setDrawColor(0, 0, 0); // Borda preta
-        doc.setLineWidth(0.5);
+        doc.setLineWidth(0.1);
         doc.rect(20, boxStartY, pageWidth - 40, boxEndY - boxStartY, 'S');
 
         yPosition += 10; // Espaço entre consultas

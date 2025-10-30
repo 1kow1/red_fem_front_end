@@ -9,7 +9,9 @@
       "Read(//c/Users/Wende/OneDrive/Área de Trabalho/KOW/Anamnese/red_fem_back_end/**)",
       "Read(//c/Users/Wende/OneDrive/Área de Trabalho/KOW/Anamnese/**)",
       "Bash(curl:*)",
-      "Bash(node scripts/populate-database.js:*)"
+      "Bash(node scripts/populate-database.js:*)",
+      "Bash(node -e:*)",
+      "Bash(./mvnw clean package:*)"
     ],
     "deny": [],
     "ask": []

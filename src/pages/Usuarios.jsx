@@ -128,32 +128,19 @@ export default function Usuarios() {
         const hoje = new Date().toISOString().split('T')[0];
         const url = `${import.meta.env.VITE_API_BASE_URL}/consultas/buscar?medicoIds=${row.id}&dataInicio=${hoje}&status=PENDENTE&size=1`;
 
-        console.log('🔍 Verificando consultas futuras para usuário:', row.id);
-        console.log('📅 Data de início:', hoje);
-        console.log('🔗 URL:', url);
-
         const response = await fetch(url, {
           credentials: 'include'
         });
 
-        console.log('📡 Status da resposta:', response.status);
-
         if (response.ok) {
           const data = await response.json();
-          console.log('📊 Dados retornados:', data);
 
           if (data.totalElements > 0) {
             toast.error(`Não é possível desativar este usuário pois há ${data.totalElements} consulta(s) agendada(s).`);
             return;
           }
-          console.log('✅ Nenhuma consulta futura encontrada, pode desativar');
-        } else {
-          console.error('❌ Erro na resposta:', response.status);
-          const errorText = await response.text();
-          console.error('Detalhes do erro:', errorText);
         }
       } catch (error) {
-        console.error('❌ Erro ao verificar consultas:', error);
         // Continuar mesmo com erro na verificação
       }
     }
@@ -219,7 +206,6 @@ export default function Usuarios() {
     <div>
       <h1 className="text-lg mb-4">Usuários</h1>
 
-      {loading && <p>Carregando...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <DataFrame
@@ -236,6 +222,9 @@ export default function Usuarios() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         defaultFilters={{ ativos: [true] }}
+        page={page}
+        size={size}
+        setPage={setPage}
       />
 
       <PaginationFooter

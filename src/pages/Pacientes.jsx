@@ -82,8 +82,6 @@ export default function Pacientes() {
       setIsFormOpen(false);
       toast.success("Paciente criado com sucesso.");
     } catch (err) {
-      console.error("handleCreatePaciente error:", err);
-
       // Se é erro de validação do Yup (client-side)
       if (err.inner && Array.isArray(err.inner)) {
         const errors = {};
@@ -147,33 +145,19 @@ export default function Pacientes() {
 
         const url = `${import.meta.env.VITE_API_BASE_URL}/consultas/buscar?pacienteIds=${row.id}&dataInicio=${dataInicio}&status=PENDENTE&size=1`;
 
-        console.log('🔍 Verificando consultas futuras para paciente:', row.id);
-        console.log('📅 Data/Hora atual:', dataHoraISO);
-        console.log('📅 Data de início do filtro:', dataInicio);
-        console.log('🔗 URL:', url);
-
         const response = await fetch(url, {
           credentials: 'include'
         });
 
-        console.log('📡 Status da resposta:', response.status);
-
         if (response.ok) {
           const data = await response.json();
-          console.log('📊 Dados retornados:', data);
 
           if (data.totalElements > 0) {
             toast.error(`Não é possível desativar este paciente pois há ${data.totalElements} consulta(s) agendada(s).`);
             return;
           }
-          console.log('✅ Nenhuma consulta futura encontrada, pode desativar');
-        } else {
-          console.error('❌ Erro na resposta:', response.status);
-          const errorText = await response.text();
-          console.error('Detalhes do erro:', errorText);
         }
       } catch (error) {
-        console.error('❌ Erro ao verificar consultas:', error);
         // Continuar mesmo com erro na verificação
       }
     }
@@ -355,7 +339,6 @@ export default function Pacientes() {
 
       toast.success(`Exportados ${allPacientes.length} pacientes com dados completos!`);
     } catch (error) {
-      console.error('Erro ao exportar pacientes:', error);
       toast.error('Erro ao exportar pacientes');
     } finally {
       setLoading(false);
@@ -546,7 +529,6 @@ export default function Pacientes() {
       doc.save(`Todos_Pacientes_Completo_${new Date().toISOString().split('T')[0]}.pdf`);
       toast.success(`Exportados ${allPacientes.length} pacientes com dados completos!`);
     } catch (error) {
-      console.error('Erro ao exportar PDF:', error);
       toast.error('Erro ao exportar PDF');
     } finally {
       setLoading(false);
@@ -591,7 +573,6 @@ export default function Pacientes() {
         )}
       </div>
 
-      {loading && <p>Carregando...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <DataFrame
@@ -609,6 +590,7 @@ export default function Pacientes() {
         defaultFilters={{ ativo: [true] }}
         page={page}
         size={size}
+        setPage={setPage}
         callbacks={{
           onEdit: openEditForm,
           onToggle: handleToggleActive,

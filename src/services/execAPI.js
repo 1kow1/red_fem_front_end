@@ -55,3 +55,29 @@ export const releaseExec = async (id) => {
     throw new Error("Erro ao liberar execução de formulário: " + error.message);
   }
 };
+
+export const getExecsByFormularioId = async (formularioId) => {
+  try {
+    // Buscar todas as execuções e filtrar pelo formularioId no cliente
+    // Usando page=0 e size=9999 para pegar todas as execuções
+    const response = await api.get("/exec", {
+      params: {
+        page: 0,
+        size: 9999,
+        formularioId: formularioId
+      }
+    });
+
+    const execucoes = response.data.content || response.data.items || response.data || [];
+
+    // Filtrar execuções pelo formularioId caso o backend não filtre automaticamente
+    const execucoesFiltradas = execucoes.filter(exec =>
+      exec.formulario?.id === formularioId ||
+      exec.formularioId === formularioId
+    );
+
+    return execucoesFiltradas;
+  } catch (error) {
+    throw new Error("Erro ao buscar execuções do formulário: " + error.message);
+  }
+};
