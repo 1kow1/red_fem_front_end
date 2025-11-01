@@ -1,4 +1,4 @@
-export function PaginationFooter({ page, totalPages, onPageChange, className, totalRecords, size }) {
+export function PaginationFooter({ page, totalPages, onPageChange, className, totalRecords, size = 10 }) {
   // Calcula as páginas para mostrar
   const getVisiblePages = () => {
     const delta = 2; // Quantas páginas mostrar de cada lado

@@ -94,10 +94,31 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
         showError({ message: 'Nova senha é obrigatória' });
         return false;
       }
-      if (passwordData.novaSenha.length < 6) {
-        showError({ message: 'Nova senha deve ter pelo menos 6 caracteres' });
+
+      // Validação de requisitos de senha
+      const senha = passwordData.novaSenha;
+
+      if (senha.length < 8) {
+        showError({ message: 'A senha deve ter pelo menos 8 caracteres' });
         return false;
       }
+      if (!/[a-z]/.test(senha)) {
+        showError({ message: 'A senha deve conter pelo menos uma letra minúscula' });
+        return false;
+      }
+      if (!/[A-Z]/.test(senha)) {
+        showError({ message: 'A senha deve conter pelo menos uma letra maiúscula' });
+        return false;
+      }
+      if (!/[0-9]/.test(senha)) {
+        showError({ message: 'A senha deve conter pelo menos um número' });
+        return false;
+      }
+      if (!/[@$!%*?&]/.test(senha)) {
+        showError({ message: 'A senha deve conter pelo menos um caractere especial (@$!%*?&)' });
+        return false;
+      }
+
       if (passwordData.novaSenha !== passwordData.confirmarSenha) {
         showError({ message: 'Confirmação de senha não confere' });
         return false;
@@ -114,6 +135,7 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
     }
 
     setLoading(true);
+    let passwordChangeError = false;
 
     try {
       // Update profile data
@@ -134,25 +156,43 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
             if (passwordResponse.status >= 200 && passwordResponse.status < 300) {
               showSuccess('Perfil e senha atualizados com sucesso!');
             } else {
-              showSuccess('Perfil atualizado, mas houve um erro ao alterar a senha');
+              passwordChangeError = true;
+              showError('Perfil atualizado, mas houve um erro ao alterar a senha');
             }
           } catch (passwordError) {
-            showSuccess('Perfil atualizado com sucesso!');
-            showError(passwordError);
+            passwordChangeError = true;
+            let errorMessage = passwordError?.response?.data?.message || passwordError?.message || 'Erro ao alterar senha';
+
+            // Extrair mensagem entre aspas se existir (múltiplos padrões)
+            // Padrão 1: "mensagem entre aspas"
+            let match = errorMessage.match(/"([^"]+)"/);
+            if (match && match[1]) {
+              errorMessage = match[1];
+            } else {
+              // Padrão 2: mensagem após "BAD_REQUEST " ou "UNAUTHORIZED "
+              match = errorMessage.match(/(?:BAD_REQUEST|UNAUTHORIZED)\s+"([^"]+)"/);
+              if (match && match[1]) {
+                errorMessage = match[1];
+              }
+            }
+
+            showError(`Perfil atualizado, mas erro ao alterar senha: ${errorMessage}`);
           }
         } else {
           showSuccess('Perfil atualizado com sucesso!');
         }
 
-        // Reset password fields
-        setPasswordData({
-          senhaAtual: '',
-          novaSenha: '',
-          confirmarSenha: ''
-        });
-        setChangePassword(false);
-
-        onClose();
+        // Reset password fields only if password change was successful or not attempted
+        if (!passwordChangeError) {
+          setPasswordData({
+            senhaAtual: '',
+            novaSenha: '',
+            confirmarSenha: ''
+          });
+          setChangePassword(false);
+          onClose();
+        }
+        // If password change failed, keep modal open so user can retry
       } else {
         throw new Error('Resposta inesperada da API');
       }
@@ -339,9 +379,16 @@ export default function ModalEditarPerfil({ isOpen, onClose }) {
                       )}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Mínimo de 6 caracteres
-                  </p>
+                  <div className="text-xs text-gray-500 mt-1">
+                    <p className="font-medium mb-1">A senha deve conter:</p>
+                    <ul className="list-disc list-inside space-y-0.5">
+                      <li>Mínimo de 8 caracteres</li>
+                      <li>Uma letra minúscula</li>
+                      <li>Uma letra maiúscula</li>
+                      <li>Um número</li>
+                      <li>Um caractere especial (@$!%*?&)</li>
+                    </ul>
+                  </div>
                 </div>
 
                 {/* Confirmar Nova Senha */}

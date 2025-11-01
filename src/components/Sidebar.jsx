@@ -91,6 +91,11 @@ export default function Sidebar() {
 
         <div>
           <hr className="pb-1" />
+          {/* Nome do usuário logado */}
+          <div className="px-3 py-3 mb-1 border-b border-gray-200">
+            <p className="text-xs text-gray-500 mb-1">Logado como:</p>
+            <p className="text-sm font-semibold text-gray-800 truncate">{user?.nome || 'Usuário'}</p>
+          </div>
           <ul className="flex flex-col gap-1">
             {/* Dropdown de Configurações */}
             <li>

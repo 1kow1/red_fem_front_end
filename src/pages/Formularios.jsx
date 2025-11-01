@@ -3,7 +3,7 @@
 import DataFrame from "../components/DataFrame";
 import { useEffect, useState, useCallback } from "react";
 import { adaptFormForView } from "../adapters/formAdapter";
-import { getForms, getFormById } from "../services/formAPI";
+import { getForms, getFormById, toggleForm } from "../services/formAPI";
 import { PaginationFooter } from "../components/PaginationFooter";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -97,22 +97,24 @@ export default function Formularios() {
     }
   };
 
-  // fetch on page/size change - aguarda um ciclo para permitir que defaultFilters seja aplicado
-  useEffect(() => {
-    const timer = setTimeout(() => {
+  const handleToggleForm = async (row) => {
+    try {
+      await toggleForm(row.id);
+      const action = row._ativoRaw ? "desativado" : "ativado";
+      toast.success(`Formulário ${action} com sucesso!`);
       fetchForms();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [fetchForms]);
+    } catch (error) {
+      toast.error("Erro ao ativar/desativar formulário");
+    }
+  };
 
-  // debounce search
+  // debounce search - quando busca muda, resetar página
   useEffect(() => {
     const timer = setTimeout(() => {
       setPage(0);
-      fetchForms();
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchQuery, fetchForms]);
+  }, [searchQuery, setPage]);
 
   return (
     <div>
@@ -136,6 +138,7 @@ export default function Formularios() {
         dataType="formularios"
         onAddRow={handleCreateForm}
         onEditRow={handleEditForm}
+        onToggleRow={handleToggleForm}
         fetchData={fetchForms}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -145,7 +148,8 @@ export default function Formularios() {
         setPage={setPage}
         callbacks={{
           onEdit: handleEditForm,
-          onExportarCSV: handleExportarCSV
+          onExportarCSV: handleExportarCSV,
+          onToggle: handleToggleForm
         }}
       />
 
@@ -153,6 +157,7 @@ export default function Formularios() {
         page={page}
         totalPages={totalPages}
         totalRecords={totalRecords}
+        size={size}
         onPageChange={setPage}
       />
     </div>

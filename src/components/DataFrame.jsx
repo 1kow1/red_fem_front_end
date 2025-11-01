@@ -73,6 +73,8 @@ export default function DataFrame({
   const previousFiltersRef = useRef(JSON.stringify(defaultFilters));
   const previousSearchRef = useRef("");
   const loadingTimerRef = useRef(null);
+  const isApplyingFiltersRef = useRef(false);
+  const isPageChangeFromUser = useRef(false);
 
   // Função para limpar todos os filtros
   const handleClearAllFilters = () => {
@@ -93,12 +95,20 @@ export default function DataFrame({
       return;
     }
 
+    // Evitar chamadas redundantes
+    if (isApplyingFiltersRef.current) {
+      return;
+    }
+
+    isApplyingFiltersRef.current = true;
     setIsFilterLoading(true);
 
-    // Delay mínimo antes de mostrar loading indicator (evita flash em requisições rápidas)
-    loadingTimerRef.current = setTimeout(() => {
-      setShowLoadingIndicator(true);
-    }, 300);
+    // Capturar tempo de início para garantir duração mínima do spinner
+    const MIN_LOADING_TIME = 300; // ms
+    const startTime = Date.now();
+
+    // Mostrar spinner imediatamente
+    setShowLoadingIndicator(true);
 
     // Converter filtros do frontend para o formato do backend
     const backendFilters = {};
@@ -140,13 +150,18 @@ export default function DataFrame({
     try {
       await fetchData(backendFilters);
     } finally {
-      // Limpar timer e esconder loading
-      if (loadingTimerRef.current) {
-        clearTimeout(loadingTimerRef.current);
-        loadingTimerRef.current = null;
+      // Garantir que o spinner seja exibido por pelo menos MIN_LOADING_TIME
+      const elapsed = Date.now() - startTime;
+      const remainingTime = Math.max(0, MIN_LOADING_TIME - elapsed);
+
+      if (remainingTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, remainingTime));
       }
+
+      // Limpar estados
       setIsFilterLoading(false);
       setShowLoadingIndicator(false);
+      isApplyingFiltersRef.current = false;
     }
   }, [useBackendFilters, fetchData, filters, searchQuery, avaiableFilters, dataType, page, size]);
 
@@ -210,11 +225,13 @@ export default function DataFrame({
 
   // Effect para aplicar filtros padrão na inicialização
   useEffect(() => {
-    if (!hasInitialized && useBackendFilters && fetchData && Object.keys(defaultFilters).length > 0) {
+    if (!hasInitialized && useBackendFilters && fetchData) {
+      // Sempre chamar applyBackendFilters na primeira carga, independente de ter filtros ou não
       applyBackendFilters();
       setHasInitialized(true);
     }
-  }, [defaultFilters, useBackendFilters, fetchData, hasInitialized, applyBackendFilters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasInitialized, useBackendFilters, fetchData]);
 
   // Effect para aplicar filtros do backend quando mudarem
   useEffect(() => {
@@ -240,6 +257,11 @@ export default function DataFrame({
     const hasFilters = Object.keys(filters).length > 0;
     const hasSearch = searchQuery && searchQuery.trim() !== '';
 
+    // Só aplicar filtros se algo realmente mudou
+    if (!filtersChanged && !searchChanged) {
+      return;
+    }
+
     if (hasFilters || hasSearch) {
       const timeoutId = setTimeout(() => {
         applyBackendFilters();
@@ -249,10 +271,17 @@ export default function DataFrame({
         clearTimeout(timeoutId);
       };
     } else {
-      // Se não há filtros, aplicar filtros vazios
-      applyBackendFilters();
+      // Se não há filtros e algo mudou (usuário limpou filtros), aplicar filtros vazios com debounce
+      const timeoutId = setTimeout(() => {
+        applyBackendFilters();
+      }, 300);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
-  }, [JSON.stringify(filters), searchQuery, useBackendFilters, dataType, hasInitialized, applyBackendFilters, page, setPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(filters), searchQuery, useBackendFilters, dataType, hasInitialized, setPage]);
 
   // Effect para aplicar filtros quando a página ou tamanho mudarem
   useEffect(() => {
@@ -260,7 +289,8 @@ export default function DataFrame({
     if (!hasInitialized) return;
 
     applyBackendFilters();
-  }, [page, size, applyBackendFilters, useBackendFilters, fetchData, hasInitialized]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, size, useBackendFilters, fetchData, hasInitialized]);
 
   return (
     <>

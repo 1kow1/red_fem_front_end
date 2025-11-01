@@ -189,11 +189,6 @@ export default function Usuarios() {
     setIsChangePasswordOpen(false);
   };
 
-  useEffect(() => {
-    fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, size]);
-
   // debounce search - quando busca muda, resetar página
   useEffect(() => {
     const timer = setTimeout(() => {

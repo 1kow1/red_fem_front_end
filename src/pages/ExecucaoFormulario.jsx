@@ -36,6 +36,9 @@ export default function ExecucaoFormulario() {
 
   // Estado para o modal de ajuda
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+
+  // Estado para minimizar card de paciente
+  const [isCardMinimized, setIsCardMinimized] = useState(false);
   const fetchExecucaoData = async () => {
     if (!execId) {
       toast.error("ID da execução não fornecido");
@@ -430,13 +433,45 @@ export default function ExecucaoFormulario() {
       return;
     }
 
+    if (!formulario || !formulario.perguntas) {
+      toast.error('Formulário não carregado');
+      return;
+    }
+
     try {
-      await generateCSVReport(pacienteData, pacienteData.consultas || []);
+      // Preencher enunciados nas respostas
+      const respostasComEnunciado = respostas.map(resposta => {
+        const pergunta = formulario.perguntas.find(p => p.id === resposta.perguntaId);
+        return {
+          ...resposta,
+          enunciado: pergunta ? pergunta.enunciado : resposta.enunciado || 'Pergunta não encontrada'
+        };
+      });
+
+      // Criar consulta com execução preenchida
+      const consultaComExecucao = {
+        ...pacienteData.consultas[0],
+        execucaoFormulario: {
+          ...execucaoData,
+          respostas: respostasComEnunciado,
+          formulario: formulario
+        }
+      };
+
+      // Garantir que pacienteData tenha _dataDeNascimento formatado
+      const pacienteComData = {
+        ...pacienteData,
+        _dataDeNascimento: pacienteData._dataDeNascimento || pacienteData.dataDeNascimento,
+        consultas: [consultaComExecucao]
+      };
+
+      await generateCSVReport(pacienteComData, [consultaComExecucao]);
       toast.success('Relatório CSV gerado com sucesso!');
     } catch (error) {
+      console.error('Erro ao gerar CSV:', error);
       toast.error('Erro ao gerar relatório CSV');
     }
-  }, [pacienteData]);
+  }, [pacienteData, formulario, respostas, execucaoData]);
 
   // Função para gerar relatório PDF
   const handleGerarPDF = useCallback(async () => {
@@ -445,18 +480,97 @@ export default function ExecucaoFormulario() {
       return;
     }
 
+    if (!formulario || !formulario.perguntas) {
+      toast.error('Formulário não carregado');
+      return;
+    }
+
     try {
-      await generatePDFReport(pacienteData, pacienteData.consultas || []);
+      // Preencher enunciados nas respostas
+      const respostasComEnunciado = respostas.map(resposta => {
+        const pergunta = formulario.perguntas.find(p => p.id === resposta.perguntaId);
+        return {
+          ...resposta,
+          enunciado: pergunta ? pergunta.enunciado : resposta.enunciado || 'Pergunta não encontrada'
+        };
+      });
+
+      // Criar consulta com execução preenchida
+      const consultaComExecucao = {
+        ...pacienteData.consultas[0],
+        execucaoFormulario: {
+          ...execucaoData,
+          respostas: respostasComEnunciado,
+          formulario: formulario
+        }
+      };
+
+      // Garantir que pacienteData tenha _dataDeNascimento formatado
+      const pacienteComData = {
+        ...pacienteData,
+        _dataDeNascimento: pacienteData._dataDeNascimento || pacienteData.dataDeNascimento,
+        consultas: [consultaComExecucao]
+      };
+
+      await generatePDFReport(pacienteComData, [consultaComExecucao]);
       toast.success('Relatório PDF gerado com sucesso!');
     } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
       toast.error('Erro ao gerar relatório PDF');
     }
-  }, [pacienteData]);
+  }, [pacienteData, formulario, respostas, execucaoData]);
 
   // Atalho F1 para ajuda contextual
   useKeyboardShortcut('F1', () => {
     setIsHelpModalOpen(true);
   });
+
+  // Scroll listener para minimizar card automaticamente com hysteresis e throttling
+  useEffect(() => {
+    let throttleTimer = null;
+    let isTransitioning = false;
+
+    const handleScroll = () => {
+      // Throttling: limitar atualizações para evitar excesso de renders
+      if (throttleTimer || isTransitioning) return;
+
+      throttleTimer = setTimeout(() => {
+        throttleTimer = null;
+      }, 50); // Máximo 20 atualizações por segundo
+
+      const scrollPosition = window.scrollY;
+      const MINIMIZE_THRESHOLD = 250; // Threshold para minimizar ao descer (aumentado)
+      const EXPAND_THRESHOLD = 150;   // Threshold para expandir ao subir (diminuído)
+      // Gap de 100px (antes era 40px) para evitar flickering
+
+      // Minimizar apenas se passou do threshold
+      if (scrollPosition > MINIMIZE_THRESHOLD && !isCardMinimized) {
+        isTransitioning = true;
+        setIsCardMinimized(true);
+        // Aguardar fim da transição CSS (300ms)
+        setTimeout(() => { isTransitioning = false; }, 300);
+      }
+      // Expandir apenas se voltou abaixo do threshold
+      else if (scrollPosition < EXPAND_THRESHOLD && isCardMinimized) {
+        isTransitioning = true;
+        setIsCardMinimized(false);
+        // Aguardar fim da transição CSS (300ms)
+        setTimeout(() => { isTransitioning = false; }, 300);
+      }
+      // Entre 150-250px: manter estado atual (zona morta/hysteresis)
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (throttleTimer) clearTimeout(throttleTimer);
+    };
+  }, [isCardMinimized]); // Adicionar isCardMinimized para checar estado atual
+
+  // Função para voltar ao topo do formulário
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // --- UI render ---
   return (
@@ -470,7 +584,7 @@ export default function ExecucaoFormulario() {
       <div
         className="
           flex flex-row justify-between items-center p-4
-          border-b border-gray-300 shadow-md fixed bg-white w-full z-10"
+          border-b border-gray-300 shadow-md fixed bg-white w-full z-20"
       >
         <div className="flex flex-row gap-2 items-center">
           <img src={rosaLogo} alt="Logo Rosa RFCC" className="h-8 mr-4 self-center" />
@@ -484,7 +598,7 @@ export default function ExecucaoFormulario() {
             />
             {isLiberado && (
               <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-300 rounded-md text-sm text-blue-800">
-                <span className="font-semibold">🔒 Somente Leitura:</span>
+                <span className="font-semibold">Somente Leitura:</span>
                 <span>Formulário liberado</span>
               </div>
             )}
@@ -528,64 +642,96 @@ export default function ExecucaoFormulario() {
         <div className="flex flex-col gap-4">
           {/* Card com dados do paciente - Sempre visível */}
           {pacienteData && (
-            <Card className="bg-gradient-to-r from-redfemPink/5 to-white border-l-4 border-l-redfemPink shadow-md sticky top-20 z-10">
-              <div className="py-4 px-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-redfemPink rounded-full p-2">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+            <Card className={`bg-gradient-to-r from-redfemPink/5 to-white border-l-4 border-l-redfemPink shadow-md sticky top-20 z-10 transition-all duration-300 ${isCardMinimized ? 'py-2' : ''}`}>
+              <div className={`px-6 ${isCardMinimized ? 'py-2' : 'py-4'}`}>
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-redfemPink rounded-full p-2">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    {isCardMinimized ? (
+                      <p className="text-base font-bold text-gray-900">{pacienteData.nome}</p>
+                    ) : (
+                      <h3 className="text-base font-bold text-redfemDarkPink uppercase tracking-wide">Informações da Paciente</h3>
+                    )}
                   </div>
-                  <h3 className="text-base font-bold text-redfemDarkPink uppercase tracking-wide">Informações da Paciente</h3>
-                </div>
-                <div className="grid grid-cols-3 gap-x-6 gap-y-3">
-                  <div className="col-span-2">
-                    <span className="text-xs font-semibold text-gray-500 uppercase">Nome Completo</span>
-                    <p className="text-base font-semibold text-gray-900">{pacienteData.nome}</p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsCardMinimized(!isCardMinimized)}
+                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                      title={isCardMinimized ? "Expandir" : "Minimizar"}
+                    >
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {isCardMinimized ? (
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        ) : (
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        )}
+                      </svg>
+                    </button>
+                    <button
+                      onClick={scrollToTop}
+                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                      title="Voltar ao início"
+                    >
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                    </button>
                   </div>
-                  {pacienteData.cpf && (
-                    <div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase">CPF</span>
-                      <p className="text-base font-medium text-gray-900">{pacienteData.cpf}</p>
-                    </div>
-                  )}
-                  {pacienteData._dataDeNascimento && (
-                    <div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase">Data de Nascimento</span>
-                      <p className="text-base font-medium text-gray-900">{pacienteData._dataDeNascimento}</p>
-                    </div>
-                  )}
-                  {pacienteData.telefone && (
-                    <div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase">Telefone</span>
-                      <p className="text-base font-medium text-gray-900">{pacienteData.telefone}</p>
-                    </div>
-                  )}
-                  {pacienteData.email && (
-                    <div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase">E-mail</span>
-                      <p className="text-base font-medium text-gray-900">{pacienteData.email}</p>
-                    </div>
-                  )}
-                  {pacienteData.estadoCivil && (
-                    <div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase">Estado Civil</span>
-                      <p className="text-base font-medium text-gray-900">{pacienteData._estadoCivil || pacienteData.estadoCivil}</p>
-                    </div>
-                  )}
-                  {pacienteData.profissao && (
-                    <div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase">Profissão</span>
-                      <p className="text-base font-medium text-gray-900">{pacienteData.profissao}</p>
-                    </div>
-                  )}
-                  {pacienteData.cidade && (
-                    <div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase">Cidade/UF</span>
-                      <p className="text-base font-medium text-gray-900">{pacienteData.cidade}/{pacienteData.uf}</p>
-                    </div>
-                  )}
                 </div>
+                {!isCardMinimized && (
+                  <div className="grid grid-cols-3 gap-x-6 gap-y-3 mt-4">
+                    <div className="col-span-2">
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Nome Completo</span>
+                      <p className="text-base font-semibold text-gray-900">{pacienteData.nome}</p>
+                    </div>
+                    {pacienteData.cpf && (
+                      <div>
+                        <span className="text-xs font-semibold text-gray-500 uppercase">CPF</span>
+                        <p className="text-base font-medium text-gray-900">{pacienteData.cpf}</p>
+                      </div>
+                    )}
+                    {pacienteData._dataDeNascimento && (
+                      <div>
+                        <span className="text-xs font-semibold text-gray-500 uppercase">Data de Nascimento</span>
+                        <p className="text-base font-medium text-gray-900">{pacienteData._dataDeNascimento}</p>
+                      </div>
+                    )}
+                    {pacienteData.telefone && (
+                      <div>
+                        <span className="text-xs font-semibold text-gray-500 uppercase">Telefone</span>
+                        <p className="text-base font-medium text-gray-900">{pacienteData.telefone}</p>
+                      </div>
+                    )}
+                    {pacienteData.email && (
+                      <div>
+                        <span className="text-xs font-semibold text-gray-500 uppercase">E-mail</span>
+                        <p className="text-base font-medium text-gray-900">{pacienteData.email}</p>
+                      </div>
+                    )}
+                    {pacienteData.estadoCivil && (
+                      <div>
+                        <span className="text-xs font-semibold text-gray-500 uppercase">Estado Civil</span>
+                        <p className="text-base font-medium text-gray-900">{pacienteData._estadoCivil || pacienteData.estadoCivil}</p>
+                      </div>
+                    )}
+                    {pacienteData.profissao && (
+                      <div>
+                        <span className="text-xs font-semibold text-gray-500 uppercase">Profissão</span>
+                        <p className="text-base font-medium text-gray-900">{pacienteData.profissao}</p>
+                      </div>
+                    )}
+                    {pacienteData.cidade && (
+                      <div>
+                        <span className="text-xs font-semibold text-gray-500 uppercase">Cidade/UF</span>
+                        <p className="text-base font-medium text-gray-900">{pacienteData.cidade}/{pacienteData.uf}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </Card>
           )}

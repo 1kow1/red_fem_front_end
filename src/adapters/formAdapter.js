@@ -19,7 +19,9 @@ export const adaptFormForView = (form) => {
     especialidade: capitalizeWords(form.especialidade),
     versao: form.versao,
     liberadoParaUso: form.liberadoParaUso ? "Sim" : "Não",
-    _ativo: form.ativo, // Adicionar campo ativo para controle de edição
+    _ativoPopup: form.ativo, // Campo raw para exibição no popup (underscore oculta da tabela)
+    _ativo: form.ativo ? "Sim" : "Não", // Campo formatado para visualização
+    _ativoRaw: form.ativo, // Campo raw para lógica
     _rawData: form, // Manter dados originais para referência
   };
 };

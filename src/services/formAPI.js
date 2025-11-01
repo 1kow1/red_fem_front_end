@@ -111,3 +111,12 @@ export const releaseFormForUse = async (id, liberadoParaUso = true) => {
     throw new Error("Erro ao liberar formulário: " + error.message);
   }
 };
+
+export const toggleForm = async (id) => {
+  try {
+    const response = await api.patch(`/form/${id}/toggle`);
+    return response.data;
+  } catch (error) {
+    throw new Error("Erro ao ativar/desativar formulário: " + error.message);
+  }
+};

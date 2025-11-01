@@ -297,9 +297,11 @@ export default function FormularioEditor() {
       if (novoIndex >= 0) {
         [novasPerguntas[index], novasPerguntas[novoIndex]] = [novasPerguntas[novoIndex], novasPerguntas[index]];
       }
-      return { ...prev, perguntas: novasPerguntas };
+      const newFormulario = { ...prev, perguntas: novasPerguntas };
+      saveStateToHistory(newFormulario);
+      return newFormulario;
     });
-  }, []);
+  }, [saveStateToHistory]);
 
   // --- mover para baixo ---
   const onMoveDown = useCallback((index) => {
@@ -309,9 +311,11 @@ export default function FormularioEditor() {
       if (novoIndex < novasPerguntas.length) {
         [novasPerguntas[index], novasPerguntas[novoIndex]] = [novasPerguntas[novoIndex], novasPerguntas[index]];
       }
-      return { ...prev, perguntas: novasPerguntas };
+      const newFormulario = { ...prev, perguntas: novasPerguntas };
+      saveStateToHistory(newFormulario);
+      return newFormulario;
     });
-  }, []);
+  }, [saveStateToHistory]);
 
   // --- alternativas ---
   const onAddAlternativa = useCallback((perguntaId) => {
@@ -588,6 +592,8 @@ export default function FormularioEditor() {
 
     if (hasChanges) {
       setIsConfirmOpenFormulario(true);
+    } else {
+      navigate('/formularios');
     }
   }, [formulario, navigate]);
 

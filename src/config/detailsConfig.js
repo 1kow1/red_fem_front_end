@@ -223,21 +223,34 @@ export const popupConfigs = {
   formularios: {
     getConfig: (data, callbacks = {}) => {
       // Verificar se o formulário está ativo para determinar se pode ser editado
-      const isAtivo = data.ativo === true || data.ativo === "true";
+      const isAtivo = data._ativoPopup === true || data._ativoPopup === "true";
       const isLiberado = data.liberadoParaUso === "Sim" || data.liberadoParaUso === true;
 
-      const actions = [
-        {
-          label: "Exportar CSV",
+      // Construir array de ações dinamicamente
+      const actions = [];
+
+      // Apenas formulários ativos podem ser desativados (não permitir reativação)
+      if (isAtivo) {
+        actions.push({
+          label: "Desativar",
           variant: "secondary",
-          onClick: callbacks.onExportarCSV
-        },
-        {
-          label: isAtivo ? "Editar" : "Visualizar",
-          variant: "primary",
-          onClick: isAtivo ? callbacks.onEdit : callbacks.onView || callbacks.onEdit
-        }
-      ];
+          onClick: callbacks.onToggle
+        });
+      }
+
+      // Botão de exportar CSV sempre disponível
+      actions.push({
+        label: "Exportar CSV",
+        variant: "secondary",
+        onClick: callbacks.onExportarCSV
+      });
+
+      // Botão de editar/visualizar
+      actions.push({
+        label: isAtivo ? "Editar" : "Visualizar",
+        variant: "primary",
+        onClick: isAtivo ? callbacks.onEdit : callbacks.onView || callbacks.onEdit
+      });
 
       return {
         title: data.titulo,
@@ -247,7 +260,7 @@ export const popupConfigs = {
           { label: "Especialidade", key: "especialidade" },
           { label: "Versão", key: "versao"},
           { label: "Liberado?", key: "liberadoParaUso"},
-          { label: "Ativo", key: "ativo", format: (value) => value ? "Sim" : "Não" }
+          { label: "Ativo", key: "_ativoPopup", format: (value) => value ? "Sim" : "Não" }
         ],
         actions
       };

@@ -248,11 +248,6 @@ export default function Consultas() {
     onAbrirExecucao: handleAbrirExecucao // Callback para abrir execução
   };
 
-  useEffect(() => {
-    fetchConsultas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, size]);
-
   // debounce search - quando busca muda, resetar página
   useEffect(() => {
     const timer = setTimeout(() => {
