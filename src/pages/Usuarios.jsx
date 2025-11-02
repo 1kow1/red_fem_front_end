@@ -13,9 +13,22 @@ import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import ModalAlterarSenha from "../components/ModalAlterarSenha";
 import { handleApiError } from "../utils/errorHandler";
 import { useAuth } from "../contexts/auth/useAuth";
+import { useGuidedTour } from "../hooks/useGuidedTour";
+import { getTourForPage } from "../config/toursConfig";
+import ContextualHelpModal from "../components/ContextualHelpModal";
+import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 
 export default function Usuarios() {
   const { user: currentUser } = useAuth();
+
+  // Tour guiado e ajuda
+  const tourSteps = getTourForPage('usuarios');
+  const { startTour } = useGuidedTour('usuarios', tourSteps || []);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+
+  // Atalho F1 para ajuda
+  useKeyboardShortcut('F1', () => setIsHelpModalOpen(true));
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -101,16 +114,32 @@ export default function Usuarios() {
 
   // EDIT
   const handleEditUser = async (formData) => {
-    const payload = adaptUserForApi({
-      ...(editInitialData || {}),
-      ...formData,
-    });
+    try {
+      const payload = adaptUserForApi({
+        ...(editInitialData || {}),
+        ...formData,
+      });
 
-    await editUser(payload.id, payload);
-    await fetchUsers({ ativos: [true] }); // Aplicar filtros padrão
-    toast.success("Usuário Atualizado!");
-    setIsFormOpen(false);
-    setEditInitialData(null);
+      await editUser(payload.id, payload);
+      await fetchUsers({ ativos: [true] }); // Aplicar filtros padrão
+      toast.success("Usuário Atualizado!");
+      setIsFormOpen(false);
+      setEditInitialData(null);
+    } catch (err) {
+      // Se é erro de validação do Yup (client-side)
+      if (err.inner && Array.isArray(err.inner)) {
+        const errors = {};
+        err.inner.forEach((e) => {
+          errors[e.path] = e.message;
+        });
+        toast.error("Erros de validação: " + Object.values(errors).join(", "));
+        return;
+      }
+
+      // Usar o handler centralizado para erros da API
+      const errorResult = handleApiError(err);
+      toast.error(errorResult.message);
+    }
   };
 
   // REATIVAR / DESATIVAR
@@ -220,6 +249,9 @@ export default function Usuarios() {
         page={page}
         size={size}
         setPage={setPage}
+        // Passar tour guiado e ajuda
+        onStartTour={startTour}
+        onOpenHelp={() => setIsHelpModalOpen(true)}
       />
 
       <PaginationFooter
@@ -253,6 +285,13 @@ export default function Usuarios() {
         isOpen={isChangePasswordOpen}
         onClose={handleCloseChangePassword}
         userData={userToChangePassword}
+      />
+
+      {/* Modal de Ajuda Contextual */}
+      <ContextualHelpModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+        context="usuarios"
       />
     </div>
   );

@@ -68,6 +68,11 @@ export default function FormularioPopUp({
         // Procura primeiro pelo campo original, depois pela versão com underscore
         let value = initialData[fieldName] ?? initialData[`_${fieldName}`];
 
+        // Para campo dataDeNascimento, também verificar _dataDeNascimentoForm
+        if (fieldName === 'dataDeNascimento' && !value) {
+          value = initialData._dataDeNascimentoForm;
+        }
+
         if (value === undefined || value === null) return;
         
         // Processa diferentes tipos de campo
@@ -91,8 +96,12 @@ export default function FormularioPopUp({
           // Tratamento especial para campos de data na inicialização
           if (value) {
             if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-              // Já é string no formato correto
+              // Já é string no formato ISO correto (YYYY-MM-DD)
               normalizedData[fieldName] = value;
+            } else if (typeof value === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+              // Formato brasileiro DD/MM/YYYY - fazer parse manual
+              const [dia, mes, ano] = value.split('/');
+              normalizedData[fieldName] = `${ano}-${mes}-${dia}`;
             } else {
               // Tentar converter evitando problemas de UTC
               try {
@@ -201,8 +210,12 @@ export default function FormularioPopUp({
         } else {
           cleaned[name] = data[name];
         }
-      } else if (initialData && initialData[name] !== undefined) {
-        cleaned[name] = initialData[name];
+      } else if (initialData) {
+        // Busca com e sem underscore, assim como na inicialização (linha 69)
+        const value = initialData[name] ?? initialData[`_${name}`];
+        if (value !== undefined) {
+          cleaned[name] = value;
+        }
       }
     });
 

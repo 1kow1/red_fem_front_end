@@ -54,12 +54,12 @@ const ContextualHelpModal = ({ isOpen, onClose, context }) => {
       sections: [
         {
           icon: <Info className="w-5 h-5" />,
-          title: 'Como Funciona',
+          title: 'Salvar vs Liberar',
           items: [
-            'Preencha todas as questões do formulário durante a consulta',
-            '<strong>Salvar:</strong> Mantém o formulário em andamento (pode editar depois)',
-            '<strong>Liberar:</strong> Finaliza o formulário (não pode mais editar)',
-            'Formulários são <strong>liberados automaticamente à meia-noite</strong> se não finalizados'
+            '<strong>Salvar:</strong> Grava as respostas - formulário permanece editável',
+            '<strong>Salvar e Liberar:</strong> Finaliza permanentemente - não pode mais editar',
+            'Formulários são <strong>liberados automaticamente após 1 dia</strong> se não liberados manualmente',
+            'Você pode sair e voltar várias vezes antes de liberar, mas precisa responder todas as perguntas para salvar!'
           ]
         },
         {
@@ -67,7 +67,7 @@ const ContextualHelpModal = ({ isOpen, onClose, context }) => {
           title: 'Permissões',
           items: [
             '<strong>Médicos e Residentes:</strong> Podem salvar e liberar formulários',
-            '<strong>Acadêmicos:</strong> Podem apenas visualizar (somente leitura)',
+            '<strong>Acadêmicos:</strong> Podem apenas preencher e salvar, mas <strong>não podem liberar</strong>',
             '<strong>Recepcionistas:</strong> Não têm acesso a execuções',
             'Formulários liberados ficam <strong>permanentemente bloqueados</strong>'
           ]
@@ -166,7 +166,7 @@ const ContextualHelpModal = ({ isOpen, onClose, context }) => {
           items: [
             '<strong>1. Criar:</strong> Crie um novo formulário com título e descrição',
             '<strong>2. Editar:</strong> Adicione questões ao formulário',
-            '<strong>3. Liberar:</strong> Torne o formulário disponível para uso',
+            '<strong>3. Liberar:</strong> Torne o formulário disponível para uso em consultas',
             '<strong>4. Versionar:</strong> Edições em formulários liberados criam novas versões'
           ]
         },

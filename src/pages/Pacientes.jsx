@@ -15,10 +15,23 @@ import { filterConfigs } from "../config/filterConfig";
 import { useAuth } from "../contexts/auth/useAuth";
 import { ButtonPrimaryDropdown } from "../components/Button";
 import { generateCSVReport, generatePDFReport } from "../utils/reportUtils";
+import { useGuidedTour } from "../hooks/useGuidedTour";
+import { getTourForPage } from "../config/toursConfig";
+import ContextualHelpModal from "../components/ContextualHelpModal";
+import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 
 export default function Pacientes() {
   const navigate = useNavigate();
   const { user, userCargo } = useAuth();
+
+  // Tour guiado e ajuda
+  const tourSteps = getTourForPage('pacientes');
+  const { startTour } = useGuidedTour('pacientes', tourSteps || []);
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+
+  // Atalho F1 para ajuda
+  useKeyboardShortcut('F1', () => setIsHelpModalOpen(true));
+
   const [pacientes, setPacientes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -122,13 +135,51 @@ export default function Pacientes() {
 
   // EDIT
   const handleEditPaciente = async (formData) => {
-    const payload = adaptPacienteForApi({ ...(editInitialData || {}), ...formData });
+    try {
+      // formData já contém todos os campos necessários do FormPopUp, incluindo o ID
+      const payload = adaptPacienteForApi(formData);
+      await editPaciente(payload.id, payload);
+      await fetchPacientes();
+      setIsFormOpen(false);
+      setEditInitialData(null);
+      toast.success("Paciente Atualizado!")
+    } catch (err) {
+      // Se é erro de validação do Yup (client-side)
+      if (err.inner && Array.isArray(err.inner)) {
+        const errors = {};
+        err.inner.forEach((e) => {
+          errors[e.path] = e.message;
+        });
+        toast.error("Erros de validação: " + Object.values(errors).join(", "));
+        return;
+      }
 
-    await editPaciente(payload.id, payload);
-    await fetchPacientes();
-    setIsFormOpen(false);
-    setEditInitialData(null);
-    toast.success("Paciente Atualizado!")
+      // Se é erro do backend (HTTP)
+      const errorMessage = err?.response?.data?.message ||
+                          err?.response?.data?.error ||
+                          err?.message ||
+                          "Erro desconhecido ao atualizar paciente.";
+
+      // Verificar se é erro de email duplicado
+      if (errorMessage.toLowerCase().includes('email') &&
+          (errorMessage.toLowerCase().includes('já existe') ||
+           errorMessage.toLowerCase().includes('duplicado') ||
+           errorMessage.toLowerCase().includes('unique'))) {
+        toast.error("Este email já está cadastrado no sistema. Utilize um email diferente.");
+        return;
+      }
+
+      // Verificar se é erro de CPF duplicado
+      if (errorMessage.toLowerCase().includes('cpf') &&
+          (errorMessage.toLowerCase().includes('já existe') ||
+           errorMessage.toLowerCase().includes('duplicado') ||
+           errorMessage.toLowerCase().includes('unique'))) {
+        toast.error("Este CPF já está cadastrado no sistema. Utilize um CPF diferente.");
+        return;
+      }
+
+      toast.error(errorMessage);
+    }
   };
 
   // REATIVAR / DESATIVAR
@@ -586,6 +637,9 @@ export default function Pacientes() {
         page={page}
         size={size}
         setPage={setPage}
+        // Passar tour guiado e ajuda
+        onStartTour={startTour}
+        onOpenHelp={() => setIsHelpModalOpen(true)}
         callbacks={{
           onEdit: openEditForm,
           onToggle: handleToggleActive,
@@ -630,6 +684,13 @@ export default function Pacientes() {
         }}
         pacienteData={pacienteRelatorio}
         consultas={pacienteRelatorio?.consultas || []}
+      />
+
+      {/* Modal de Ajuda Contextual */}
+      <ContextualHelpModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+        context="pacientes"
       />
     </div>
   );

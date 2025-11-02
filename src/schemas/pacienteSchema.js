@@ -30,7 +30,7 @@ export const pacienteSchema = yup.object().shape({
 
   estadoCivil: yup.string()
     .oneOf(
-      ["SOLTEIRO", "SOLTEIRA", "CASADO", "CASADA", "DIVORCIADO", "DIVORCIADA", "VIÚVO", "VIÚVA"],
+      ["SOLTEIRO", "SOLTEIRA", "CASADO", "CASADA", "DIVORCIADO", "DIVORCIADA", "VIUVO", "VIUVA"],
       "Estado civil inválido"
     )
     .required("Estado civil é obrigatório"),

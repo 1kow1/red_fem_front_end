@@ -16,6 +16,7 @@ import { generateCSVReport, generatePDFReport } from "../utils/reportUtils";
 import HelpTooltip from "../components/HelpTooltip";
 import ContextualHelpModal from "../components/ContextualHelpModal";
 import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
+
 export default function ExecucaoFormulario() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -592,7 +593,7 @@ export default function ExecucaoFormulario() {
           <div className="flex items-center gap-3 ml-2">
             <HelpTooltip
               title="Ajuda Rápida"
-              content="<strong>Salvar:</strong> Mantém progresso (editável)<br/><strong>Liberar:</strong> Finaliza formulário (permanente)<br/><strong>F1:</strong> Abrir ajuda completa<br/><br/>⚠️ Formulários são liberados automaticamente à meia-noite"
+              content="<strong>Salvar:</strong> Mantém progresso (editável)<br/><strong>Liberar:</strong> Finaliza formulário (permanente)<br/><strong>F1:</strong> Abrir ajuda completa<br/><br/>⚠️ Formulários são liberados automaticamente após 1 dia"
               position="bottom"
               maxWidth={380}
             />

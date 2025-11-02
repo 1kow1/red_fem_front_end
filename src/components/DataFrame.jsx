@@ -4,7 +4,8 @@ import Searchbar from "./Searchbar"
 import { ButtonPrimary } from "./Button"
 import { AddIcon } from "./Icons"
 import { useState, useEffect, useCallback, useRef } from "react"
-import HelpTooltip from "./HelpTooltip"
+import HelpMenu from "./HelpMenu"
+import SearchAsyncSelect from "./SearchAsyncSelect"
 
 function Tag({ children, isSelected, onClick, onRemove, removable = false }) {
   return (
@@ -60,7 +61,9 @@ export default function DataFrame({
   defaultFilters = {}, // nova prop para filtros padrão
   page, // número da página atual
   size,  // tamanho da página
-  setPage // função para resetar a página
+  setPage, // função para resetar a página
+  onStartTour, // callback para iniciar tour guiado
+  onOpenHelp // callback para abrir ajuda F1
 }) {
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -303,20 +306,21 @@ export default function DataFrame({
             fetchData={fetchData}
             onClickFilter={() => setIsFilterOpen(!isFilterOpen)}
           />
+
           <ButtonPrimary onClick={() => onAddRow?.()}>
             <AddIcon />
             Adicionar {title}
           </ButtonPrimary>
 
-          {/* Tooltip de ajuda sobre filtros */}
-          <div className="self-center">
-            <HelpTooltip
-              title="Ajuda"
-              content="Pressione <strong>F1</strong> para ajuda completa"
-              position="bottom"
-              maxWidth={180}
-            />
-          </div>
+          {/* Menu de ajuda com tour guiado */}
+          {(onStartTour || onOpenHelp) && (
+            <div className="self-center">
+              <HelpMenu
+                onStartTour={onStartTour}
+                onOpenHelp={onOpenHelp}
+              />
+            </div>
+          )}
         </div>
 
         {isFilterOpen && (
@@ -401,6 +405,52 @@ export default function DataFrame({
                         }}
                         value={filters[filter.name] ? filters[filter.name][1] : ""}
                       />
+                    </div>
+                  }
+                  {filter.type === "async-select" &&
+                    <div className="w-80">
+                      <SearchAsyncSelect
+                        apiKey={filter.apiKey}
+                        value={null}
+                        onChange={(selectedOption) => {
+                          if (selectedOption) {
+                            const newFilters = { ...filters };
+                            if (!newFilters[filter.name]) {
+                              newFilters[filter.name] = [];
+                            }
+                            // Adicionar o ID selecionado se não existir
+                            if (!newFilters[filter.name].includes(selectedOption.value)) {
+                              newFilters[filter.name] = [...newFilters[filter.name], selectedOption.value];
+                            }
+                            setFilters(newFilters);
+                          }
+                        }}
+                        placeholder={filter.placeholder || "Selecione..."}
+                        pageSize={10}
+                        additionalFilters={filter.additionalFilters || {}}
+                      />
+                      {/* Display selected items as tags */}
+                      {filters[filter.name] && filters[filter.name].length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {filters[filter.name].map((selectedId, index) => (
+                            <Tag
+                              key={selectedId}
+                              isSelected={true}
+                              removable={true}
+                              onRemove={() => {
+                                const newFilters = { ...filters };
+                                newFilters[filter.name] = newFilters[filter.name].filter(id => id !== selectedId);
+                                if (newFilters[filter.name].length === 0) {
+                                  delete newFilters[filter.name];
+                                }
+                                setFilters(newFilters);
+                              }}
+                            >
+                              {`Filtro ${index + 1}`}
+                            </Tag>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   }
                 </div>

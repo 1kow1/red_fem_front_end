@@ -683,9 +683,9 @@ export default function FormularioEditor() {
           <div className="flex items-center gap-3 ml-2">
             <HelpTooltip
               title="Ajuda Rápida"
-              content="<strong>Ctrl+Z:</strong> Desfazer<br/><strong>Ctrl+Y:</strong> Refazer<br/><strong>F1:</strong> Abrir ajuda completa<br/><br/>💡 <strong>Versionamento:</strong> Editar formulários liberados cria automaticamente uma nova versão"
+              content="<strong>Salvar:</strong> Grava alterações (editável)<br/><strong>Salvar e Liberar:</strong> Disponibiliza para consultas<br/><strong>F1:</strong> Ajuda completa<br/><br/><strong>Ctrl+Z/Y:</strong> Desfazer/Refazer"
               position="bottom"
-              maxWidth={350}
+              maxWidth={380}
             />
             {isEditMode && formDataToEdit?.liberadoParaUso && (
               <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-300 rounded-md text-sm text-amber-800">

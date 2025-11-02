@@ -130,14 +130,14 @@ export const formConfigs = {
             { value: "CASADA", label: "Casada" },
             { value: "DIVORCIADA", label: "Divorciada" },
             { value: "SOLTEIRA", label: "Solteira" },
-            { value: "VIÚVA", label: "Viúva" },
+            { value: "VIUVA", label: "Viúva" },
           ];
         } else if (formData.sexo === "M") {
           return [
             { value: "CASADO", label: "Casado" },
             { value: "DIVORCIADO", label: "Divorciado" },
             { value: "SOLTEIRO", label: "Solteiro" },
-            { value: "VIÚVO", label: "Viúvo" },
+            { value: "VIUVO", label: "Viúvo" },
           ];
         }
         return [
@@ -147,8 +147,8 @@ export const formConfigs = {
           { value: "DIVORCIADO", label: "Divorciado" },
           { value: "SOLTEIRA", label: "Solteira" },
           { value: "SOLTEIRO", label: "Solteiro" },
-          { value: "VIÚVA", label: "Viúva" },
-          { value: "VIÚVO", label: "Viúvo" },
+          { value: "VIUVA", label: "Viúva" },
+          { value: "VIUVO", label: "Viúvo" },
         ];
       },
     },

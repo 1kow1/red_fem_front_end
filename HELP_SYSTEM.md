@@ -143,7 +143,7 @@ useKeyboardShortcut('F1', () => {
 
 ### Execução de Formulário
 - **Como Funciona:** Diferença entre Salvar e Liberar
-- **Auto-liberação:** Formulários são liberados automaticamente à meia-noite
+- **Auto-liberação:** Formulários são liberados automaticamente apos um dia
 - **Permissões:** Quem pode salvar/liberar formulários
 
 ### Consultas

@@ -45,7 +45,7 @@ export default function Ajuda() {
       id: 'pacientes',
       title: 'Gestão de Pacientes',
       icon: Users,
-      keywords: ['pacientes', 'cadastro', 'editar', 'histórico', 'relatório', 'csv', 'pdf'],
+      keywords: ['pacientes', 'cadastro', 'editar', 'histórico', 'relatório', 'csv', 'pdf', 'filtros'],
       content: (
         <div>
           <h4 className="text-md font-semibold mb-3">Cadastrar Paciente</h4>
@@ -72,6 +72,14 @@ export default function Ajuda() {
             <li>Salve as alterações</li>
           </ol>
 
+          <h4 className="text-md font-semibold mb-3">Como Usar Filtros</h4>
+          <ol className="list-decimal list-inside space-y-2 mb-4">
+            <li>Clique no botão <strong>"Filtros"</strong> no topo da página</li>
+            <li>Ajuste os filtros disponíveis (status de ativação, etc.)</li>
+            <li>Por padrão, apenas pacientes <strong>ATIVOS</strong> são exibidos</li>
+            <li>Use a busca textual para encontrar por nome, CPF ou email</li>
+          </ol>
+
           <h4 className="text-md font-semibold mb-3">Gerar Relatórios</h4>
           <ol className="list-decimal list-inside space-y-2 mb-4">
             <li>No popup de detalhes do paciente, clique em "Gerar Relatório"</li>
@@ -88,7 +96,7 @@ export default function Ajuda() {
       id: 'consultas',
       title: 'Gestão de Consultas',
       icon: Calendar,
-      keywords: ['consultas', 'agendar', 'associar', 'formulário', 'execução', 'status'],
+      keywords: ['consultas', 'agendar', 'vincular', 'vinculação', 'formulário', 'execução', 'status', 'filtros'],
       content: (
         <div>
           <h4 className="text-md font-semibold mb-3">Agendar Consulta</h4>
@@ -99,12 +107,12 @@ export default function Ajuda() {
             <li>Salve a consulta</li>
           </ol>
 
-          <h4 className="text-md font-semibold mb-3">Associar Formulário</h4>
+          <h4 className="text-md font-semibold mb-3">Vincular Formulário</h4>
           <ol className="list-decimal list-inside space-y-2 mb-4">
             <li>Clique na consulta desejada para abrir detalhes</li>
-            <li>Na seção "Execução do Formulário", clique em "Associar Formulário"</li>
+            <li>Na seção "Execução do Formulário", clique em "Vincular Formulário"</li>
             <li>Selecione um formulário disponível</li>
-            <li>Confirme a associação</li>
+            <li>Confirme a vinculação</li>
           </ol>
 
           <h4 className="text-md font-semibold mb-3">Status das Consultas</h4>
@@ -117,10 +125,18 @@ export default function Ajuda() {
 
           <h4 className="text-md font-semibold mb-3">Acessar Execução</h4>
           <p className="mb-2">Para preencher formulários:</p>
-          <ol className="list-decimal list-inside space-y-2">
-            <li>Clique na consulta com formulário associado</li>
+          <ol className="list-decimal list-inside space-y-2 mb-4">
+            <li>Clique na consulta com formulário vinculado</li>
             <li>Na seção "Execução do Formulário", clique na linha da execução</li>
             <li>Você será direcionado para a página de preenchimento</li>
+          </ol>
+
+          <h4 className="text-md font-semibold mb-3">Como Usar Filtros</h4>
+          <ol className="list-decimal list-inside space-y-2 mb-4">
+            <li>Clique no botão <strong>"Filtros"</strong> no topo da página</li>
+            <li>Ajuste os filtros disponíveis (status, data, paciente, etc.)</li>
+            <li>Por padrão, apenas consultas <strong>ATIVAS</strong> são exibidas</li>
+            <li>Use a busca textual para encontrar consultas específicas rapidamente</li>
           </ol>
         </div>
       )
@@ -163,13 +179,23 @@ export default function Ajuda() {
             <li>Novas consultas usam a versão mais recente</li>
           </ul>
 
-          <h4 className="text-md font-semibold mb-3">Liberar para Uso</h4>
-          <p className="mb-2">Formulários devem ser liberados para serem associados a consultas:</p>
-          <ol className="list-decimal list-inside space-y-2 mb-4">
-            <li>Teste o formulário completamente</li>
-            <li>Clique em "Salvar e Liberar" no menu dropdown</li>
-            <li>Confirme a liberação</li>
-          </ol>
+          <h4 className="text-md font-semibold mb-3">Salvar vs Salvar e Liberar</h4>
+          <div className="mb-4">
+            <p className="font-medium mb-2">Salvar:</p>
+            <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
+              <li>Grava as alterações do formulário</li>
+              <li>Formulário permanece em edição</li>
+              <li>Não fica disponível para vincular a consultas</li>
+            </ul>
+
+            <p className="font-medium mb-2">Salvar e Liberar:</p>
+            <ul className="list-disc list-inside space-y-1 ml-4">
+              <li><strong>Revise</strong> cuidadosamente o formulário antes</li>
+              <li>Clique em "Salvar e Liberar" no menu dropdown</li>
+              <li>Confirme a liberação</li>
+              <li>Formulário fica disponível para vincular a consultas</li>
+            </ul>
+          </div>
 
           <h4 className="text-md font-semibold mb-3">Desfazer e Refazer (Undo/Redo)</h4>
           <p className="mb-2">Durante a criação e edição de formulários, você pode desfazer ou refazer alterações:</p>
@@ -222,7 +248,7 @@ export default function Ajuda() {
             <li>Acesse a execução através de uma consulta</li>
             <li>Leia cada pergunta cuidadosamente</li>
             <li>Responda de acordo com o tipo da pergunta</li>
-            <li>Use o botão "Salvar" para gravar as respostas</li>
+            <li>Formulários podem ser salvos parcialmente e editados posteriormente</li>
           </ol>
 
           <h4 className="text-md font-semibold mb-3">Status: Liberado vs Não Liberado</h4>
@@ -254,18 +280,34 @@ export default function Ajuda() {
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
             <p className="font-medium text-yellow-800 mb-2">⚠️ Importante:</p>
             <p className="text-yellow-700">
-              Formulários salvos e não liberados até <strong>meia-noite do mesmo dia</strong>
-              são automaticamente liberados pelo sistema. Após a liberação, o formulário
+              Formulários salvos são automaticamente liberados pelo sistema <strong>após 1 dia</strong>
+              se não forem liberados manualmente. Após a liberação, o formulário
               torna-se somente leitura e não pode mais ser editado.
             </p>
+          </div>
+
+          <h4 className="text-md font-semibold mb-3">Salvar vs Salvar e Liberar</h4>
+          <div className="mb-4">
+            <p className="font-medium mb-2">Salvar:</p>
+            <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
+              <li>Grava todas as respostas parciais</li>
+              <li>Formulário permanece editável</li>
+              <li>Você pode sair e voltar várias vezes</li>
+              <li>Disponível para todos os usuários autorizados</li>
+            </ul>
+
+            <p className="font-medium mb-2">Salvar e Liberar:</p>
+            <ul className="list-disc list-inside space-y-1 ml-4">
+              <li>Finaliza o formulário permanentemente</li>
+              <li>Formulário torna-se somente leitura</li>
+              <li>Habilita geração de relatórios</li>
+              <li><strong>Acadêmicos não podem liberar</strong> - apenas preencher e salvar</li>
+            </ul>
           </div>
 
           <h4 className="text-md font-semibold mb-3">Navegação</h4>
           <ul className="list-disc list-inside space-y-1">
             <li>Use "Voltar" para retornar às consultas</li>
-            <li>"Salvar" grava todas as respostas parciais</li>
-            <li>"Salvar e Liberar" finaliza o formulário permanentemente</li>
-            <li>Você pode sair e voltar várias vezes antes de liberar</li>
             <li>Formulários liberados mostram botão de "Gerar Relatório"</li>
           </ul>
         </div>
@@ -318,7 +360,7 @@ export default function Ajuda() {
       id: 'usuarios',
       title: 'Gestão de Usuários',
       icon: Users,
-      keywords: ['usuários', 'perfil', 'editar', 'logout', 'configurações'],
+      keywords: ['usuários', 'perfil', 'editar', 'logout', 'configurações', 'filtros'],
       content: (
         <div>
           <h4 className="text-md font-semibold mb-3">Editar Perfil</h4>
@@ -338,12 +380,20 @@ export default function Ajuda() {
 
           <h4 className="text-md font-semibold mb-3">Gerenciar Outros Usuários</h4>
           <p className="mb-2">Na página "Usuários":</p>
-          <ul className="list-disc list-inside space-y-2">
+          <ul className="list-disc list-inside space-y-2 mb-4">
             <li>Visualize todos os profissionais cadastrados</li>
             <li>Adicione novos usuários ao sistema</li>
             <li>Edite dados de usuários existentes</li>
             <li>Ative ou desative contas de usuário</li>
           </ul>
+
+          <h4 className="text-md font-semibold mb-3">Como Usar Filtros</h4>
+          <ol className="list-decimal list-inside space-y-2">
+            <li>Clique no botão <strong>"Filtros"</strong> no topo da página</li>
+            <li>Filtre por cargo (Médico, Residente, Acadêmico, etc.)</li>
+            <li>Por padrão, apenas usuários <strong>ATIVOS</strong> são exibidos</li>
+            <li>Use a busca textual para encontrar por nome, email ou CRM</li>
+          </ol>
         </div>
       )
     },
