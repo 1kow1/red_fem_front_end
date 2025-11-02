@@ -17,10 +17,12 @@ import { PaginationFooter } from "../components/PaginationFooter";
 import { usePagination } from "../hooks/usePagination";
 import { useGuidedTour } from "../hooks/useGuidedTour";
 import { getTourForPage } from "../config/toursConfig";
+import { useHelp } from "../contexts/HelpContext";
 
 export default function Consultas() {
   const navigate = useNavigate();
   const { user, userCargo } = useAuth();
+  const { openHelp } = useHelp();
 
   // Tour guiado
   const tourSteps = getTourForPage('consultas');
@@ -284,7 +286,7 @@ export default function Consultas() {
         setPage={setPage}
         // Passar tour guiado e ajuda
         onStartTour={startTour}
-        onOpenHelp={() => setIsHelpModalOpen(true)}
+        onOpenHelp={openHelp}
         // Passar todas as callbacks necessárias
         callbacks={dataFrameCallbacks}
       />

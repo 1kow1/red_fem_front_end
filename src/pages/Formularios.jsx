@@ -12,9 +12,11 @@ import { useAuth } from "../contexts/auth";
 import { generateFormularioCSVReport } from "../utils/reportUtils";
 import { useGuidedTour } from "../hooks/useGuidedTour";
 import { getTourForPage } from "../config/toursConfig";
+import { useHelp } from "../contexts/HelpContext";
 
 export default function Formularios() {
   const { user, userCargo } = useAuth();
+  const { openHelp } = useHelp();
   const [forms, setForms] = useState([]);
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(15);
@@ -153,7 +155,7 @@ export default function Formularios() {
         size={size}
         setPage={setPage}
         onStartTour={startTour}
-        onOpenHelp={() => setIsHelpModalOpen(true)}
+        onOpenHelp={openHelp}
         callbacks={{
           onEdit: handleEditForm,
           onExportarCSV: handleExportarCSV,

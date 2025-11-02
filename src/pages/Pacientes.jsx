@@ -17,10 +17,12 @@ import { ButtonPrimaryDropdown } from "../components/Button";
 import { generateCSVReport, generatePDFReport } from "../utils/reportUtils";
 import { useGuidedTour } from "../hooks/useGuidedTour";
 import { getTourForPage } from "../config/toursConfig";
+import { useHelp } from "../contexts/HelpContext";
 
 export default function Pacientes() {
   const navigate = useNavigate();
   const { user, userCargo } = useAuth();
+  const { openHelp } = useHelp();
 
   // Tour guiado
   const tourSteps = getTourForPage('pacientes');
@@ -633,7 +635,7 @@ export default function Pacientes() {
         setPage={setPage}
         // Passar tour guiado e ajuda
         onStartTour={startTour}
-        onOpenHelp={() => setIsHelpModalOpen(true)}
+        onOpenHelp={openHelp}
         callbacks={{
           onEdit: openEditForm,
           onToggle: handleToggleActive,

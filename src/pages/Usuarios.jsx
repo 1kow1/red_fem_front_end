@@ -15,9 +15,11 @@ import { handleApiError } from "../utils/errorHandler";
 import { useAuth } from "../contexts/auth/useAuth";
 import { useGuidedTour } from "../hooks/useGuidedTour";
 import { getTourForPage } from "../config/toursConfig";
+import { useHelp } from "../contexts/HelpContext";
 
 export default function Usuarios() {
   const { user: currentUser } = useAuth();
+  const { openHelp } = useHelp();
 
   // Tour guiado
   const tourSteps = getTourForPage('usuarios');
@@ -245,7 +247,7 @@ export default function Usuarios() {
         setPage={setPage}
         // Passar tour guiado e ajuda
         onStartTour={startTour}
-        onOpenHelp={() => setIsHelpModalOpen(true)}
+        onOpenHelp={openHelp}
       />
 
       <PaginationFooter

@@ -38,6 +38,12 @@ export default function Table({
   const { user } = useAuth();
   const userCargo = user?.cargo;
 
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedRowData(null);
+    setPopupConfig({});
+  }
+
   useEffect(() => {
     if (!selectedRowData) return;
 
@@ -121,23 +127,19 @@ export default function Table({
     }
   }
 
-  const handleClosePopup = () => {
-    setIsPopupOpen(false);
-    setSelectedRowData(null);
-    setPopupConfig({});
-  }
-
   return (
     <>
       <div className={`rounded-sm border-2 ${className}`}>
         <table className="w-full">
           <thead className="">
-            {headers.map((header) => (
-              (header==='id')?null:
-              <th key={header} className={`${(typeof data[0][header] === "number") ? "text-center " : "text-left "} bg-gray-100 font-bold text-base px-2 py-1`}>
-                {formatHeader(header)}
-              </th>
-            ))}
+            <tr>
+              {headers.map((header) => (
+                (header==='id')?null:
+                <th key={header} className={`${(typeof data[0][header] === "number") ? "text-center " : "text-left "} bg-gray-100 font-bold text-base px-2 py-1`}>
+                  {formatHeader(header)}
+                </th>
+              ))}
+            </tr>
           </thead>
           <tbody>
             {data.map((row, index) => (

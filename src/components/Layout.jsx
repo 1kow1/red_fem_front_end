@@ -1,8 +1,8 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import { useState } from 'react'
 import Sidebar from './Sidebar'
 import ContextualHelpModal from './ContextualHelpModal'
 import useKeyboardShortcut from '../hooks/useKeyboardShortcut'
+import { HelpProvider, useHelp } from '../contexts/HelpContext'
 
 function Wrapper({ children }){
   return <>
@@ -12,9 +12,9 @@ function Wrapper({ children }){
   </>
 }
 
-export default function Layout() {
+function LayoutContent() {
   const location = useLocation();
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const { isHelpModalOpen, openHelp, closeHelp } = useHelp();
 
   // Mapear rotas para contextos de ajuda
   const getHelpContext = () => {
@@ -29,14 +29,12 @@ export default function Layout() {
   };
 
   // Atalho F1 global para todas as páginas
-  useKeyboardShortcut('F1', () => {
-    setIsHelpModalOpen(true);
-  });
+  useKeyboardShortcut('F1', openHelp);
 
   return <>
     <ContextualHelpModal
       isOpen={isHelpModalOpen}
-      onClose={() => setIsHelpModalOpen(false)}
+      onClose={closeHelp}
       context={getHelpContext()}
     />
 
@@ -47,4 +45,12 @@ export default function Layout() {
       </Wrapper>
     </div>
   </>
+}
+
+export default function Layout() {
+  return (
+    <HelpProvider>
+      <LayoutContent />
+    </HelpProvider>
+  );
 }
