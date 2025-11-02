@@ -15,8 +15,6 @@ import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import { useAuth } from '../contexts/auth/useAuth';
 import { canUseComponent } from '../utils/permissions';
 import HelpTooltip from "../components/HelpTooltip";
-import ContextualHelpModal from "../components/ContextualHelpModal";
-import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 
 export default function FormularioEditor() {
   const location = useLocation();
@@ -30,7 +28,6 @@ export default function FormularioEditor() {
   const [isConfirmOpenFormulario, setIsConfirmOpenFormulario] = useState(false);
   const [isConfirmOpenPergunta, setIsConfirmOpenPergunta] = useState(false);
   const [perguntaIdToDelete, setPerguntaIdToDelete] = useState(null);
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [erros, setErros] = useState({});
@@ -644,20 +641,9 @@ export default function FormularioEditor() {
     return () => document.removeEventListener('keydown', handleKeydown);
   }, [handleUndo, handleRedo]);
 
-  // Atalho F1 para ajuda contextual
-  useKeyboardShortcut('F1', () => {
-    setIsHelpModalOpen(true);
-  });
-
   // --- UI render ---
   return (
     <div>
-      <ContextualHelpModal
-        isOpen={isHelpModalOpen}
-        onClose={() => setIsHelpModalOpen(false)}
-        context="formulario-editor"
-      />
-
       <ConfirmationPopUp
         isOpen={isConfirmOpenFormulario}
         message={`Tem certeza que deseja descartar todas as alterações?`}

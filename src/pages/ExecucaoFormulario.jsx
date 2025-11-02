@@ -14,8 +14,6 @@ import ModalRelatorio from "../components/ModalRelatorio";
 import ConfirmationPopUp from "../components/ConfirmationPopUp";
 import { generateCSVReport, generatePDFReport } from "../utils/reportUtils";
 import HelpTooltip from "../components/HelpTooltip";
-import ContextualHelpModal from "../components/ContextualHelpModal";
-import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 
 export default function ExecucaoFormulario() {
   const navigate = useNavigate();
@@ -34,9 +32,6 @@ export default function ExecucaoFormulario() {
 
   // Estados para o modal de confirmação de cancelamento
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
-
-  // Estado para o modal de ajuda
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   // Estado para minimizar card de paciente
   const [isCardMinimized, setIsCardMinimized] = useState(false);
@@ -521,11 +516,6 @@ export default function ExecucaoFormulario() {
     }
   }, [pacienteData, formulario, respostas, execucaoData]);
 
-  // Atalho F1 para ajuda contextual
-  useKeyboardShortcut('F1', () => {
-    setIsHelpModalOpen(true);
-  });
-
   // Scroll listener para minimizar card automaticamente com hysteresis e throttling
   useEffect(() => {
     let throttleTimer = null;
@@ -576,12 +566,6 @@ export default function ExecucaoFormulario() {
   // --- UI render ---
   return (
     <div>
-      <ContextualHelpModal
-        isOpen={isHelpModalOpen}
-        onClose={() => setIsHelpModalOpen(false)}
-        context="execucao-formulario"
-      />
-
       <div
         className="
           flex flex-row justify-between items-center p-4

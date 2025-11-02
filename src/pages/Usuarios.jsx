@@ -15,19 +15,13 @@ import { handleApiError } from "../utils/errorHandler";
 import { useAuth } from "../contexts/auth/useAuth";
 import { useGuidedTour } from "../hooks/useGuidedTour";
 import { getTourForPage } from "../config/toursConfig";
-import ContextualHelpModal from "../components/ContextualHelpModal";
-import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 
 export default function Usuarios() {
   const { user: currentUser } = useAuth();
 
-  // Tour guiado e ajuda
+  // Tour guiado
   const tourSteps = getTourForPage('usuarios');
   const { startTour } = useGuidedTour('usuarios', tourSteps || []);
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-
-  // Atalho F1 para ajuda
-  useKeyboardShortcut('F1', () => setIsHelpModalOpen(true));
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -285,13 +279,6 @@ export default function Usuarios() {
         isOpen={isChangePasswordOpen}
         onClose={handleCloseChangePassword}
         userData={userToChangePassword}
-      />
-
-      {/* Modal de Ajuda Contextual */}
-      <ContextualHelpModal
-        isOpen={isHelpModalOpen}
-        onClose={() => setIsHelpModalOpen(false)}
-        context="usuarios"
       />
     </div>
   );

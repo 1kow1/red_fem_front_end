@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import HelpSection from '../components/HelpSection';
 import SearchableHelp from '../components/SearchableHelp';
-import { Book, Users, Calendar, FileText, Edit, BarChart3 } from 'lucide-react';
+import { Book, Users, Calendar, FileText, Edit, BarChart3, Lightbulb } from 'lucide-react';
 
 export default function Ajuda() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,6 +38,98 @@ export default function Ajuda() {
             <li><strong>Pacientes:</strong> Cadastro e histórico de pacientes</li>
             <li><strong>Usuários:</strong> Gerenciar profissionais do sistema</li>
           </ul>
+
+          <h4 className="text-md font-semibold mb-3 mt-4">Recursos de Ajuda Disponíveis</h4>
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+            <p className="mb-3 font-medium text-gray-800">O sistema oferece diversos recursos para ajudá-lo:</p>
+            <ul className="list-disc list-inside space-y-2">
+              <li><strong>Tour Guiado:</strong> Tutorial interativo que mostra como usar cada página</li>
+              <li><strong>Atalho F1:</strong> Pressione F1 em qualquer página para ajuda contextual rápida</li>
+              <li><strong>Tooltips:</strong> Ícones de ajuda (❓) espalhados pelo sistema com dicas úteis</li>
+              <li><strong>Esta Central de Ajuda:</strong> Documentação completa com busca por palavras-chave</li>
+            </ul>
+            <p className="mt-3 text-sm text-gray-600">
+              💡 Explore a seção <strong>"Recursos de Ajuda do Sistema"</strong> abaixo para mais detalhes!
+            </p>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'recursos-ajuda',
+      title: 'Recursos de Ajuda do Sistema',
+      icon: Lightbulb,
+      keywords: ['ajuda', 'tour', 'guiado', 'F1', 'atalho', 'tooltip', 'dica', 'help', 'tutorial'],
+      content: (
+        <div>
+          <h4 className="text-md font-semibold mb-3">Tour Guiado Interativo</h4>
+          <p className="mb-2">
+            O sistema oferece um tour guiado que apresenta as principais funcionalidades de cada página.
+          </p>
+          <ol className="list-decimal list-inside space-y-2 mb-4">
+            <li>Acesse qualquer página do sistema (Consultas, Formulários, etc.)</li>
+            <li>Procure pelo botão do tour guiado (geralmente no canto superior direito)</li>
+            <li>Clique para iniciar o tour passo a passo</li>
+            <li>Siga as instruções em cada etapa</li>
+            <li>O sistema lembra que você já viu o tour e não mostrará novamente automaticamente</li>
+          </ol>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+            <p className="text-blue-800 text-sm">
+              <strong>💡 Dica:</strong> O tour guiado é ideal para novos usuários ou quando você precisa relembrar como usar uma funcionalidade específica.
+            </p>
+          </div>
+
+          <h4 className="text-md font-semibold mb-3">Atalho F1 - Ajuda Contextual</h4>
+          <p className="mb-2">
+            Pressione a tecla <kbd className="px-2 py-1 bg-gray-100 border border-gray-300 rounded">F1</kbd> em qualquer página para abrir a ajuda contextual.
+          </p>
+          <div className="mb-4">
+            <p className="font-medium mb-2">Como funciona:</p>
+            <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
+              <li>A ajuda exibida é específica para a página em que você está</li>
+              <li>Mostra dicas rápidas e atalhos relevantes</li>
+              <li>Funciona em todas as páginas do sistema</li>
+              <li>Pressione ESC ou clique fora do modal para fechar</li>
+            </ul>
+          </div>
+
+          <h4 className="text-md font-semibold mb-3">Tooltips Contextuais (Dicas Rápidas)</h4>
+          <p className="mb-2">
+            Ao longo do sistema, você encontrará pequenos ícones de ajuda que fornecem informações adicionais.
+          </p>
+          <div className="mb-4">
+            <p className="font-medium mb-2">Identificando tooltips:</p>
+            <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
+              <li>Procure por ícones de interrogação (❓) ou ícone de informação (ℹ️)</li>
+              <li>Passe o mouse sobre o ícone para ver a dica</li>
+              <li>As dicas aparecem instantaneamente</li>
+              <li>Útil para entender campos ou funcionalidades específicas sem sair da página</li>
+            </ul>
+          </div>
+
+          <h4 className="text-md font-semibold mb-3">Central de Ajuda</h4>
+          <p className="mb-2">
+            Esta página (onde você está agora) contém toda a documentação do sistema.
+          </p>
+          <div className="mb-4">
+            <p className="font-medium mb-2">Como usar:</p>
+            <ul className="list-disc list-inside space-y-1 mb-3 ml-4">
+              <li>Use a barra de busca no topo para encontrar tópicos específicos</li>
+              <li>Clique nos cards de "Navegação Rápida" para ir direto a uma seção</li>
+              <li>Todas as seções estão expandíveis - clique para abrir/fechar</li>
+              <li>Você pode acessar esta página a qualquer momento pelo menu lateral</li>
+            </ul>
+          </div>
+
+          <div className="bg-green-50 border-l-4 border-green-400 p-4">
+            <p className="font-medium text-green-800 mb-2">✅ Resumo dos Recursos</p>
+            <ul className="text-green-700 space-y-1">
+              <li><strong>Tour Guiado:</strong> Tutorial interativo passo a passo</li>
+              <li><strong>F1:</strong> Ajuda rápida contextual em qualquer página</li>
+              <li><strong>Tooltips:</strong> Dicas ao passar o mouse sobre ícones de ajuda</li>
+              <li><strong>Central de Ajuda:</strong> Documentação completa com busca</li>
+            </ul>
+          </div>
         </div>
       )
     },
@@ -360,15 +452,41 @@ export default function Ajuda() {
       id: 'usuarios',
       title: 'Gestão de Usuários',
       icon: Users,
-      keywords: ['usuários', 'perfil', 'editar', 'logout', 'configurações', 'filtros'],
+      keywords: ['usuários', 'perfil', 'editar', 'logout', 'configurações', 'filtros', 'senha', 'recuperar', 'resetar', 'esqueci'],
       content: (
         <div>
+          <h4 className="text-md font-semibold mb-3">Recuperar Senha (Esqueci Minha Senha)</h4>
+          <p className="mb-2">
+            Caso tenha esquecido sua senha, você pode recuperá-la através da tela de login:
+          </p>
+          <ol className="list-decimal list-inside space-y-2 mb-4">
+            <li>Na tela de login, clique em "Esqueci minha senha"</li>
+            <li>Você será direcionado para a página de recuperação de senha</li>
+            <li>Siga as instruções para redefinir sua senha</li>
+            <li>Após redefinir, faça login com a nova senha</li>
+          </ol>
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+            <p className="text-yellow-800 text-sm">
+              <strong>⚠️ Importante:</strong> Se não conseguir recuperar sua senha, entre em contato com o administrador do sistema.
+            </p>
+          </div>
+
           <h4 className="text-md font-semibold mb-3">Editar Perfil</h4>
           <ol className="list-decimal list-inside space-y-2 mb-4">
             <li>Clique no botão "Configurações" na sidebar</li>
             <li>Selecione "Editar Perfil"</li>
             <li>Modifique nome, email, telefone, CRM ou especialidade</li>
             <li>Clique em "Salvar"</li>
+          </ol>
+
+          <h4 className="text-md font-semibold mb-3">Alterar Senha</h4>
+          <p className="mb-2">Para alterar sua senha enquanto logado:</p>
+          <ol className="list-decimal list-inside space-y-2 mb-4">
+            <li>Acesse "Configurações" na sidebar</li>
+            <li>Selecione "Editar Perfil"</li>
+            <li>Procure pela seção de alteração de senha</li>
+            <li>Digite a senha atual e a nova senha</li>
+            <li>Confirme a nova senha e salve</li>
           </ol>
 
           <h4 className="text-md font-semibold mb-3">Logout</h4>

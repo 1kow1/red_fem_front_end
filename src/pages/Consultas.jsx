@@ -17,20 +17,14 @@ import { PaginationFooter } from "../components/PaginationFooter";
 import { usePagination } from "../hooks/usePagination";
 import { useGuidedTour } from "../hooks/useGuidedTour";
 import { getTourForPage } from "../config/toursConfig";
-import ContextualHelpModal from "../components/ContextualHelpModal";
-import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 
 export default function Consultas() {
   const navigate = useNavigate();
   const { user, userCargo } = useAuth();
 
-  // Tour guiado e ajuda
+  // Tour guiado
   const tourSteps = getTourForPage('consultas');
   const { startTour } = useGuidedTour('consultas', tourSteps || []);
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-
-  // Atalho F1 para ajuda
-  useKeyboardShortcut('F1', () => setIsHelpModalOpen(true));
 
   // States existentes...
   const [consultas, setConsultas] = useState([]);
@@ -348,13 +342,6 @@ export default function Consultas() {
           setIsConfirmCancelOpen(false);
           setConsultaParaCancelar(null);
         }}
-      />
-
-      {/* Modal de Ajuda Contextual */}
-      <ContextualHelpModal
-        isOpen={isHelpModalOpen}
-        onClose={() => setIsHelpModalOpen(false)}
-        context="consultas"
       />
     </div>
   );

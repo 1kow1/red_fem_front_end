@@ -12,8 +12,6 @@ import { useAuth } from "../contexts/auth";
 import { generateFormularioCSVReport } from "../utils/reportUtils";
 import { useGuidedTour } from "../hooks/useGuidedTour";
 import { getTourForPage } from "../config/toursConfig";
-import ContextualHelpModal from "../components/ContextualHelpModal";
-import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 
 export default function Formularios() {
   const { user, userCargo } = useAuth();
@@ -28,13 +26,9 @@ export default function Formularios() {
   const [editLoading, setEditLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Tour guiado e ajuda
+  // Tour guiado
   const tourSteps = getTourForPage('formularios');
   const { startTour } = useGuidedTour('formularios', tourSteps || []);
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-
-  // Atalho F1 para ajuda
-  useKeyboardShortcut('F1', () => setIsHelpModalOpen(true));
 
   const avaiableFilters = filterConfigs['formularios'];
 
@@ -173,12 +167,6 @@ export default function Formularios() {
         totalRecords={totalRecords}
         size={size}
         onPageChange={setPage}
-      />
-
-      <ContextualHelpModal
-        isOpen={isHelpModalOpen}
-        onClose={() => setIsHelpModalOpen(false)}
-        context="formularios"
       />
     </div>
   );

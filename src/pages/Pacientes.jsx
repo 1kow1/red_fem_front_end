@@ -17,20 +17,14 @@ import { ButtonPrimaryDropdown } from "../components/Button";
 import { generateCSVReport, generatePDFReport } from "../utils/reportUtils";
 import { useGuidedTour } from "../hooks/useGuidedTour";
 import { getTourForPage } from "../config/toursConfig";
-import ContextualHelpModal from "../components/ContextualHelpModal";
-import useKeyboardShortcut from "../hooks/useKeyboardShortcut";
 
 export default function Pacientes() {
   const navigate = useNavigate();
   const { user, userCargo } = useAuth();
 
-  // Tour guiado e ajuda
+  // Tour guiado
   const tourSteps = getTourForPage('pacientes');
   const { startTour } = useGuidedTour('pacientes', tourSteps || []);
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-
-  // Atalho F1 para ajuda
-  useKeyboardShortcut('F1', () => setIsHelpModalOpen(true));
 
   const [pacientes, setPacientes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -684,13 +678,6 @@ export default function Pacientes() {
         }}
         pacienteData={pacienteRelatorio}
         consultas={pacienteRelatorio?.consultas || []}
-      />
-
-      {/* Modal de Ajuda Contextual */}
-      <ContextualHelpModal
-        isOpen={isHelpModalOpen}
-        onClose={() => setIsHelpModalOpen(false)}
-        context="pacientes"
       />
     </div>
   );
