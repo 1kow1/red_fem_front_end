@@ -515,12 +515,7 @@ export default function ExecucaoFormulario() {
   }, [pacienteData, formulario, respostas, execucaoData]);
 
   const calcularIdade = (dataNascimento) => {
-    console.log("Teste:", new Date("1920-01-01"));
-    console.log("Recebido:", dataNascimento);
-
     const nascimento = new Date(dataNascimento);
-
-    console.log("Nascimento:", nascimento);
 
     const hoje = new Date();
 
