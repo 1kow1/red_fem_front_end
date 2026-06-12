@@ -33,8 +33,6 @@ export default function ExecucaoFormulario() {
   // Estados para o modal de confirmação de cancelamento
   const [isConfirmCancelOpen, setIsConfirmCancelOpen] = useState(false);
 
-  // Estado para minimizar card de paciente
-  const [isCardMinimized, setIsCardMinimized] = useState(false);
   const fetchExecucaoData = async () => {
     if (!execId) {
       toast.error("ID da execução não fornecido");
@@ -284,10 +282,10 @@ export default function ExecucaoFormulario() {
     // Construir dados com formulário completo e dados dinâmicos da execução
     // Tentar obter idConsulta de várias fontes
     const idConsulta = execucaoData.idConsulta ||
-                       execucaoData.consulta?.id ||
-                       location.state?.execData?.idConsulta ||
-                       location.state?.execData?.consulta?.id ||
-                       location.state?.idConsulta;
+      execucaoData.consulta?.id ||
+      location.state?.execData?.idConsulta ||
+      location.state?.execData?.consulta?.id ||
+      location.state?.idConsulta;
     if (!idConsulta) {
       toast.error('ID da consulta não encontrado. Não é possível salvar.');
       return;
@@ -346,10 +344,10 @@ export default function ExecucaoFormulario() {
     }
     // Construir dados com preenchimentoCompleto = true para liberação
     const idConsulta = execucaoData.idConsulta ||
-                       execucaoData.consulta?.id ||
-                       location.state?.execData?.idConsulta ||
-                       location.state?.execData?.consulta?.id ||
-                       location.state?.idConsulta;
+      execucaoData.consulta?.id ||
+      location.state?.execData?.idConsulta ||
+      location.state?.execData?.consulta?.id ||
+      location.state?.idConsulta;
     if (!idConsulta) {
       toast.error('ID da consulta não encontrado. Não é possível salvar.');
       return;
@@ -516,51 +514,28 @@ export default function ExecucaoFormulario() {
     }
   }, [pacienteData, formulario, respostas, execucaoData]);
 
-  // Scroll listener para minimizar card automaticamente com hysteresis e throttling
-  useEffect(() => {
-    let throttleTimer = null;
-    let isTransitioning = false;
+  const calcularIdade = (dataNascimento) => {
+    console.log("Teste:", new Date("1920-01-01"));
+    console.log("Recebido:", dataNascimento);
 
-    const handleScroll = () => {
-      // Throttling: limitar atualizações para evitar excesso de renders
-      if (throttleTimer || isTransitioning) return;
+    const nascimento = new Date(dataNascimento);
 
-      throttleTimer = setTimeout(() => {
-        throttleTimer = null;
-      }, 50); // Máximo 20 atualizações por segundo
+    console.log("Nascimento:", nascimento);
 
-      const scrollPosition = window.scrollY;
-      const MINIMIZE_THRESHOLD = 250; // Threshold para minimizar ao descer (aumentado)
-      const EXPAND_THRESHOLD = 150;   // Threshold para expandir ao subir (diminuído)
-      // Gap de 100px (antes era 40px) para evitar flickering
+    const hoje = new Date();
 
-      // Minimizar apenas se passou do threshold
-      if (scrollPosition > MINIMIZE_THRESHOLD && !isCardMinimized) {
-        isTransitioning = true;
-        setIsCardMinimized(true);
-        // Aguardar fim da transição CSS (300ms)
-        setTimeout(() => { isTransitioning = false; }, 300);
-      }
-      // Expandir apenas se voltou abaixo do threshold
-      else if (scrollPosition < EXPAND_THRESHOLD && isCardMinimized) {
-        isTransitioning = true;
-        setIsCardMinimized(false);
-        // Aguardar fim da transição CSS (300ms)
-        setTimeout(() => { isTransitioning = false; }, 300);
-      }
-      // Entre 150-250px: manter estado atual (zona morta/hysteresis)
-    };
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
 
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (throttleTimer) clearTimeout(throttleTimer);
-    };
-  }, [isCardMinimized]); // Adicionar isCardMinimized para checar estado atual
+    const mes = hoje.getMonth() - nascimento.getMonth();
 
-  // Função para voltar ao topo do formulário
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (
+      mes < 0 ||
+      (mes === 0 && hoje.getDate() < nascimento.getDate())
+    ) {
+      idade--;
+    }
+
+    return idade;
   };
 
   // --- UI render ---
@@ -625,124 +600,49 @@ export default function ExecucaoFormulario() {
       </div>
       <div className="pt-24 pb-4 px-80 max-[1200px]:px-20 bg-redfemVariantPink bg-opacity-10 min-h-screen">
         <div className="flex flex-col gap-4">
-          {/* Card com dados do paciente - Sempre visível */}
-          {pacienteData && (
-            <Card className={`bg-gradient-to-r from-redfemPink/5 to-white border-l-4 border-l-redfemPink shadow-md sticky top-20 z-10 transition-all duration-300 ${isCardMinimized ? 'py-2' : ''}`}>
-              <div className={`px-6 ${isCardMinimized ? 'py-2' : 'py-4'}`}>
-                <div className="flex items-center justify-between gap-3 mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-redfemPink rounded-full p-2">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    {isCardMinimized ? (
-                      <p className="text-base font-bold text-gray-900">{pacienteData.nome}</p>
-                    ) : (
-                      <h3 className="text-base font-bold text-redfemDarkPink uppercase tracking-wide">Informações da Paciente</h3>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setIsCardMinimized(!isCardMinimized)}
-                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                      title={isCardMinimized ? "Expandir" : "Minimizar"}
-                    >
-                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {isCardMinimized ? (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        ) : (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                        )}
-                      </svg>
-                    </button>
-                    <button
-                      onClick={scrollToTop}
-                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                      title="Voltar ao início"
-                    >
-                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                {!isCardMinimized && (
-                  <div className="grid grid-cols-3 gap-x-6 gap-y-3 mt-4">
-                    <div className="col-span-2">
-                      <span className="text-xs font-semibold text-gray-500 uppercase">Nome Completo</span>
-                      <p className="text-base font-semibold text-gray-900">{pacienteData.nome}</p>
-                    </div>
-                    {pacienteData.cpf && (
-                      <div>
-                        <span className="text-xs font-semibold text-gray-500 uppercase">CPF</span>
-                        <p className="text-base font-medium text-gray-900">{pacienteData.cpf}</p>
-                      </div>
-                    )}
-                    {pacienteData._dataDeNascimento && (
-                      <div>
-                        <span className="text-xs font-semibold text-gray-500 uppercase">Data de Nascimento</span>
-                        <p className="text-base font-medium text-gray-900">{pacienteData._dataDeNascimento}</p>
-                      </div>
-                    )}
-                    {pacienteData.telefone && (
-                      <div>
-                        <span className="text-xs font-semibold text-gray-500 uppercase">Telefone</span>
-                        <p className="text-base font-medium text-gray-900">{pacienteData.telefone}</p>
-                      </div>
-                    )}
-                    {pacienteData.email && (
-                      <div>
-                        <span className="text-xs font-semibold text-gray-500 uppercase">E-mail</span>
-                        <p className="text-base font-medium text-gray-900">{pacienteData.email}</p>
-                      </div>
-                    )}
-                    {pacienteData.estadoCivil && (
-                      <div>
-                        <span className="text-xs font-semibold text-gray-500 uppercase">Estado Civil</span>
-                        <p className="text-base font-medium text-gray-900">{pacienteData._estadoCivil || pacienteData.estadoCivil}</p>
-                      </div>
-                    )}
-                    {pacienteData.profissao && (
-                      <div>
-                        <span className="text-xs font-semibold text-gray-500 uppercase">Profissão</span>
-                        <p className="text-base font-medium text-gray-900">{pacienteData.profissao}</p>
-                      </div>
-                    )}
-                    {pacienteData.cidade && (
-                      <div>
-                        <span className="text-xs font-semibold text-gray-500 uppercase">Cidade/UF</span>
-                        <p className="text-base font-medium text-gray-900">{pacienteData.cidade}/{pacienteData.uf}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </Card>
-          )}
-
           <Card
-            className={`${erros.length > 0 ? 'border border-red-500' : ''}`}
+            className={`
+    shadow-md
+    bg-white
+    ${Object.keys(erros).length > 0 ? 'border border-red-500' : ''}
+  `}
           >
+            {/* Barra superior rosa */}
             <div className="bg-redfemDarkPink w-full h-2 rounded-t-lg"></div>
-            <div className="py-4 px-8">
-              {erros.length > 0 && (
-                <ul className="w-full flex flex-col mb-4">
-                  {erros.map((erro, index) => (
-                    <li key={index} className="text-red-500 text-sm">
-                      • {erro}
-                    </li>
-                  ))}
+
+            <div className="px-8 py-6">
+
+              {/* Lista de erros */}
+              {Object.keys(erros).length > 0 && (
+                <ul className="w-full flex flex-col gap-1 mb-6">
+                  {Object.values(erros)
+                    .flat()
+                    .map((erro, index) => (
+                      <li
+                        key={index}
+                        className="text-red-500 text-sm"
+                      >
+                        • {erro}
+                      </li>
+                    ))}
                 </ul>
               )}
-              <p
-                className="text-2xl mb-2"
-              >
-                {formulario.titulo || "Formulário não associado"}
-              </p>
-              <p>
-                {formulario.descricao || ""}
-              </p>
+
+              {/* Cabeçalho */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <p className="text-2xl mb-2">
+                    {formulario.titulo || "Formulário não associado"}
+                  </p>
+
+                  {formulario.descricao && (
+                    <p className="text-gray-700">
+                      {formulario.descricao}
+                    </p>
+                  )}
+                </div>
+              </div>
+
               {!formulario.titulo && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4">
                   <p className="text-yellow-800 text-sm">
@@ -751,6 +651,7 @@ export default function ExecucaoFormulario() {
                   </p>
                 </div>
               )}
+
               {isLiberado && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                   <p className="text-blue-800 text-sm">
@@ -758,6 +659,51 @@ export default function ExecucaoFormulario() {
                     Você pode visualizar as respostas, mas não fazer alterações.
                   </p>
                 </div>
+              )}
+
+              {/* Dados da paciente */}
+              {pacienteData && (
+                <>
+                  <div className="border-t border-gray-200 my-6"></div>
+
+                  <div className="mb-6">
+                    <h2 className="text-xl font-normal text-gray-900">
+                      {pacienteData.nome}
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-8">
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Idade
+                      </p>
+
+                      <p className="mt-1 text-base text-gray-900">
+                        {calcularIdade(pacienteData.dataDeNascimento)} anos
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Estado Civil
+                      </p>
+
+                      <p className="mt-1 text-base text-gray-900">
+                        {pacienteData._estadoCivil || pacienteData.estadoCivil}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Profissão
+                      </p>
+
+                      <p className="mt-1 text-base text-gray-900">
+                        {pacienteData.profissao}
+                      </p>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </Card>
